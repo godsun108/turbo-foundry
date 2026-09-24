@@ -18,4 +18,7 @@ jobs:
           test -f SECURITY.md
           test -f templates/project/README.template.md
           grep -q "Build.*measure.*learn.*preserve.*compound" README.md
-          echo "Turbo Foundry core verified."\n      - name: Test project generator\n        run: python -m unittest discover -s tests -v
+          echo "Turbo Foundry core verified."\n      - name: Test project generator
+        run: python -m unittest discover -s tests -v
+      - name: Test Base One Engine
+        run: python -m unittest discover -s projects/base-one-engine/tests -v
