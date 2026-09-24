@@ -15,6 +15,13 @@ class FoundryTests(unittest.TestCase):
             self.assertTrue((root/"tests/test_smoke.py").exists())
             self.assertIn("Analyze property deals.",(root/"README.md").read_text())
 
+    def test_business_scaffold(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=scaffold("Base One Engine","Analyze property deals.",Path(d),"business")
+            self.assertTrue((root/"operations").is_dir())
+            self.assertTrue((root/"models").is_dir())
+            self.assertIn("Project type: business",(root/"README.md").read_text())
+
     def test_refuses_overwrite(self):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d)/"x"; root.mkdir(); (root/"keep").write_text("x")
