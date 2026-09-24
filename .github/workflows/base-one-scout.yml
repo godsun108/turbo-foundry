@@ -1,0 +1,31 @@
+name: Base One Scout
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 12 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  scout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run Scout
+        working-directory: projects/base-one-engine
+        run: |
+          python src/scout_runner.py \
+            --source data/scout-source.example.json \
+            --config config/scout.example.json \
+            --state data/scout-state.json \
+            --outdir outputs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: base-one-scout-results
+          path: projects/base-one-engine/outputs/
+          retention-days: 14
