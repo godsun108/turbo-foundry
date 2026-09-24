@@ -1,0 +1,47 @@
+name: Base One Scout - RentCast
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "47 12 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  scout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Credential gate
+        id: gate
+        env:
+          RENTCAST_API_KEY: ${{ secrets.RENTCAST_API_KEY }}
+        run: |
+          if [ -n "$RENTCAST_API_KEY" ]; then echo "ready=true" >> "$GITHUB_OUTPUT";
+          else echo "ready=false" >> "$GITHUB_OUTPUT"; echo "Add RENTCAST_API_KEY to activate."; fi
+      - name: Fetch and run Scout
+        if: steps.gate.outputs.ready == 'true'
+        working-directory: projects/base-one-engine
+        env:
+          RENTCAST_API_KEY: ${{ secrets.RENTCAST_API_KEY }}
+        run: |
+          python - <<'PY'
+          import json,sys
+          from dataclasses import asdict
+          sys.path.insert(0,"src")
+          from adapters.rentcast import fetch_target_cities
+          rows=fetch_target_cities(["Port St. Lucie","Port Saint Lucie","Jensen Beach","Stuart"])
+          open("data/scout-rentcast.json","w").write(json.dumps([asdict(x) for x in rows],indent=2)+"\n")
+          print("active candidates:",len(rows))
+          PY
+          python src/scout_runner.py --source data/scout-rentcast.json --config config/scout.example.json --state data/scout-state-rentcast.json --outdir outputs/rentcast
+      - uses: actions/upload-artifact@v4
+        if: steps.gate.outputs.ready == 'true'
+        with:
+          name: base-one-scout-rentcast-results
+          path: projects/base-one-engine/outputs/rentcast/
+          retention-days: 14
