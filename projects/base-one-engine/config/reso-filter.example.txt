@@ -1,0 +1,1 @@
+StandardStatus eq 'Active' and (City eq 'Port St. Lucie' or City eq 'Port Saint Lucie' or City eq 'Jensen Beach' or City eq 'Stuart')
