@@ -1,0 +1,54 @@
+name: Base One Scout Live
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "37 12 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  scout-live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check live-feed credentials
+        id: gate
+        env:
+          RESO_ENDPOINT: ${{ secrets.RESO_ENDPOINT }}
+          RESO_TOKEN: ${{ secrets.RESO_TOKEN }}
+        run: |
+          if [ -n "$RESO_ENDPOINT" ] && [ -n "$RESO_TOKEN" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Live Scout dormant: add RESO_ENDPOINT and RESO_TOKEN repository secrets."
+          fi
+      - name: Fetch active listings
+        if: steps.gate.outputs.ready == 'true'
+        working-directory: projects/base-one-engine
+        env:
+          RESO_ENDPOINT: ${{ secrets.RESO_ENDPOINT }}
+          RESO_TOKEN: ${{ secrets.RESO_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json,sys
+          from dataclasses import asdict
+          sys.path.insert(0,"src")
+          from adapters.reso_web_api import fetch_from_env
+          f=open("config/reso-filter.example.txt").read().strip()
+          rows=fetch_from_env(f,500)
+          open("data/scout-live.json","w").write(json.dumps([asdict(x) for x in rows],indent=2)+"\n")
+          print("active candidates:",len(rows))
+          PY
+          python src/scout_runner.py --source data/scout-live.json --config config/scout.example.json --state data/scout-state-live.json --outdir outputs/live
+      - uses: actions/upload-artifact@v4
+        if: steps.gate.outputs.ready == 'true'
+        with:
+          name: base-one-scout-live-results
+          path: projects/base-one-engine/outputs/live/
+          retention-days: 14
