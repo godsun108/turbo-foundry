@@ -1,0 +1,19 @@
+{
+  "schema_version": "example-only",
+  "property": {
+    "address": "123 Example St",
+    "asking_price": 250000,
+    "property_type": "single_family",
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "square_feet": 1500,
+    "annual_property_tax": 3000,
+    "annual_insurance_estimate": 2400,
+    "monthly_rent_estimate": 2200,
+    "rehab_estimate": 15000
+  },
+  "source": {
+    "kind": "example",
+    "reference": "synthetic-test-record"
+  }
+}
