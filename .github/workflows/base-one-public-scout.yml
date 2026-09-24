@@ -1,0 +1,26 @@
+name: Base One Public Scout
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "7 11 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  public-scout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Query public records
+        working-directory: projects/base-one-engine
+        run: python src/public_scout.py --limit 2000 --outdir outputs/public
+      - uses: actions/upload-artifact@v4
+        with:
+          name: base-one-public-scout
+          path: projects/base-one-engine/outputs/public/
+          retention-days: 14
