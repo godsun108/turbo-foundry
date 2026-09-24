@@ -1,0 +1,21 @@
+name: Foundry CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  standards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Foundry core
+        run: |
+          set -euo pipefail
+          test -f README.md
+          test -f FOUNDRY_STANDARD.md
+          test -f CHANGELOG.md
+          test -f SECURITY.md
+          test -f templates/project/README.template.md
+          grep -q "Build.*measure.*learn.*preserve.*compound" README.md
+          echo "Turbo Foundry core verified."
