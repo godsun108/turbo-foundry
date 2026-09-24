@@ -1,0 +1,7 @@
+{
+  "locations": ["Port St. Lucie", "Jensen Beach", "Stuart"],
+  "max_asking_price": null,
+  "property_types": ["single_family", "manufactured", "townhouse"],
+  "min_bedrooms": null,
+  "min_square_feet": null
+}
