@@ -1,0 +1,13 @@
+[
+  {
+    "source_kind": "example",
+    "source_reference": "synthetic://base-one-001",
+    "retrieved_at": "2026-09-24T12:00:00+00:00",
+    "address": "1 Example Ave, Port St. Lucie, FL",
+    "asking_price": 225000,
+    "property_type": "single_family",
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "square_feet": 1350
+  }
+]
