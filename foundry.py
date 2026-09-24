@@ -6,6 +6,13 @@ from pathlib import Path
 import re
 
 DIRS=("src","tests","docs","experiments","outputs")
+PROJECT_TYPES={
+    "research": ("data","notebooks"),
+    "business": ("data","operations","models"),
+    "data": ("data/raw","data/processed","pipelines"),
+    "blockchain": ("contracts","scripts","deployments"),
+    "service": ("config","scripts"),
+}
 
 README="""# {name}
 
@@ -82,7 +89,7 @@ def slugify(value:str)->str:
         raise ValueError("project name must contain a usable character")
     return value
 
-def scaffold(name:str,purpose:str,destination:Path)->Path:
+def scaffold(name:str,purpose:str,destination:Path,project_type:str="research")->Path:
     slug=slugify(name)
     root=destination/slug
     if root.exists() and any(root.iterdir()):
@@ -92,7 +99,7 @@ def scaffold(name:str,purpose:str,destination:Path)->Path:
         (root/d).mkdir(exist_ok=True)
     (root/".github/workflows").mkdir(parents=True,exist_ok=True)
     files={
-      "README.md":README.format(name=name,purpose=purpose),
+      "README.md":README.format(name=name,purpose=purpose)+f"\\nProject type: {project_type}\\n",
       "CHANGELOG.md":CHANGELOG,
       "SECURITY.md":SECURITY,
       ".gitignore":GITIGNORE,
@@ -109,10 +116,10 @@ def scaffold(name:str,purpose:str,destination:Path)->Path:
 def main():
     p=argparse.ArgumentParser(description="Generate a Turbo Foundry project")
     p.add_argument("name")
-    p.add_argument("--purpose",default="Define the project purpose.")
+    p.add_argument("--purpose",default="Define the project purpose.")\n    p.add_argument("--type",dest="project_type",choices=sorted(PROJECT_TYPES),default="research")
     p.add_argument("--destination",type=Path,default=Path("."))
     a=p.parse_args()
-    print(scaffold(a.name,a.purpose,a.destination))
+    print(scaffold(a.name,a.purpose,a.destination,a.project_type))
 
 if __name__=="__main__":
     main()
