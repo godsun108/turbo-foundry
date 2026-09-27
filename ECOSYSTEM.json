@@ -1,0 +1,98 @@
+{
+  "schema": "turbo.ecosystem.v1",
+  "generated_from": "repository audit",
+  "principle": "search -> identify owner -> consume contract -> do not duplicate",
+  "systems": [
+    {
+      "id": "portal",
+      "repo": "godsun108/The-portal",
+      "role": "public-experience",
+      "owns": ["browser-local world state", "narrative presentation", "cross-room interactions"],
+      "public_url": "https://godsun108.github.io/The-portal/",
+      "contracts": []
+    },
+    {
+      "id": "earth-now",
+      "repo": "godsun108/earth-now",
+      "role": "earth-observation",
+      "owns": ["earth observation ingestion", "provenance", "layers", "timeline", "archive"],
+      "public_url": "https://godsun108.github.io/earth-now/",
+      "contracts": [
+        {"name": "latest snapshot", "path": "dynamic/latest.json", "type": "json", "status": "active"},
+        {"name": "archive index", "path": "dynamic/archive/index.json", "type": "json", "status": "active"}
+      ]
+    },
+    {
+      "id": "window",
+      "repo": "godsun108/window-earth",
+      "role": "public-camera-observation",
+      "owns": ["verified camera registry", "truth labels", "camera ranking", "SEEKER", "route corridor"],
+      "contracts": [
+        {"name": "verified registry", "path": "cameras.js", "type": "browser-js", "status": "active"},
+        {"name": "discovery service", "path": "api-contract.md", "type": "http-json", "status": "optional-server"},
+        {"name": "live corridor", "path": "ROUTE_CONTRACT.md", "type": "browser-js", "status": "active"}
+      ]
+    },
+    {
+      "id": "edge",
+      "repo": "godsun108/edge-intelligence",
+      "role": "intelligence-console",
+      "owns": ["RADAR", "SAVANT", "SENSE", "memory/time-machine", "human triage"],
+      "contracts": [
+        {"name": "RADAR latest", "path": "radar/data/latest.json", "type": "json", "status": "active"},
+        {"name": "RADAR briefing", "path": "radar/data/briefing.json", "type": "json", "status": "active"}
+      ]
+    },
+    {
+      "id": "mint",
+      "repo": "godsun108/Mint-capital-engine",
+      "role": "capital-execution",
+      "owns": ["opportunity queue", "SCOUT", "execution lifecycle", "settlement ledger"],
+      "contracts": [
+        {"name": "SCOUT candidates", "path": "scout/data/candidates.json", "type": "json", "status": "active"},
+        {"name": "automation contract", "path": "AUTOMATION_CONTRACT.md", "type": "spec", "status": "active"}
+      ]
+    },
+    {
+      "id": "oracle-options",
+      "repo": "godsun108/-oracle-options-lab",
+      "role": "market-research",
+      "owns": ["canonical signal", "walk-forward evidence", "regime research", "proof-of-edge", "experimental optimization"],
+      "contracts": [{"name": "forward protocol", "path": "oracle_q/FORWARD_PROTOCOL.md", "type": "research-protocol", "status": "active"}],
+      "boundary": "research system; no public prediction API is claimed"
+    },
+    {
+      "id": "seldon",
+      "repo": "godsun108/Seldon",
+      "role": "world-state-research",
+      "owns": ["time-locked world states", "probabilistic trajectories", "calibration", "Seldon Deviation"],
+      "contracts": [{"name": "data contract", "path": "DATA_CONTRACT.md", "type": "research-protocol", "status": "active"}],
+      "boundary": "research library; no public forecasting service is claimed"
+    },
+    {
+      "id": "base-one",
+      "repo": "godsun108/turbo-foundry",
+      "subpath": "projects/base-one-engine",
+      "role": "property-analysis",
+      "owns": ["property intake", "public scouting", "enrichment", "ranking", "financing scenarios", "deal reports"],
+      "contracts": [{"name": "property intake schema", "path": "projects/base-one-engine/models/property-intake-schema.md", "type": "schema", "status": "active"}],
+      "boundary": "engine/workflows; no public browser API is claimed"
+    },
+    {
+      "id": "victory",
+      "repo": "godsun108/victorychain_stack",
+      "role": "identity-governance-impact",
+      "owns": ["Victory Impact application foundation", "governance/compliance scaffolding", "treasury/disbursement", "transparency proofs"],
+      "contracts": [{"name": "canonical architecture", "path": "VICTORY_ARCHITECTURE.md", "type": "architecture", "status": "active"}],
+      "boundary": "legacy trading code is not the canonical Victory protocol"
+    },
+    {
+      "id": "soul-key",
+      "repo": "godsun108/soul-key",
+      "role": "presence-research",
+      "owns": ["blinded presence-recognition experiments", "evidence ledger", "ablation protocol"],
+      "contracts": [],
+      "boundary": "research output must never authorize funds"
+    }
+  ]
+}
