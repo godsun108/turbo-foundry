@@ -13,7 +13,22 @@
         "cross-room interactions"
       ],
       "public_url": "https://godsun108.github.io/The-portal/",
-      "contracts": []
+      "contracts": [],
+      "consumes": [
+        {
+          "system": "earth-now",
+          "via": "canonical iframe + EARTH to EYES message handoff"
+        },
+        {
+          "system": "window",
+          "via": "canonical iframe with query passthrough"
+        },
+        {
+          "system": "earth-now",
+          "via": "dynamic/latest.json",
+          "experience": "earth-pulse"
+        }
+      ]
     },
     {
       "id": "earth-now",
@@ -46,6 +61,20 @@
           "type": "browser-url",
           "status": "active",
           "boundary": "geographic Earth observations only; never use CNEOS visualization anchors"
+        }
+      ],
+      "consumers": [
+        {
+          "system": "portal",
+          "experience": "earth instrument"
+        },
+        {
+          "system": "portal",
+          "experience": "earth-pulse"
+        },
+        {
+          "system": "window",
+          "via": "EARTH to EYES geographic handoff"
         }
       ]
     },
@@ -89,6 +118,17 @@
           ],
           "type": "browser-url",
           "status": "active"
+        }
+      ],
+      "public_url": "https://godsun108.github.io/window-earth/",
+      "consumers": [
+        {
+          "system": "portal",
+          "experience": "window instrument"
+        },
+        {
+          "system": "earth-now",
+          "via": "EARTH to EYES handoff"
         }
       ]
     },
