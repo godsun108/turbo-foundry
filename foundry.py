@@ -95,8 +95,10 @@ def scaffold(name:str,purpose:str,destination:Path,project_type:str="research")-
     if root.exists() and any(root.iterdir()):
         raise FileExistsError(f"Refusing to overwrite non-empty directory: {root}")
     root.mkdir(parents=True,exist_ok=True)
-    for d in DIRS:
-        (root/d).mkdir(exist_ok=True)
+    if project_type not in PROJECT_TYPES:
+        raise ValueError(f"unknown project type: {project_type}")
+    for d in (*DIRS, *PROJECT_TYPES[project_type]):
+        (root/d).mkdir(parents=True,exist_ok=True)
     (root/".github/workflows").mkdir(parents=True,exist_ok=True)
     files={
       "README.md":README.format(name=name,purpose=purpose)+f"\\nProject type: {project_type}\\n",
