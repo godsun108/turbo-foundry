@@ -232,6 +232,51 @@
       "status": "source-not-located",
       "known_history": "Existing game described by its creator as Flappy Bird-like; source is not present in the currently audited godsun108 repositories.",
       "boundary": "Do not treat a new implementation as the recovered original. Locate original source/artifact first, then migrate deliberately."
+    },
+    {
+      "id": "ryln-ai",
+      "repo": "godsun108/ryln-ai",
+      "role": "legacy-ai",
+      "owns": [],
+      "contracts": [],
+      "status": "legacy-preserve-review",
+      "boundary": "Small older Python implementation. Preserve until functionality is reviewed for deliberate migration; do not assume it is current."
+    },
+    {
+      "id": "hemp-token",
+      "repo": "godsun108/Hemp-Token",
+      "role": "legacy-placeholder",
+      "owns": [],
+      "contracts": [],
+      "status": "placeholder",
+      "boundary": "README-only in current audit; no substantial implementation established."
+    },
+    {
+      "id": "sacredchainx",
+      "repo": "godsun108/sacredchainx",
+      "role": "legacy-placeholder",
+      "owns": [],
+      "contracts": [],
+      "status": "empty-placeholder",
+      "boundary": "Empty in current audit; preserve name/history but do not treat as implemented capability."
+    },
+    {
+      "id": "victory-trust-registry",
+      "repo": "godsun108/victory-trust-registry",
+      "role": "legacy-placeholder",
+      "owns": [],
+      "contracts": [],
+      "status": "empty-placeholder",
+      "boundary": "Empty in current audit; preserve name/history but do not treat as implemented capability."
+    },
+    {
+      "id": "mint-placeholder",
+      "repo": "godsun108/Mint",
+      "role": "legacy-placeholder",
+      "owns": [],
+      "contracts": [],
+      "status": "empty-placeholder",
+      "boundary": "Empty placeholder. Canonical implemented capital system is godsun108/Mint-capital-engine."
     }
   ]
 }
