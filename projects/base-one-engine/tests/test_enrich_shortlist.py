@@ -15,5 +15,5 @@ class Tests(unittest.TestCase):
         self.assertEqual(join_public_records([l],[p])[0]["match_status"],"exact_unique")
     def test_shortlist_orders_score(self):
         a=c("x","a","A",200000); b=c("x","b","B",280000)
-        self.assertEqual(shortlist([b,a],300000)[0]["candidate"].source_reference","a")
+        self.assertEqual(shortlist([b,a],300000)[0]["candidate"].source_reference,"a")
 if __name__=="__main__": unittest.main()
