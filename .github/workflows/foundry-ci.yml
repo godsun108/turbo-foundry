@@ -19,7 +19,7 @@ jobs:
           test -f templates/project/README.template.md
           grep -q "Build.*measure.*learn.*preserve.*compound" README.md
           echo "Turbo Foundry core verified."
-      - name: Test project generator
+      - name: Verify ecosystem registry\n        run: |\n          python ecosystem_status.py\n          git diff --exit-code -- ECOSYSTEM_STATUS.md\n      - name: Test project generator
         run: python -m unittest discover -s tests -v
       - name: Test Base One Engine
         run: python -m unittest discover -s projects/base-one-engine/tests -v
