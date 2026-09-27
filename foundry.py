@@ -116,7 +116,8 @@ def scaffold(name:str,purpose:str,destination:Path,project_type:str="research")-
 def main():
     p=argparse.ArgumentParser(description="Generate a Turbo Foundry project")
     p.add_argument("name")
-    p.add_argument("--purpose",default="Define the project purpose.")\n    p.add_argument("--type",dest="project_type",choices=sorted(PROJECT_TYPES),default="research")
+    p.add_argument("--purpose",default="Define the project purpose.")
+    p.add_argument("--type",dest="project_type",choices=sorted(PROJECT_TYPES),default="research")
     p.add_argument("--destination",type=Path,default=Path("."))
     a=p.parse_args()
     print(scaffold(a.name,a.purpose,a.destination,a.project_type))
