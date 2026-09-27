@@ -27,6 +27,11 @@
           "system": "earth-now",
           "via": "dynamic/latest.json",
           "experience": "earth-pulse"
+        },
+        {
+          "system": "victory",
+          "via": "Fonzi travel-form experience prototype",
+          "boundary": "browser-local encounter only; no wallet/on-chain claim"
         }
       ]
     },
@@ -255,7 +260,8 @@
         "Victory Impact application foundation",
         "governance/compliance scaffolding",
         "treasury/disbursement",
-        "transparency proofs"
+        "transparency proofs",
+        "Fonzi portable character identity/provenance"
       ],
       "contracts": [
         {
@@ -263,6 +269,12 @@
           "path": "VICTORY_ARCHITECTURE.md",
           "type": "architecture",
           "status": "active"
+        },
+        {
+          "name": "Fonzi portable character identity",
+          "path": "FONZI.md",
+          "type": "concept-contract",
+          "status": "pre-implementation"
         }
       ],
       "boundary": "legacy trading code is not the canonical Victory protocol"
