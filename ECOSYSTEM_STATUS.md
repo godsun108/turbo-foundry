@@ -14,7 +14,7 @@ Canonical registry: **16 systems**
 | `oracle-options` | market-research | godsun108/-oracle-options-lab | 1 | registered |
 | `seldon` | world-state-research | godsun108/Seldon | 1 | registered |
 | `base-one` | property-analysis | godsun108/turbo-foundry | 1 | registered |
-| `victory` | identity-governance-impact | godsun108/victorychain_stack | 1 | registered |
+| `victory` | identity-governance-impact | godsun108/victorychain_stack | 2 | registered |
 | `soul-key` | presence-research | godsun108/soul-key | 0 | registered |
 | `turbo-turtle` | game-recovery | not recovered | 0 | source-not-located |
 | `ryln-ai` | legacy-ai | godsun108/ryln-ai | 0 | legacy-preserve-review |
@@ -28,6 +28,7 @@ Canonical registry: **16 systems**
 - `portal` → `earth-now` via canonical iframe + EARTH to EYES message handoff
 - `portal` → `window` via canonical iframe with query passthrough
 - `portal` → `earth-now` via dynamic/latest.json (earth-pulse)
+- `portal` → `victory` via Fonzi travel-form experience prototype
 
 ## Recovery / legacy boundaries
 
