@@ -41,5 +41,5 @@ def render(data):
 
 if __name__=="__main__":
     data=load()
-    Path("ECOSYSTEM_STATUS.md").write_text(render(data))
+    Path("ECOSYSTEM_STATUS.md").write_text(render(data).rstrip()+"\\n")
     print("ecosystem registry verified")
