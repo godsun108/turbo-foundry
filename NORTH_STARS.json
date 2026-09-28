@@ -1,0 +1,303 @@
+{
+  "schema": "turbo.north-stars.v1",
+  "doctrine": "proof events advance maturity; repository size and activity do not",
+  "states": [
+    "DEMONSTRATED",
+    "OPERATIONALIZING",
+    "EXPERIMENTAL",
+    "ROADMAP",
+    "RECOVERY",
+    "LEGACY",
+    "PLACEHOLDER"
+  ],
+  "entries": [
+    {
+      "id": "turbo-foundry",
+      "name": "Turbo Foundry",
+      "owner": "turbo-foundry",
+      "state": "DEMONSTRATED",
+      "north_star": "Make the ecosystem compound without duplicating ownership or rewriting evidence",
+      "next_proof": "Automatically validate more cross-repo ownership/contracts and proof claims",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "earth-now",
+      "name": "Earth Now",
+      "owner": "earth-now",
+      "state": "DEMONSTRATED",
+      "north_star": "Truthful cinematic answer to what Earth is doing right now",
+      "next_proof": "Add a high-value real observation layer without weakening provenance",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "window",
+      "name": "Window / Seeker",
+      "owner": "window",
+      "state": "OPERATIONALIZING",
+      "north_star": "Location in to closest legitimate public view out",
+      "next_proof": "Deploy broad provider-backed discovery and resolve useful verified views beyond the curated registry",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "portal",
+      "name": "Portal",
+      "owner": "portal",
+      "state": "OPERATIONALIZING",
+      "north_star": "The other internet: every door earns the click and the site feels like one world",
+      "next_proof": "Complete a reliable end-to-end traveler journey across stations with persistent consequences",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "portal-connection",
+      "name": "Portal Connection / Campfire",
+      "owner": "portal",
+      "state": "ROADMAP",
+      "north_star": "Real lightweight human connection without fabricated presence",
+      "next_proof": "Connect two real browsers through the first constrained presence or signal session",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "edge-value",
+      "name": "EDGE / VALUE",
+      "owner": "edge",
+      "state": "EXPERIMENTAL",
+      "north_star": "Find what matters before it becomes obvious",
+      "next_proof": "Accumulate prospective labeled outcomes and compare VALUE with frozen simple baselines",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "seldon",
+      "name": "Seldon",
+      "owner": "seldon",
+      "state": "EXPERIMENTAL",
+      "north_star": "Predict forward, freeze what was knowable, score reality and learn from surprise",
+      "next_proof": "Accumulate a meaningful prospective forecast history with calibration against simple baselines",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "oracle",
+      "name": "Oracle / Proof of Edge",
+      "owner": "oracle-options",
+      "state": "EXPERIMENTAL",
+      "north_star": "Reject weak trades and surface only setups that earn capital testing",
+      "next_proof": "Frozen unseen paper-forward evidence clears or fails the declared gate after realistic costs",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "oracle-q",
+      "name": "Oracle Q",
+      "owner": "oracle-options",
+      "state": "EXPERIMENTAL",
+      "north_star": "Test quantum and quantum-inspired optimization against the identical classical problem",
+      "next_proof": "Walk-forward emulator or quantum-inspired result beats or fails to beat the frozen classical baseline",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "base-one",
+      "name": "Base One",
+      "owner": "base-one",
+      "state": "OPERATIONALIZING",
+      "north_star": "Discover and reproducibly analyze actionable property candidates",
+      "next_proof": "Surface a genuinely actionable candidate through scout, enrichment and financing analysis",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "mint",
+      "name": "MINT",
+      "owner": "mint",
+      "state": "OPERATIONALIZING",
+      "north_star": "Turn legitimate opportunities into independently verified settled spendable capital",
+      "next_proof": "Record the first independently verified settled dollar and repeat the workflow",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "sovereign-core",
+      "name": "Sovereign Core",
+      "owner": "sovereign-core",
+      "state": "OPERATIONALIZING",
+      "north_star": "One provider-neutral intelligence platform with many bounded bodies and agents",
+      "next_proof": "Multiple bodies or agents pass the same canonical protocol, capability and evaluation suite",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "sovereign-offline",
+      "name": "Sovereign Offline",
+      "owner": "sovereign-offline",
+      "state": "OPERATIONALIZING",
+      "north_star": "Useful intelligence with external networking unavailable",
+      "next_proof": "Pass reproducible network-denial operation with local model, memory/RAG, index and UI",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "sovereign-online",
+      "name": "Sovereign Online",
+      "owner": "sovereign-online",
+      "state": "ROADMAP",
+      "north_star": "Independent replaceable-model online AI body",
+      "next_proof": "Serve sustained useful inference through the Core contract with evaluation evidence",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "victory-impact",
+      "name": "Victory Impact",
+      "owner": "victory",
+      "state": "OPERATIONALIZING",
+      "north_star": "Transparent humanitarian and restoration donation, governance and disbursement infrastructure",
+      "next_proof": "Complete donation to treasury routing to authorized disbursement to public proof",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "victory-identity",
+      "name": "Victory Identity",
+      "owner": "victory",
+      "state": "ROADMAP",
+      "north_star": "Challenge-signature identity with server-side roles and policy",
+      "next_proof": "Complete testnet challenge, signature, verified address and policy authorization with negative tests",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "fonzi",
+      "name": "Fonzi",
+      "owner": "victory",
+      "state": "ROADMAP",
+      "north_star": "One portable character identity whose representation changes across worlds",
+      "next_proof": "Freeze identity schema and prove control and provenance across Victory and Portal",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "soul-key",
+      "name": "Soul Key",
+      "owner": "soul-key",
+      "state": "EXPERIMENTAL",
+      "north_star": "Test presence recognition as conventional signals are progressively removed",
+      "next_proof": "Pass or fail the next preregistered blinded ablation gate and preserve the result",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "turbo-turtle",
+      "name": "Turbo Turtle",
+      "owner": "turbo-turtle",
+      "state": "RECOVERY",
+      "north_star": "Recover the original artifact before calling any replacement canonical",
+      "next_proof": "Locate and fingerprint the original source, build or artifact",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "ryln-ai",
+      "name": "RYLN AI",
+      "owner": "ryln-ai",
+      "state": "LEGACY",
+      "north_star": "Preserve legacy capability until deliberate review and migration",
+      "next_proof": "Inventory actual behavior and decide what deserves migration",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "hemp-token",
+      "name": "Hemp Token",
+      "owner": "hemp-token",
+      "state": "PLACEHOLDER",
+      "north_star": "Preserve historical prototype and name without claiming a current chain",
+      "next_proof": "No proof event scheduled",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "sacredchainx",
+      "name": "SacredChainX",
+      "owner": "sacredchainx",
+      "state": "PLACEHOLDER",
+      "north_star": "Preserve historical name without claiming capability",
+      "next_proof": "No proof event scheduled",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "victory-trust-registry",
+      "name": "Victory Trust Registry",
+      "owner": "victory-trust-registry",
+      "state": "PLACEHOLDER",
+      "north_star": "Preserve historical name without claiming capability",
+      "next_proof": "No proof event scheduled",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    },
+    {
+      "id": "mint-placeholder",
+      "name": "Old Mint",
+      "owner": "mint-placeholder",
+      "state": "PLACEHOLDER",
+      "north_star": "Preserve historical placeholder while canonical MINT lives elsewhere",
+      "next_proof": "No proof event scheduled",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
+    }
+  ]
+}
