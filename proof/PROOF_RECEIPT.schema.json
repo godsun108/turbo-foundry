@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "turbo.proof-receipt.v1",
+  "title": "Turbo Foundry Proof Receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema","receipt_id","north_star_id","producer","observed_at","environment","claim","result","evidence"],
+  "properties": {
+    "schema": {"const":"turbo.proof-receipt.v1"},
+    "receipt_id": {"type":"string","pattern":"^[a-z0-9][a-z0-9._-]{2,127}$"},
+    "north_star_id": {"type":"string","minLength":1},
+    "producer": {
+      "type":"object","additionalProperties":false,
+      "required":["system"],
+      "properties":{
+        "system":{"type":"string","minLength":1},
+        "repo":{"type":["string","null"]},
+        "commit":{"type":["string","null"]}
+      }
+    },
+    "observed_at":{"type":"string","format":"date-time"},
+    "environment":{"enum":["simulation","synthetic","historical","paper-forward","local","testnet","live","settled","recovery"]},
+    "claim":{"type":"string","minLength":1},
+    "result":{"enum":["PASS","FAIL","INCONCLUSIVE"]},
+    "procedure":{"type":["string","null"]},
+    "limitations":{"type":"array","items":{"type":"string"}},
+    "evidence":{
+      "type":"array","minItems":1,
+      "items":{
+        "type":"object","additionalProperties":false,
+        "required":["kind","ref","sha256"],
+        "properties":{
+          "kind":{"enum":["file","artifact","report","dataset","log","commit","url","other"]},
+          "ref":{"type":"string","minLength":1},
+          "sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+          "description":{"type":"string"}
+        }
+      }
+    }
+  }
+}
