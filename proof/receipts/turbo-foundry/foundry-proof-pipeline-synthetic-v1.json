@@ -1,0 +1,27 @@
+{
+  "schema": "turbo.proof-receipt.v1",
+  "receipt_id": "foundry-proof-pipeline-synthetic-v1",
+  "north_star_id": "turbo-foundry",
+  "producer": {
+    "system": "turbo-foundry",
+    "repo": "godsun108/turbo-foundry",
+    "commit": null
+  },
+  "observed_at": "2026-09-27T19:00:00Z",
+  "environment": "synthetic",
+  "claim": "The Foundry proof-receipt validator accepts a correctly targeted, truth-labeled, fingerprinted synthetic receipt.",
+  "result": "PASS",
+  "procedure": "Run python proof_receipts.py from the repository root.",
+  "limitations": [
+    "Synthetic fixture only.",
+    "Does not verify an external system or promote Turbo Foundry maturity."
+  ],
+  "evidence": [
+    {
+      "kind": "file",
+      "ref": "proof/fixtures/foundry-proof-pipeline-v1.txt",
+      "sha256": "d77d01013ce1d307daf27f6d7d3418377050181baec7fc5b6b9ed66ede00ac50",
+      "description": "Deterministic validator fixture."
+    }
+  ]
+}
