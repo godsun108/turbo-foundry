@@ -347,6 +347,106 @@
       "contracts": [],
       "status": "empty-placeholder",
       "boundary": "Empty placeholder. Canonical implemented capital system is godsun108/Mint-capital-engine."
+    },
+    {
+      "id": "turbo-foundry",
+      "repo": "godsun108/turbo-foundry",
+      "role": "ecosystem-governance",
+      "owns": [
+        "ecosystem ownership registry",
+        "North Star proof registry",
+        "project standards",
+        "proof receipt validation"
+      ],
+      "contracts": [
+        {
+          "name": "ecosystem registry",
+          "path": "ECOSYSTEM.json",
+          "type": "registry",
+          "status": "active"
+        },
+        {
+          "name": "North Star registry",
+          "path": "NORTH_STARS.json",
+          "type": "registry",
+          "status": "active"
+        },
+        {
+          "name": "proof receipt contract",
+          "path": "proof/README.md",
+          "type": "evidence-contract",
+          "status": "active"
+        }
+      ],
+      "boundary": "Foundry validates and preserves evidence; it does not manufacture proof for owned systems."
+    },
+    {
+      "id": "sovereign-core",
+      "repo": "godsun108/Sovereign-Core",
+      "role": "intelligence-kernel",
+      "owns": [
+        "provider-neutral intelligence protocol",
+        "capability boundaries",
+        "model adapters",
+        "memory interfaces",
+        "evaluations"
+      ],
+      "contracts": [
+        {
+          "name": "architecture",
+          "path": "README.md",
+          "type": "architecture",
+          "status": "active"
+        },
+        {
+          "name": "roadmap",
+          "path": "ROADMAP.md",
+          "type": "roadmap",
+          "status": "active"
+        }
+      ],
+      "boundary": "Core owns intelligence semantics, not deployment bodies or ambient machine authority."
+    },
+    {
+      "id": "sovereign-online",
+      "repo": "godsun108/Sovereign-Online",
+      "role": "online-ai-body",
+      "owns": [
+        "independent online Sovereign body"
+      ],
+      "contracts": [],
+      "consumes": [
+        {
+          "system": "sovereign-core",
+          "via": "canonical Sovereign Core protocol"
+        }
+      ],
+      "boundary": "Body consumes Core semantics; inference provider remains replaceable."
+    },
+    {
+      "id": "sovereign-offline",
+      "repo": "godsun108/Sovereign-Offline",
+      "role": "offline-ai-body",
+      "owns": [
+        "local-first Sovereign body",
+        "offline inference packaging",
+        "bounded local execution"
+      ],
+      "contracts": [
+        {
+          "name": "offline contract",
+          "path": "OFFLINE-CONTRACT.md",
+          "type": "runtime-contract",
+          "status": "active"
+        }
+      ],
+      "consumes": [
+        {
+          "system": "sovereign-core",
+          "via": "canonical Sovereign Core protocol"
+        }
+      ],
+      "boundary": "No cloud fallback; completion requires reproducible operation with external networking denied."
     }
   ]
 }
