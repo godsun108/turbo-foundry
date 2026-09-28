@@ -23,6 +23,10 @@ jobs:
         run: |
           python ecosystem_status.py
           git diff --exit-code -- ECOSYSTEM_STATUS.md
+      - name: Verify North Star mission command
+        run: |
+          python north_star_status.py
+          git diff --exit-code -- NORTH_STAR_STATUS.md
       - name: Test project generator
         run: python -m unittest discover -s tests -v
       - name: Test Base One Engine
