@@ -2,7 +2,7 @@
 
 > Generated deterministically from `ECOSYSTEM.json`. This is an architecture/contract status surface, not a network uptime claim.
 
-Canonical registry: **16 systems**
+Canonical registry: **20 systems**
 
 | System | Role | Repository | Contracts | Status |
 |---|---|---|---:|---|
@@ -22,6 +22,10 @@ Canonical registry: **16 systems**
 | `sacredchainx` | legacy-placeholder | godsun108/sacredchainx | 0 | empty-placeholder |
 | `victory-trust-registry` | legacy-placeholder | godsun108/victory-trust-registry | 0 | empty-placeholder |
 | `mint-placeholder` | legacy-placeholder | godsun108/Mint | 0 | empty-placeholder |
+| `turbo-foundry` | ecosystem-governance | godsun108/turbo-foundry | 3 | registered |
+| `sovereign-core` | intelligence-kernel | godsun108/Sovereign-Core | 2 | registered |
+| `sovereign-online` | online-ai-body | godsun108/Sovereign-Online | 0 | registered |
+| `sovereign-offline` | offline-ai-body | godsun108/Sovereign-Offline | 1 | registered |
 
 ## Dependency edges
 
@@ -29,6 +33,8 @@ Canonical registry: **16 systems**
 - `portal` → `window` via canonical iframe with query passthrough
 - `portal` → `earth-now` via dynamic/latest.json (earth-pulse)
 - `portal` → `victory` via Fonzi travel-form experience prototype
+- `sovereign-online` → `sovereign-core` via canonical Sovereign Core protocol
+- `sovereign-offline` → `sovereign-core` via canonical Sovereign Core protocol
 
 ## Recovery / legacy boundaries
 
@@ -43,6 +49,10 @@ Canonical registry: **16 systems**
 - **sacredchainx** — empty-placeholder: Empty in current audit; preserve name/history but do not treat as implemented capability.
 - **victory-trust-registry** — empty-placeholder: Empty in current audit; preserve name/history but do not treat as implemented capability.
 - **mint-placeholder** — empty-placeholder: Empty placeholder. Canonical implemented capital system is godsun108/Mint-capital-engine.
+- **turbo-foundry** — registered: Foundry validates and preserves evidence; it does not manufacture proof for owned systems.
+- **sovereign-core** — registered: Core owns intelligence semantics, not deployment bodies or ambient machine authority.
+- **sovereign-online** — registered: Body consumes Core semantics; inference provider remains replaceable.
+- **sovereign-offline** — registered: No cloud fallback; completion requires reproducible operation with external networking denied.
 
 ## Registry checks
 
