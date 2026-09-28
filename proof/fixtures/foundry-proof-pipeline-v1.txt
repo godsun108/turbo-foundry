@@ -1,0 +1,3 @@
+Turbo Foundry proof-receipt pipeline synthetic fixture v1
+Purpose: provide a deterministic, non-production artifact for validator integration testing.
+This artifact does not promote any North Star maturity or proof state.
