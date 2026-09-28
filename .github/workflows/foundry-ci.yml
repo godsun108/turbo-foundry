@@ -27,6 +27,8 @@ jobs:
         run: |
           python north_star_status.py
           git diff --exit-code -- NORTH_STAR_STATUS.md
+      - name: Verify proof receipts
+        run: python proof_receipts.py
       - name: Test project generator
         run: python -m unittest discover -s tests -v
       - name: Test Base One Engine
