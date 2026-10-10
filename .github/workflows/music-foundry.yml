@@ -1,0 +1,27 @@
+name: Music Foundry MIDI tests
+on:
+  push:
+    paths:
+      - 'music-foundry/**'
+      - '.github/workflows/music-foundry.yml'
+  pull_request:
+    paths:
+      - 'music-foundry/**'
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Unit tests
+        run: python3 -m unittest discover -s music-foundry/tests -v
+      - name: Generate MIDI
+        run: python3 music-foundry/generate.py --output music-foundry/output
+      - name: Upload MIDI preview files
+        uses: actions/upload-artifact@v4
+        with:
+          name: music-foundry-midi-demo
+          path: music-foundry/output/
