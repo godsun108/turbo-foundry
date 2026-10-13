@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from .missed_call import MissedCall, Policy, evaluate
 from .queue import MessageQueue, QueuedMessage
+from .delivery import MockDelivery
 
 @dataclass(frozen=True)
 class Result:
@@ -28,6 +29,7 @@ def process_missed_call(event: MissedCall, policy: Policy, queue: MessageQueue, 
     )
     if not queue.enqueue(message):
         return Result("rejected", "duplicate_or_suppressed", decision.idempotency_key)
-    if queue.simulate_delivery(message.key, event.tenant_id):
+    delivery_status = MockDelivery(queue).attempt(message.key, event.tenant_id)
+    if delivery_status == "simulated":
         return Result("simulated", "mock_delivery_only", message.key)
-    return Result("rejected", "suppressed_or_unavailable", message.key)
+    return Result("rejected", delivery_status, message.key)
