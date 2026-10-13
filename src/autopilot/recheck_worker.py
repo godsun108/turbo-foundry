@@ -40,8 +40,13 @@ def run_recheck(db_path,tenant_id,parent_sid,*,now: datetime,
         if not commit_observation(db_path,tenant_id,parent_sid,token,now=finished_at,
                                   observation=observation,reason="observation_saved"):
             return WorkerResult(False,False,"lease_lost")
-        observations=ObservationStore(db_path).load(tenant_id,parent_sid)
-        assessment=assess_settlement(call_ended_at,observations,now=finished_at)
+        # The observation is already durably committed. A subsequent review
+        # failure must not be misreported as a failed persistence attempt.
+        try:
+            observations=ObservationStore(db_path).load(tenant_id,parent_sid)
+            assessment=assess_settlement(call_ended_at,observations,now=finished_at)
+        except Exception:
+            return WorkerResult(True,False,"review_assessment_error")
         return WorkerResult(True,assessment.settled_for_review,assessment.reason)
     except Exception:
         # Record the failed attempt through the same lease-fenced retry path.
