@@ -23,11 +23,11 @@ class WorkerTests(unittest.TestCase):
         self.store=ObservationStore(self.path)
         self.queue.schedule("t","p",now=NOW)
     def tearDown(self): self.tmp.cleanup()
-    def run(self,now=NOW,pager=None):
+    def run_job(self,now=NOW,pager=None):
         return run_recheck(self.path,"t","p",now=now,call_ended_at=END,
                            pager=pager or Pager())
     def test_first_observation(self):
-        result=self.run()
+        result=self.run_job()
         self.assertTrue(result.recorded)
         self.assertFalse(result.settled_for_review)
         self.assertEqual(result.reason,"insufficient_observations")
