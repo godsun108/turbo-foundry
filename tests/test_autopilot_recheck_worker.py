@@ -115,6 +115,24 @@ class WorkerTests(unittest.TestCase):
         self.assertFalse(result.recorded)
         self.assertIn(result.reason,("worker_error","lease_lost_or_storage_error"))
 
+    def test_provider_exception_after_lease_expiry_cannot_advance_job(self):
+        class BrokenPager:
+            def enumerate_all(self,parent):
+                raise TimeoutError("simulated slow provider")
+        result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+                           pager=BrokenPager(),lease_seconds=10,
+                           clock=lambda:NOW+timedelta(seconds=11))
+        self.assertEqual(result.reason,"lease_lost_or_storage_error")
+        self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
+        self.assertEqual(self.store.load("t","p"),())
+
+    def test_observation_uses_post_request_clock(self):
+        finished=NOW+timedelta(seconds=45)
+        result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+                           pager=Pager(),clock=lambda:finished)
+        self.assertTrue(result.recorded)
+        self.assertEqual(self.store.load("t","p")[0].observed_at,finished)
+
     def test_changing_records(self):
         self.run_job()
         result=self.run_job(now=NOW+timedelta(minutes=3),pager=Pager(ids=()))
