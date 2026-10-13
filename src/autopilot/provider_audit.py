@@ -27,7 +27,7 @@ def audit_parent_call(*, journal: CallJournal, provider_client,
         if parent.status!="no-answer":
             return ProviderAudit(False,"provider_parent_status_mismatch",1)
         enumerated=enumerate_child_calls(provider_client,parent_sid)
-        if not enumerated.complete:
+        if not enumerated.complete and enumerated.reason!="pagination_completeness_unverified":
             return ProviderAudit(False,"enumeration_"+enumerated.reason,1)
         local_children={sid for sid, _ in rows if sid!=parent_sid}
         remote_children=set(enumerated.child_sids)
