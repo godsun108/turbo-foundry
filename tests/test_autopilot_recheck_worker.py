@@ -1,6 +1,8 @@
 import os
 import tempfile
 import unittest
+import sqlite3
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime,timedelta,timezone
 from types import SimpleNamespace
 from src.autopilot.recheck_queue import RecheckQueue
@@ -96,6 +98,22 @@ class WorkerTests(unittest.TestCase):
                            pager=Pager(),clock=lambda:NOW.replace(tzinfo=None))
         self.assertEqual(result.reason,"invalid_completion_clock")
         self.assertEqual(self.store.load("t","p"),())
+
+    def test_concurrent_workers_only_one_records(self):
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            results=list(pool.map(lambda _:self.run_job(),range(2)))
+        self.assertEqual(sum(result.recorded for result in results),1)
+        self.assertEqual(len(self.store.load("t","p")),1)
+
+    def test_database_failure_never_reports_success(self):
+        class BreakDatabase:
+            def enumerate_all(inner,parent):
+                with sqlite3.connect(self.path) as db:
+                    db.execute("DROP TABLE provider_observations")
+                return Pager().result
+        result=self.run_job(pager=BreakDatabase())
+        self.assertFalse(result.recorded)
+        self.assertIn(result.reason,("worker_error","lease_lost_or_storage_error"))
 
     def test_changing_records(self):
         self.run_job()
