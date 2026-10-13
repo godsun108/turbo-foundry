@@ -27,7 +27,7 @@ class TestAtomicIngest(unittest.TestCase):
         self.provisioning.provision(phone_number=NUMBER,tenant_id="shop-a",provider_account_sid="AC"+"a"*32)
 
     def record(self,sid,to,status,key,parent="",**overrides):
-        params=dict(CallSid=sid,From="+15557654321",To=to,CallStatus=status)
+        params=dict(CallSid=sid,From="+15557654321",To=to,CallStatus=status,AccountSid="AC"+"a"*32)
         if parent: params["ParentCallSid"]=parent
         args=dict(tenant_id="shop-a",provisioned_number=NUMBER,
                   url="https://example.test/twilio",params=params,signature="sig",
@@ -36,12 +36,19 @@ class TestAtomicIngest(unittest.TestCase):
         args.update(overrides)
         return self.ingest.record(**args)
 
+    def test_missing_account_sid(self):
+        params=dict(CallSid=PARENT,From="+15557654321",To=NUMBER,CallStatus="no-answer")
+        self.assertEqual(self.record(PARENT,NUMBER,"no-answer","p",params=params).reason,"missing_authenticated_account_sid")
+
+    def test_account_mismatch(self):
+        self.assertEqual(self.record(PARENT,NUMBER,"no-answer","p",provider_account_sid="AC"+"b"*32).reason,"account_sid_mismatch")
+
     def test_disabled_number_blocks_parent(self):
         self.provisioning.disable(NUMBER)
         self.assertEqual(self.record(PARENT,NUMBER,"no-answer","p").reason,"unverified_provisioning")
 
     def test_wrong_account_blocks_parent(self):
-        self.assertEqual(self.record(PARENT,NUMBER,"no-answer","p",provider_account_sid="AC"+"b"*32).reason,"unverified_provisioning")
+        self.assertEqual(self.record(PARENT,NUMBER,"no-answer","p",params=dict(CallSid=PARENT,From="+15557654321",To=NUMBER,CallStatus="no-answer",AccountSid="AC"+"b"*32),provider_account_sid=None).reason,"unverified_provisioning")
 
     def test_parent_and_child_commit(self):
         self.assertTrue(self.record(PARENT,NUMBER,"no-answer","p").recorded)
