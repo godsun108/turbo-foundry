@@ -85,6 +85,18 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(self.queue.due(now=NOW),[])
         self.assertEqual(self.store.load("t","p"),())
 
+    def test_backwards_clock_does_not_write(self):
+        result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+                           pager=Pager(),clock=lambda:NOW-timedelta(seconds=5))
+        self.assertEqual(result.reason,"invalid_completion_clock")
+        self.assertEqual(self.store.load("t","p"),())
+
+    def test_naive_clock_does_not_write(self):
+        result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+                           pager=Pager(),clock=lambda:NOW.replace(tzinfo=None))
+        self.assertEqual(result.reason,"invalid_completion_clock")
+        self.assertEqual(self.store.load("t","p"),())
+
     def test_changing_records(self):
         self.run()
         result=self.run(now=NOW+timedelta(minutes=3),pager=Pager(ids=()))
