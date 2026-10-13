@@ -83,6 +83,17 @@ class TwilioCallPager:
                 page=next_method()
         except TimeoutError:
             return PageResult(False,"provider_timeout",tuple(sorted(seen)),0)
-        except Exception:
-            return PageResult(False,"provider_error",tuple(sorted(seen)),0)
+        except Exception as exc:
+            status=getattr(exc,"status",None)
+            if status is None:
+                status=getattr(exc,"status_code",None)
+            if status==429:
+                reason="provider_rate_limited"
+            elif status in (500,502,503,504):
+                reason="provider_temporarily_unavailable"
+            elif status in (401,403):
+                reason="provider_auth_failed"
+            else:
+                reason="provider_error"
+            return PageResult(False,reason,tuple(sorted(seen)),0)
         return PageResult(False,"page_limit_exceeded",tuple(sorted(seen)),max_pages)
