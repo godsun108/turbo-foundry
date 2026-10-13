@@ -25,7 +25,7 @@ class WorkerTests(unittest.TestCase):
     def tearDown(self): self.tmp.cleanup()
     def run_job(self,now=NOW,pager=None):
         return run_recheck(self.path,"t","p",now=now,call_ended_at=END,
-                           pager=pager or Pager())
+                           pager=pager or Pager(),clock=lambda:now)
     def test_first_observation(self):
         result=self.run_job()
         self.assertTrue(result.recorded)
@@ -67,6 +67,14 @@ class WorkerTests(unittest.TestCase):
         result=self.run_job(now=NOW+timedelta(seconds=11))
         self.assertTrue(result.recorded)
         self.assertEqual(len(self.store.load("t","p")),1)
+
+    def test_slow_provider_expired_lease_cannot_persist(self):
+        result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+                           pager=Pager(),lease_seconds=10,
+                           clock=lambda: NOW+timedelta(seconds=11))
+        self.assertFalse(result.recorded)
+        self.assertEqual(result.reason,"lease_lost")
+        self.assertEqual(self.store.load("t","p"),())
 
     def test_changing_records(self):
         self.run()
