@@ -76,6 +76,15 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(result.reason,"lease_lost")
         self.assertEqual(self.store.load("t","p"),())
 
+    def test_provider_exception_is_counted(self):
+        class BrokenPager:
+            def enumerate_all(self,parent):
+                raise RuntimeError("simulated outage")
+        result=self.run_job(pager=BrokenPager())
+        self.assertEqual(result.reason,"worker_error")
+        self.assertEqual(self.queue.due(now=NOW),[])
+        self.assertEqual(self.store.load("t","p"),())
+
     def test_changing_records(self):
         self.run()
         result=self.run(now=NOW+timedelta(minutes=3),pager=Pager(ids=()))
