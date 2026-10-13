@@ -177,6 +177,20 @@ class WorkerTests(unittest.TestCase):
             "t","p",takeover["token"],now=NOW+timedelta(seconds=11)))
         self.assertEqual(self.store.load("t","p"),())
 
+    def test_claim_storage_failure_fails_closed_without_pager(self):
+        class NeverCallPager:
+            def enumerate_all(self,parent):
+                self.fail("provider must not be called without a lease")
+        with patch("src.autopilot.recheck_worker.RecheckLeases.claim",
+                   side_effect=sqlite3.OperationalError("database locked")):
+            result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+                               pager=NeverCallPager(),clock=lambda:NOW)
+        self.assertEqual(result.reason,"claim_failed")
+        self.assertFalse(result.recorded)
+        self.assertFalse(result.settled_for_review)
+        self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
+        self.assertEqual(self.store.load("t","p"),())
+
     def test_changing_records(self):
         self.run_job()
         result=self.run_job(now=NOW+timedelta(minutes=3),pager=Pager(ids=()))
