@@ -32,7 +32,7 @@ class TestMissedCall(unittest.TestCase):
         self.assertEqual(evaluate(replace(EVENT, recent_message_sent=True), POLICY, NOW).reason, "frequency_capped")
 
     def test_quiet_hours(self):
-        self.assertEqual(evaluate(EVENT, POLICY, NOW.replace(hour=3)).reason, "quiet_hours")
+        self.assertEqual(evaluate(replace(EVENT, occurred_at=NOW.replace(hour=3)), POLICY, NOW.replace(hour=3)).reason, "quiet_hours")
 
     def test_wrong_destination(self):
         self.assertEqual(evaluate(replace(EVENT, destination="+15550000000"), POLICY, NOW).reason, "unapproved_destination")
