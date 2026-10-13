@@ -5,6 +5,7 @@ import sqlite3
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime,timedelta,timezone
 from types import SimpleNamespace
+from unittest.mock import patch
 from src.autopilot.recheck_queue import RecheckQueue
 from src.autopilot.recheck_leases import RecheckLeases
 from src.autopilot.observation_store import ObservationStore
@@ -138,6 +139,16 @@ class WorkerTests(unittest.TestCase):
                            call_ended_at=END,pager=Pager(),clock=lambda:NOW)
         self.assertEqual(result.reason,"invalid_start_clock")
         self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
+
+    def test_review_failure_preserves_committed_observation(self):
+        with patch("src.autopilot.recheck_worker.assess_settlement",
+                   side_effect=RuntimeError("review unavailable")):
+            result=self.run_job()
+        self.assertTrue(result.recorded)
+        self.assertFalse(result.settled_for_review)
+        self.assertEqual(result.reason,"review_assessment_error")
+        self.assertEqual(len(self.store.load("t","p")),1)
+        self.assertEqual(self.queue.due(now=NOW),[])
 
     def test_changing_records(self):
         self.run_job()
