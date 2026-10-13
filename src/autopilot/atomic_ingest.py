@@ -8,6 +8,7 @@ from .twilio_adapter import authenticate_twilio_voice_form
 from .call_journal import CallJournal, JournalResult
 from .parent_routing import ParentCallRouting
 from .event_integrity import EventIntegrity
+from .provisioning import NumberProvisioning
 
 class AtomicCallIngest:
     def __init__(self, db_path: str):
@@ -16,11 +17,12 @@ class AtomicCallIngest:
         ParentCallRouting(db_path)
         CallJournal(db_path)
         EventIntegrity(db_path)
+        NumberProvisioning(db_path)
 
     def record(self, *, tenant_id: str | None, provisioned_number: str | None,
                url: str, params: Mapping[str,str], signature: str,
                auth_token: str, event_key: str, received_at: datetime,
-               validator=None) -> JournalResult:
+               validator=None, provider_account_sid: str | None = None) -> JournalResult:
         if not event_key or received_at.tzinfo is None:
             return JournalResult(False,"invalid_metadata")
         call=authenticate_twilio_voice_form(url,params,signature,auth_token,validator=validator)
@@ -48,6 +50,8 @@ class AtomicCallIngest:
                 if not tenant_id or not provisioned_number or call.destination!=provisioned_number:
                     return JournalResult(False,"invalid_parent_provisioning")
                 tenant=tenant_id
+                if not provider_account_sid or not db.execute("""SELECT 1 FROM provisioned_numbers WHERE phone_number=? AND tenant_id=? AND provider_account_sid=? AND enabled=1""",(provisioned_number,tenant,provider_account_sid)).fetchone():
+                    return JournalResult(False,"unverified_provisioning")
                 existing=db.execute("SELECT tenant_id,destination FROM parent_routes WHERE call_sid=?",
                                     (call.call_sid,)).fetchone()
                 if existing and existing!=(tenant,provisioned_number):
