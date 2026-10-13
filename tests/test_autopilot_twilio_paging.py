@@ -22,6 +22,29 @@ class Client:
 
 class TestTwilioPaging(unittest.TestCase):
     def pager(self,page): return TwilioCallPager(Client(page),ACCOUNT)
+    def test_sdk_multi_page(self):
+        first=Page([call()],next_page_url="/next")
+        second=Page([call(sid="CA"+"d"*32)])
+        first.next_page=lambda:second
+        result=self.pager(first).enumerate_all(PARENT)
+        self.assertTrue(result.complete)
+        self.assertEqual(result.pages_checked,2)
+
+    def test_sdk_page_limit(self):
+        first=Page([call()],next_page_url="/next")
+        first.next_page=lambda:Page([call(sid="CA"+"d"*32)])
+        self.assertEqual(self.pager(first).enumerate_all(PARENT,max_pages=1).reason,
+                         "page_limit_exceeded")
+
+    def test_sdk_missing_next_method(self):
+        first=Page([call()],next_page_url="/next")
+        self.assertEqual(self.pager(first).enumerate_all(PARENT).reason,
+                         "missing_sdk_next_page")
+
+    def test_sdk_account_mismatch(self):
+        result=self.pager(Page([call(account_sid="AC"+"d"*32)])).enumerate_all(PARENT)
+        self.assertEqual(result.reason,"account_mismatch")
+
     def test_single_page(self):
         items,next_cursor=self.pager(Page([call()])).fetch_page(PARENT,None,50)
         self.assertEqual(len(items),1)
