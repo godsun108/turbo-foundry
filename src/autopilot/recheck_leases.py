@@ -54,3 +54,35 @@ class RecheckLeases:
                 WHERE tenant_id=? AND parent_sid=? AND lease_token=?""",
                 (tenant_id,parent_sid,token)).fetchone()
         return row is not None and row[0]>stamp
+
+    def finish(self,tenant_id,parent_sid,token,*,now,reason,completed=False,
+               base_delay_seconds=60):
+        """Atomically fence stale workers, advance retry and release lease."""
+        stamp=self.stamp(now)
+        if not isinstance(reason,str) or not reason:
+            raise ValueError("invalid reason")
+        if not isinstance(base_delay_seconds,int) or isinstance(base_delay_seconds,bool) or not 1<=base_delay_seconds<=3600:
+            raise ValueError("invalid retry delay")
+        with sqlite3.connect(self.db_path,timeout=10) as db:
+            db.execute("BEGIN IMMEDIATE")
+            lease=db.execute("""SELECT expires_at FROM recheck_leases
+                WHERE tenant_id=? AND parent_sid=? AND lease_token=?""",
+                (tenant_id,parent_sid,token)).fetchone()
+            if lease is None or lease[0]<=stamp:
+                return False
+            job=db.execute("""SELECT attempts,max_attempts,status,next_due
+                FROM provider_rechecks WHERE tenant_id=? AND parent_sid=?""",
+                (tenant_id,parent_sid)).fetchone()
+            if job is None or job[2]!="pending" or job[3]>stamp:
+                return False
+            attempts=job[0]+1
+            status="complete" if completed else ("exhausted" if attempts>=job[1] else "pending")
+            delay=min(base_delay_seconds*2**(attempts-1),3600)
+            due=self.stamp(now+timedelta(seconds=delay))
+            db.execute("""UPDATE provider_rechecks SET attempts=?,status=?,next_due=?,last_reason=?
+                WHERE tenant_id=? AND parent_sid=?""",
+                (attempts,status,due,reason,tenant_id,parent_sid))
+            db.execute("""DELETE FROM recheck_leases
+                WHERE tenant_id=? AND parent_sid=? AND lease_token=?""",
+                (tenant_id,parent_sid,token))
+        return True
