@@ -24,6 +24,10 @@ def run_recheck(db_path,tenant_id,parent_sid,*,now: datetime,
     try:
         enumerated=pager.enumerate_all(parent_sid)
         finished_at=clock()
+        if (not isinstance(finished_at,datetime) or finished_at.tzinfo is None
+                or finished_at.utcoffset() is None or finished_at<now):
+            # Invalid or backwards clocks cannot validate lease expiry.
+            return WorkerResult(False,False,"invalid_completion_clock")
         if not enumerated.complete:
             if leases.finish(tenant_id,parent_sid,token,now=finished_at,
                              reason=enumerated.reason):
