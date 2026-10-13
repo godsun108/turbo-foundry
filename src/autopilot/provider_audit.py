@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from .call_journal import CallJournal
 from .call_replay import assess_call_history
+from .child_enumeration import enumerate_child_calls
 
 @dataclass(frozen=True)
 class ProviderAudit:
@@ -25,6 +26,15 @@ def audit_parent_call(*, journal: CallJournal, provider_client,
             return ProviderAudit(False,"provider_parent_mismatch",1)
         if parent.status!="no-answer":
             return ProviderAudit(False,"provider_parent_status_mismatch",1)
+        enumerated=enumerate_child_calls(provider_client,parent_sid)
+        if not enumerated.complete:
+            return ProviderAudit(False,"enumeration_"+enumerated.reason,1)
+        local_children={sid for sid, _ in rows if sid!=parent_sid}
+        remote_children=set(enumerated.child_sids)
+        if remote_children-local_children:
+            return ProviderAudit(False,"provider_children_missing_from_journal",1)
+        if local_children-remote_children:
+            return ProviderAudit(False,"journal_children_missing_from_provider",1)
         checked=1
         for sid, recorded_parent in rows:
             if sid==parent_sid: continue
