@@ -5,6 +5,7 @@ from pathlib import Path
 from src.autopilot.atomic_ingest import AtomicCallIngest
 from src.autopilot.call_journal import CallJournal
 from src.autopilot.event_integrity import EventIntegrity
+from src.autopilot.provisioning import NumberProvisioning
 
 PARENT="CA"+"a"*32
 CHILD="CA"+"b"*32
@@ -22,15 +23,25 @@ class TestAtomicIngest(unittest.TestCase):
         self.db=str(Path(tmp.name)/"atomic.sqlite")
         self.ingest=AtomicCallIngest(self.db)
         self.journal=CallJournal(self.db)
+        self.provisioning=NumberProvisioning(self.db)
+        self.provisioning.provision(phone_number=NUMBER,tenant_id="shop-a",provider_account_sid="AC"+"a"*32)
 
     def record(self,sid,to,status,key,parent="",**overrides):
         params=dict(CallSid=sid,From="+15557654321",To=to,CallStatus=status)
         if parent: params["ParentCallSid"]=parent
         args=dict(tenant_id="shop-a",provisioned_number=NUMBER,
                   url="https://example.test/twilio",params=params,signature="sig",
-                  auth_token="token",event_key=key,received_at=NOW,validator=Validator())
+                  auth_token="token",event_key=key,received_at=NOW,validator=Validator(),
+                  provider_account_sid="AC"+"a"*32)
         args.update(overrides)
         return self.ingest.record(**args)
+
+    def test_disabled_number_blocks_parent(self):
+        self.provisioning.disable(NUMBER)
+        self.assertEqual(self.record(PARENT,NUMBER,"no-answer","p").reason,"unverified_provisioning")
+
+    def test_wrong_account_blocks_parent(self):
+        self.assertEqual(self.record(PARENT,NUMBER,"no-answer","p",provider_account_sid="AC"+"b"*32).reason,"unverified_provisioning")
 
     def test_parent_and_child_commit(self):
         self.assertTrue(self.record(PARENT,NUMBER,"no-answer","p").recorded)
