@@ -28,6 +28,12 @@ class AtomicCallIngest:
         call=authenticate_twilio_voice_form(url,params,signature,auth_token,validator=validator)
         if call is None:
             return JournalResult(False,"invalid_signature_or_event")
+        callback_account=params.get("AccountSid","")
+        if not callback_account.startswith("AC") or len(callback_account)!=34:
+            return JournalResult(False,"missing_authenticated_account_sid")
+        if provider_account_sid is not None and callback_account!=provider_account_sid:
+            return JournalResult(False,"account_sid_mismatch")
+        provider_account_sid=callback_account
         parent=params.get("ParentCallSid","")
         if parent and (not parent.startswith("CA") or len(parent)!=34 or parent==call.call_sid):
             return JournalResult(False,"invalid_parent_sid")
