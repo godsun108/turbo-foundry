@@ -19,6 +19,8 @@ def enumerate_child_calls(provider_client, parent_sid: str, *, max_legs: int = 1
             return Enumeration(False,"unverified_pagination",())
         if len(calls)>max_legs:
             return Enumeration(False,"limit_exceeded",())
+        # A returned sequence with no explicit provider page-completion signal
+        # cannot establish exhaustive enumeration. Keep result advisory.
         sids=[]
         for call in calls:
             sid=getattr(call,"sid",None)
@@ -32,6 +34,6 @@ def enumerate_child_calls(provider_client, parent_sid: str, *, max_legs: int = 1
             sids.append(sid)
         # The SDK's list(limit=...) contract must be verified for the
         # deployed version; a short result alone does not prove full history.
-        return Enumeration(True,"bounded_enumeration",tuple(sorted(sids)))
+        return Enumeration(False,"pagination_completeness_unverified",tuple(sorted(sids)))
     except Exception:
         return Enumeration(False,"provider_list_failed",())
