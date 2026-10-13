@@ -14,7 +14,16 @@ class Validator:
     def validate(self,url,params,signature): return True
 
 class Provider:
-    def __init__(self,**changes): self.changes=changes
+    class Calls:
+        def __init__(self,owner): self.owner=owner
+        def list(self,*,parent_call_sid,limit):
+            from types import SimpleNamespace
+            return [SimpleNamespace(sid=sid,parent_call_sid=parent_call_sid)
+                    for sid in self.owner.child_sids][:limit]
+    def __init__(self,child_sids=(CHILD,),**changes):
+        self.changes=changes
+        self.child_sids=child_sids
+        self.calls=self.Calls(self)
     def fetch_call_snapshot(self,sid):
         values=dict(sid=sid,parent_sid=None if sid==PARENT else PARENT,
                     direction="inbound" if sid==PARENT else "outbound-dial",
@@ -50,6 +59,18 @@ class TestProviderAudit(unittest.TestCase):
         self.assertFalse(result.consistent)
         self.assertEqual(result.reason,"provider_leg_completeness_unverified")
         self.assertEqual(result.checked_legs,2)
+
+    def test_provider_extra_child_blocks(self):
+        self.add(PARENT,"p")
+        self.add(CHILD,"c",PARENT)
+        result=self.audit(Provider(child_sids=(CHILD,"CA"+"d"*32)))
+        self.assertEqual(result.reason,"provider_children_missing_from_journal")
+
+    def test_local_extra_child_blocks(self):
+        self.add(PARENT,"p")
+        self.add(CHILD,"c",PARENT)
+        result=self.audit(Provider(child_sids=()))
+        self.assertEqual(result.reason,"journal_children_missing_from_provider")
 
     def test_provider_parent_mismatch(self):
         self.add(PARENT,"p")
