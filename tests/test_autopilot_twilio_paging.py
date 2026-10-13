@@ -45,6 +45,37 @@ class TestTwilioPaging(unittest.TestCase):
         result=self.pager(Page([call(account_sid="AC"+"d"*32)])).enumerate_all(PARENT)
         self.assertEqual(result.reason,"account_mismatch")
 
+    def test_rate_limit(self):
+        class RateLimited(Exception):
+            status=429
+        class Calls:
+            def page(self,**kwargs): raise RateLimited()
+        class Client:
+            calls=Calls()
+        result=TwilioCallPager(Client(),ACCOUNT).enumerate_all(PARENT)
+        self.assertEqual(result.reason,"provider_rate_limited")
+        self.assertFalse(result.complete)
+
+    def test_provider_unavailable(self):
+        class Unavailable(Exception):
+            status=503
+        class Calls:
+            def page(self,**kwargs): raise Unavailable()
+        class Client:
+            calls=Calls()
+        result=TwilioCallPager(Client(),ACCOUNT).enumerate_all(PARENT)
+        self.assertEqual(result.reason,"provider_temporarily_unavailable")
+
+    def test_auth_failure(self):
+        class Forbidden(Exception):
+            status=403
+        class Calls:
+            def page(self,**kwargs): raise Forbidden()
+        class Client:
+            calls=Calls()
+        result=TwilioCallPager(Client(),ACCOUNT).enumerate_all(PARENT)
+        self.assertEqual(result.reason,"provider_auth_failed")
+
     def test_single_page(self):
         items,next_cursor=self.pager(Page([call()])).fetch_page(PARENT,None,50)
         self.assertEqual(len(items),1)
