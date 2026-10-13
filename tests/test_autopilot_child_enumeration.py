@@ -15,7 +15,8 @@ def leg(sid,parent=PARENT): return SimpleNamespace(sid=sid,parent_call_sid=paren
 class TestEnumeration(unittest.TestCase):
     def test_single_child(self):
         result=enumerate_child_calls(Provider([leg(CHILD)]),PARENT)
-        self.assertTrue(result.complete)
+        self.assertFalse(result.complete)
+        self.assertEqual(result.reason,"pagination_completeness_unverified")
         self.assertEqual(result.child_sids,(CHILD,))
 
     def test_limit_exceeded(self):
