@@ -32,20 +32,20 @@ class WorkerTests(unittest.TestCase):
         self.assertFalse(result.settled_for_review)
         self.assertEqual(result.reason,"insufficient_observations")
     def test_second_observation_stable(self):
-        self.run()
-        result=self.run(now=NOW+timedelta(minutes=3))
+        self.run_job()
+        result=self.run_job(now=NOW+timedelta(minutes=3))
         self.assertTrue(result.settled_for_review)
     def test_provider_failure(self):
-        result=self.run(pager=Pager(False,"provider_rate_limited"))
+        result=self.run_job(pager=Pager(False,"provider_rate_limited"))
         self.assertFalse(result.recorded)
         self.assertEqual(result.reason,"provider_rate_limited")
         self.assertEqual(self.store.load("t","p"),())
     def test_not_due(self):
-        self.run()
-        self.assertEqual(self.run().reason,"not_claimed")
+        self.run_job()
+        self.assertEqual(self.run_job().reason,"not_claimed")
     def test_preclaimed(self):
         token=self.leases.claim("t","p",now=NOW)
-        self.assertEqual(self.run().reason,"not_claimed")
+        self.assertEqual(self.run_job().reason,"not_claimed")
         self.leases.release("t","p",token)
     def test_timeout_retries_then_exhausts(self):
         for attempt in range(4):
@@ -98,8 +98,8 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(self.store.load("t","p"),())
 
     def test_changing_records(self):
-        self.run()
-        result=self.run(now=NOW+timedelta(minutes=3),pager=Pager(ids=()))
+        self.run_job()
+        result=self.run_job(now=NOW+timedelta(minutes=3),pager=Pager(ids=()))
         self.assertFalse(result.settled_for_review)
         self.assertEqual(result.reason,"changing_child_set")
 if __name__=="__main__":
