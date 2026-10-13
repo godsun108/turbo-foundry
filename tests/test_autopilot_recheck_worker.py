@@ -38,7 +38,7 @@ class WorkerTests(unittest.TestCase):
     def test_provider_failure(self):
         result=self.run(pager=Pager(False,"provider_rate_limited"))
         self.assertFalse(result.recorded)
-        self.assertEqual(result.reason,"provider_provider_rate_limited")
+        self.assertEqual(result.reason,"provider_rate_limited")
         self.assertEqual(self.store.load("t","p"),())
     def test_not_due(self):
         self.run()
