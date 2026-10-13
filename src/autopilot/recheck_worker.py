@@ -31,7 +31,10 @@ def run_recheck(db_path,tenant_id,parent_sid,*,now: datetime,
                 or finished_at.utcoffset() is None or finished_at<now):
             # Invalid or backwards clocks cannot validate lease expiry.
             # Release our own lease so invalid clocks do not strand a job.
-            leases.release(tenant_id,parent_sid,token)
+            try:
+                leases.release(tenant_id,parent_sid,token)
+            except Exception:
+                return WorkerResult(False,False,"lease_lost_or_storage_error")
             return WorkerResult(False,False,"invalid_completion_clock")
         if not enumerated.complete:
             if leases.finish(tenant_id,parent_sid,token,now=finished_at,
