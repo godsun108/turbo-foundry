@@ -37,6 +37,10 @@ def run_recheck(db_path,tenant_id,parent_sid,*,now: datetime,
         assessment=assess_settlement(call_ended_at,observations,now=finished_at)
         return WorkerResult(True,assessment.settled_for_review,assessment.reason)
     except Exception:
-        # No provider error can authorize messaging. Release only our own lease.
-        leases.release(tenant_id,parent_sid,token)
-        return WorkerResult(False,False,"worker_error")
+        # Record the failed attempt through the same lease-fenced retry path.
+        try:
+            if leases.finish(tenant_id,parent_sid,token,now=clock(),reason="worker_error"):
+                return WorkerResult(False,False,"worker_error")
+        except Exception:
+            pass
+        return WorkerResult(False,False,"lease_lost_or_storage_error")
