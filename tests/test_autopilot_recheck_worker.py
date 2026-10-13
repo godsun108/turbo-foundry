@@ -196,6 +196,22 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
         self.assertEqual(self.store.load("t","p"),())
 
+    def test_lease_database_initialization_failure_skips_provider(self):
+        class CountingPager:
+            calls=0
+            def enumerate_all(self,parent):
+                self.calls+=1
+                return Pager().result
+        pager=CountingPager()
+        with patch("src.autopilot.recheck_worker.RecheckLeases.__init__",
+                   side_effect=sqlite3.OperationalError("database unavailable")):
+            result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+                               pager=pager,clock=lambda:NOW)
+        self.assertEqual(result.reason,"claim_failed")
+        self.assertFalse(result.recorded)
+        self.assertEqual(pager.calls,0)
+        self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
+
     def test_changing_records(self):
         self.run_job()
         result=self.run_job(now=NOW+timedelta(minutes=3),pager=Pager(ids=()))
