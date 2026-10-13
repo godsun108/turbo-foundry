@@ -133,6 +133,12 @@ class WorkerTests(unittest.TestCase):
         self.assertTrue(result.recorded)
         self.assertEqual(self.store.load("t","p")[0].observed_at,finished)
 
+    def test_naive_start_clock_is_rejected(self):
+        result=run_recheck(self.path,"t","p",now=NOW.replace(tzinfo=None),
+                           call_ended_at=END,pager=Pager(),clock=lambda:NOW)
+        self.assertEqual(result.reason,"invalid_start_clock")
+        self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
+
     def test_changing_records(self):
         self.run_job()
         result=self.run_job(now=NOW+timedelta(minutes=3),pager=Pager(ids=()))
