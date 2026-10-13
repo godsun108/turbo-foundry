@@ -13,6 +13,29 @@ class LeaseTests(unittest.TestCase):
         self.leases=RecheckLeases(self.path)
         self.queue.schedule("t","p",now=NOW)
     def tearDown(self): self.tmp.cleanup()
+    def test_fenced_finish(self):
+        token=self.leases.claim("t","p",now=NOW)
+        self.assertTrue(self.leases.finish("t","p",token,now=NOW,reason="done",completed=True))
+        self.assertEqual(self.queue.due(now=NOW+timedelta(days=1)),[])
+
+    def test_stale_worker_cannot_finish(self):
+        old=self.leases.claim("t","p",now=NOW,lease_seconds=10)
+        later=NOW+timedelta(seconds=11)
+        new=self.leases.claim("t","p",now=later)
+        self.assertFalse(self.leases.finish("t","p",old,now=later,reason="stale",completed=True))
+        self.assertTrue(self.leases.finish("t","p",new,now=later,reason="retry"))
+        self.assertEqual(self.queue.due(now=later),[])
+
+    def test_expired_lease_cannot_finish(self):
+        token=self.leases.claim("t","p",now=NOW,lease_seconds=10)
+        self.assertFalse(self.leases.finish("t","p",token,
+                         now=NOW+timedelta(seconds=11),reason="late"))
+
+    def test_double_finish_rejected(self):
+        token=self.leases.claim("t","p",now=NOW)
+        self.assertTrue(self.leases.finish("t","p",token,now=NOW,reason="retry"))
+        self.assertFalse(self.leases.finish("t","p",token,now=NOW,reason="again"))
+
     def test_claim_exclusive(self):
         token=self.leases.claim("t","p",now=NOW)
         self.assertTrue(token)
