@@ -160,6 +160,23 @@ class WorkerTests(unittest.TestCase):
         self.assertFalse(result.recorded)
         self.assertEqual(self.store.load("t","p"),())
 
+    def test_replaced_lease_cannot_commit_after_provider_returns(self):
+        takeover={}
+        class TakeoverPager:
+            def enumerate_all(inner,parent):
+                takeover["token"]=self.leases.claim(
+                    "t","p",now=NOW+timedelta(seconds=11),lease_seconds=60)
+                return Pager().result
+        result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+                           pager=TakeoverPager(),lease_seconds=10,
+                           clock=lambda:NOW+timedelta(seconds=11))
+        self.assertTrue(takeover["token"])
+        self.assertEqual(result.reason,"lease_lost")
+        self.assertFalse(result.recorded)
+        self.assertTrue(self.leases.owns(
+            "t","p",takeover["token"],now=NOW+timedelta(seconds=11)))
+        self.assertEqual(self.store.load("t","p"),())
+
     def test_changing_records(self):
         self.run_job()
         result=self.run_job(now=NOW+timedelta(minutes=3),pager=Pager(ids=()))
