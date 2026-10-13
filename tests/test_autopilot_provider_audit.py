@@ -72,6 +72,26 @@ class TestProviderAudit(unittest.TestCase):
         result=self.audit(Provider(child_sids=()))
         self.assertEqual(result.reason,"journal_children_missing_from_provider")
 
+    def test_explicit_pagination_reconciliation(self):
+        from types import SimpleNamespace
+        self.add(PARENT,"p")
+        self.add(CHILD,"c",PARENT)
+        def fetch(parent,cursor,size):
+            return ([SimpleNamespace(sid=CHILD,parent_call_sid=PARENT)],None)
+        result=audit_parent_call(journal=self.journal,provider_client=Provider(),
+                                 tenant_id="shop-a",parent_sid=PARENT,fetch_page=fetch)
+        self.assertFalse(result.consistent)
+        self.assertEqual(result.reason,"provider_leg_completeness_unverified")
+        self.assertEqual(result.checked_legs,2)
+
+    def test_explicit_pagination_timeout(self):
+        self.add(PARENT,"p")
+        self.add(CHILD,"c",PARENT)
+        def fetch(parent,cursor,size): raise TimeoutError()
+        result=audit_parent_call(journal=self.journal,provider_client=Provider(),
+                                 tenant_id="shop-a",parent_sid=PARENT,fetch_page=fetch)
+        self.assertEqual(result.reason,"enumeration_provider_timeout")
+
     def test_provider_parent_mismatch(self):
         self.add(PARENT,"p")
         self.add(CHILD,"c",PARENT)
