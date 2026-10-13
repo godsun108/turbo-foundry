@@ -93,6 +93,7 @@ class WorkerTests(unittest.TestCase):
                            pager=Pager(),clock=lambda:NOW-timedelta(seconds=5))
         self.assertEqual(result.reason,"invalid_completion_clock")
         self.assertEqual(self.store.load("t","p"),())
+        self.assertIsNotNone(self.leases.claim("t","p",now=NOW))
 
     def test_naive_clock_does_not_write(self):
         result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
