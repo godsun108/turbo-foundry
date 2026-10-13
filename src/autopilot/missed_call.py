@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 import re
 
-PHONE = re.compile(r"^\\+[1-9][0-9]{7,14}$")
+PHONE = re.compile(r"^\+[1-9][0-9]{7,14}$")
 
 @dataclass(frozen=True)
 class Policy:
