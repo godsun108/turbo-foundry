@@ -12,7 +12,7 @@ class ProviderAudit:
     checked_legs: int
 
 def audit_parent_call(*, journal: CallJournal, provider_client,
-                      tenant_id: str, parent_sid: str, fetch_page=None) -> ProviderAudit:
+                      tenant_id: str, parent_sid: str, fetch_page=None, sdk_pager=None) -> ProviderAudit:
     """Compare recorded legs with REST data; unknown completeness fails closed."""
     review=assess_call_history(journal,tenant_id,parent_sid)
     if not review.ready_for_review:
@@ -27,7 +27,11 @@ def audit_parent_call(*, journal: CallJournal, provider_client,
             return ProviderAudit(False,"provider_parent_mismatch",1)
         if parent.status!="no-answer":
             return ProviderAudit(False,"provider_parent_status_mismatch",1)
-        if fetch_page is not None:
+        if sdk_pager is not None:
+            enumerated=sdk_pager.enumerate_all(parent_sid)
+            if not enumerated.complete:
+                return ProviderAudit(False,"enumeration_"+enumerated.reason,1)
+        elif fetch_page is not None:
             enumerated=enumerate_pages(fetch_page,parent_sid)
             if not enumerated.complete:
                 return ProviderAudit(False,"enumeration_"+enumerated.reason,1)
