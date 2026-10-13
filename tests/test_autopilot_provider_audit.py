@@ -92,6 +92,45 @@ class TestProviderAudit(unittest.TestCase):
                                  tenant_id="shop-a",parent_sid=PARENT,fetch_page=fetch)
         self.assertEqual(result.reason,"enumeration_provider_timeout")
 
+    def test_sdk_pager_reconciles(self):
+        from src.autopilot.twilio_paging import TwilioCallPager
+        from types import SimpleNamespace
+        self.add(PARENT,"p")
+        self.add(CHILD,"c",PARENT)
+        class Page:
+            next_page_url=None
+            def __iter__(self):
+                return iter([SimpleNamespace(sid=CHILD,parent_call_sid=PARENT,
+                                             account_sid="AC"+"a"*32)])
+        class Calls:
+            def page(self,**kwargs): return Page()
+        class Client:
+            calls=Calls()
+        pager=TwilioCallPager(Client(),"AC"+"a"*32)
+        result=audit_parent_call(journal=self.journal,provider_client=Provider(),
+                                 tenant_id="shop-a",parent_sid=PARENT,sdk_pager=pager)
+        self.assertEqual(result.reason,"provider_leg_completeness_unverified")
+        self.assertFalse(result.consistent)
+
+    def test_sdk_pager_account_mismatch_blocks(self):
+        from src.autopilot.twilio_paging import TwilioCallPager
+        from types import SimpleNamespace
+        self.add(PARENT,"p")
+        self.add(CHILD,"c",PARENT)
+        class Page:
+            next_page_url=None
+            def __iter__(self):
+                return iter([SimpleNamespace(sid=CHILD,parent_call_sid=PARENT,
+                                             account_sid="AC"+"d"*32)])
+        class Calls:
+            def page(self,**kwargs): return Page()
+        class Client:
+            calls=Calls()
+        pager=TwilioCallPager(Client(),"AC"+"a"*32)
+        result=audit_parent_call(journal=self.journal,provider_client=Provider(),
+                                 tenant_id="shop-a",parent_sid=PARENT,sdk_pager=pager)
+        self.assertEqual(result.reason,"enumeration_account_mismatch")
+
     def test_provider_parent_mismatch(self):
         self.add(PARENT,"p")
         self.add(CHILD,"c",PARENT)
