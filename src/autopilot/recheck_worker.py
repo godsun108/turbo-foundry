@@ -23,8 +23,8 @@ def run_recheck(db_path,tenant_id,parent_sid,*,now: datetime,
         enumerated=pager.enumerate_all(parent_sid)
         if not enumerated.complete:
             if leases.finish(tenant_id,parent_sid,token,now=now,
-                             reason="provider_"+enumerated.reason):
-                return WorkerResult(False,False,"provider_"+enumerated.reason)
+                             reason=enumerated.reason):
+                return WorkerResult(False,False,enumerated.reason)
             return WorkerResult(False,False,"lease_lost")
         observation=Observation(now,enumerated.child_sids,True)
         if not commit_observation(db_path,tenant_id,parent_sid,token,now=now,
