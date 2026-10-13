@@ -17,6 +17,9 @@ def run_recheck(db_path,tenant_id,parent_sid,*,now: datetime,
     """Process one due job; caller supplies authenticated, account-bound pager."""
     if clock is None:
         clock=lambda: datetime.now(timezone.utc)
+    # The same trusted clock must govern claim and completion in production.
+    if not isinstance(now,datetime) or now.tzinfo is None or now.utcoffset() is None:
+        return WorkerResult(False,False,"invalid_start_clock")
     leases=RecheckLeases(db_path)
     token=leases.claim(tenant_id,parent_sid,now=now,lease_seconds=lease_seconds)
     if token is None:
