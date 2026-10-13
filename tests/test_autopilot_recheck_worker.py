@@ -151,6 +151,15 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(len(self.store.load("t","p")),1)
         self.assertEqual(self.queue.due(now=NOW),[])
 
+    def test_release_storage_error_fails_closed(self):
+        with patch("src.autopilot.recheck_worker.RecheckLeases.release",
+                   side_effect=sqlite3.OperationalError("database locked")):
+            result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+                               pager=Pager(),clock=lambda:NOW-timedelta(seconds=1))
+        self.assertEqual(result.reason,"lease_lost_or_storage_error")
+        self.assertFalse(result.recorded)
+        self.assertEqual(self.store.load("t","p"),())
+
     def test_changing_records(self):
         self.run_job()
         result=self.run_job(now=NOW+timedelta(minutes=3),pager=Pager(ids=()))
