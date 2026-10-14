@@ -55,7 +55,6 @@ class StopRaceTests(unittest.TestCase):
         # Hold an SQLite write lock to verify stop updates serialize with
         # observation writes. No Twilio or external network is involved.
         acquired = threading.Event()
-        release = threading.Event()
         failures = []
 
         def stopper():
@@ -70,7 +69,6 @@ class StopRaceTests(unittest.TestCase):
             worker = threading.Thread(target=stopper)
             worker.start()
             self.assertTrue(acquired.wait(timeout=2))
-            release.set()
         worker.join(timeout=5)
         self.assertFalse(worker.is_alive())
         self.assertEqual(failures, [])
