@@ -35,3 +35,16 @@ Baseline reviewed: 2026-10-14. All described checks are local/offline only.
 
 ## Sprint 88: opt-in two-identity POSIX isolation rehearsal
 `tests/test_autopilot_posix_identity_isolation.py` adds a **privileged, explicit opt-in** subprocess test. On a disposable POSIX host running as root with `AUTOPILOT_RUN_PRIVILEGED_ISOLATION=1`, it creates a private SQLite database, drops a child process to the OS `nobody` account, verifies the child cannot modify the database, and verifies the control value is unchanged. The test defaults to **SKIPPED** in ordinary CI. A green routine CI run therefore confirms test discoverability but **not execution of two-UID isolation**. Record explicit privileged rehearsal logs, hostname/OS, process UIDs and permissions before making any actual two-identity isolation claim. Never run this as root inside a production service; use an approved disposable VM. Security review must separately verify ancestor directories, mounts/ACLs, distinct reader/writer accounts, network/process exposure, and audit protection. The unprivileged monitor should not be given the writer SQLite database at all; deliver sanitized read-only metrics through a narrowly authenticated interface instead.
+
+## Sprint 89: operator-triggered ephemeral Linux isolation rehearsal
+
+The repository includes `.github/workflows/autopilot-isolation-rehearsal.yml`. It has **only** `workflow_dispatch`; push, PR and scheduled events cannot start the privileged test. An operator must select the feature branch and enter `RUN_DISPOSABLE_ISOLATION` as the required confirmation to start it. On an ephemeral GitHub-hosted Ubuntu runner, the workflow executes one synthetic SQLite permission test via `sudo`, with no secrets configured, no provider access, SMS or billing. **The workflow has been authored but has not been triggered.**
+
+### Before approving a manual run
+1. Review the exact selected commit and workflow file for unexpected commands or changed permissions.
+2. Confirm a GitHub-hosted disposable runner is used, not a production/self-hosted runner.
+3. Confirm workflow permissions remain `contents: read`, no application secrets are passed, and the test is the only privileged operation.
+4. Manually trigger the workflow and retain its run ID, selected commit SHA, root/child UID evidence and full test output.
+5. Require a successful, **non-skipped** test outcome. Routine unit-test green status is not proof of a privileged isolation result.
+
+Even after success, a separate deployable two-service boundary, tenant/account authentication, securely managed database credentials and operational review remain prerequisites for connected staging.
