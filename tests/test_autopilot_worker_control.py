@@ -68,6 +68,60 @@ class WorkerControlTests(unittest.TestCase):
             self.assertEqual(pager.calls, 0)
             self.assertEqual(queue.due(now=NOW), [("tenant", "parent", 0, 4)])
 
+    def test_stop_during_pagination_blocks_observation_and_preserves_job(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "control.db")
+            queue = RecheckQueue(path)
+            queue.schedule("tenant", "parent", now=NOW)
+            control = WorkerControl(path)
+            control.set_enabled(True)
+
+            class RevokingPager:
+                calls = 0
+                def enumerate_all(self, parent_sid):
+                    self.calls += 1
+                    control.set_enabled(False)
+                    from types import SimpleNamespace
+                    return SimpleNamespace(
+                        complete=True, reason="sdk_page_exhaustion",
+                        child_sids=("CA" + "a" * 32,),
+                    )
+
+            pager = RevokingPager()
+            result = run_recheck(
+                path, "tenant", "parent", now=NOW, call_ended_at=END,
+                pager=pager, clock=lambda: NOW, enabled=True, control=control,
+            )
+            self.assertEqual(result.reason, "worker_disabled")
+            self.assertFalse(result.recorded)
+            self.assertEqual(pager.calls, 1)
+            self.assertEqual(ObservationStore(path).load("tenant", "parent"), ())
+            self.assertEqual(queue.due(now=NOW), [("tenant", "parent", 0, 4)])
+
+    def test_stop_during_failed_pagination_does_not_consume_attempt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "control.db")
+            queue = RecheckQueue(path)
+            queue.schedule("tenant", "parent", now=NOW)
+            control = WorkerControl(path)
+            control.set_enabled(True)
+
+            class RevokingPager:
+                def enumerate_all(self, parent_sid):
+                    control.set_enabled(False)
+                    from types import SimpleNamespace
+                    return SimpleNamespace(
+                        complete=False, reason="provider_timeout", child_sids=(),
+                    )
+
+            result = run_recheck(
+                path, "tenant", "parent", now=NOW, call_ended_at=END,
+                pager=RevokingPager(), clock=lambda: NOW,
+                enabled=True, control=control,
+            )
+            self.assertEqual(result.reason, "worker_disabled")
+            self.assertEqual(queue.due(now=NOW), [("tenant", "parent", 0, 4)])
+
     def test_invalid_values_and_missing_table_fail_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "control.db")
