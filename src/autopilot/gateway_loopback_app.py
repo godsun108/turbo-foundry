@@ -55,6 +55,12 @@ class LoopbackSyntheticApp:
         if (environ.get("HTTP_X_FORWARDED_FOR") or environ.get("HTTP_FORWARDED")
                 or environ.get("HTTP_X_FORWARDED_HOST")):
             return _reply(start_response, "403 Forbidden", {"error": "proxy_forbidden"})
+        # Reject DNS rebinding and nonlocal Host values.
+        host = environ.get("HTTP_HOST", "")
+        allowed_hosts = ("127.0.0.1", "localhost", "[::1]")
+        if (not isinstance(host, str) or host.lower().split(":")[0] not in allowed_hosts
+                or any(ch in host for ch in ("@", "/", " ", "\t", "\r", "\n"))):
+            return _reply(start_response, "403 Forbidden", {"error": "invalid_host"})
         method, path = environ.get("REQUEST_METHOD"), environ.get("PATH_INFO")
         if method not in ("GET", "HEAD"):
             return _reply(start_response, "405 Method Not Allowed", {"error": "read_only"})
@@ -81,6 +87,11 @@ class LoopbackSyntheticApp:
             token=token, tenant_id=self._tenant,
             provider=self._provider, parent_id=self._parent,
             now=datetime.now(timezone.utc))
+        # Stop checked again after adapter work, before returning data.
+        # This cannot cancel a provider request already in progress.
+        if not self._control.is_enabled():
+            return _reply(start_response, "503 Service Unavailable",
+                          {"error": "operator_stop_active"}, head=head)
         if not result.accepted:
             return _reply(start_response, "403 Forbidden",
                           {"error": "read_denied"}, head=head)
@@ -112,7 +123,9 @@ def make_synthetic_app(db_path: str):
 def main():
     # Refuse configurable host binding; always localhost even if HOST is set.
     db_path = os.environ.get("FOUNDRY_SYNTHETIC_DB", "foundry-local-synthetic.sqlite")
-    app, _, _ = make_synthetic_app(db_path)
+    app, _, control = make_synthetic_app(db_path)
+    # A restart must never inherit a previously enabled rehearsal gate.
+    control.set_enabled(False, actor="local_boot", reason="default_off_on_restart")
     port = int(os.environ.get("PORT", "8091"))
     if not 1024 <= port <= 65535:
         raise ValueError("non-privileged local port required")
