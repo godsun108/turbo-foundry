@@ -68,7 +68,7 @@ def run_recheck(db_path,tenant_id,parent_sid,*,now: datetime,
             return WorkerResult(False,False,"lease_lost")
         observation=Observation(finished_at,enumerated.child_sids,True)
         if not commit_observation(db_path,tenant_id,parent_sid,token,now=finished_at,
-                                  observation=observation,reason="observation_saved"):
+                                  observation=observation,reason="observation_saved",control=control):
             return WorkerResult(False,False,"lease_lost")
         # The observation is already durably committed. A subsequent review
         # failure must not be misreported as a failed persistence attempt.
