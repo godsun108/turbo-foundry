@@ -10,6 +10,7 @@ import hmac
 
 from .operator_authorization import OperatorAuthorization, OperatorPrincipal
 from .worker_control import WorkerControl
+from .operator_attempt_limiter import OperatorAttemptLimiter
 
 
 @dataclass(frozen=True)
@@ -50,6 +51,14 @@ class OfflineOperatorEntrypoint:
             return False
         expected = self._digests.get(command.operator_id)
         if expected is None:
+            return False
+        # Fail closed on unavailable rate-limit storage. Both invalid and
+        # valid credentials count toward a persistent per-operator quota.
+        try:
+            if not OperatorAttemptLimiter(control.db_path).allow(
+                    command.operator_id, now=now):
+                return False
+        except (ValueError, OSError):
             return False
         submitted = hashlib.sha256(command.credential.encode("utf-8")).digest()
         if not hmac.compare_digest(submitted, expected):
