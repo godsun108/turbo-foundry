@@ -13,5 +13,8 @@ Status: **blocked until CI and security review pass**.
 - [ ] Prove read-only operation in a sandbox and confirm no SMS provider send, billing charge, or live webhook mutation.
 - [ ] Manually review consent, opt-out, tenant isolation and number provisioning before messaging authorization.
 
+## Worker disable gate
+The read-only `run_recheck` worker defaults to `enabled=False` and rejects all values other than the literal boolean `True`. An operator-controlled, trusted authorization boundary must explicitly enable the worker for sandbox/staging tests. This is a per-invocation guard, **not** a remotely managed kill switch or an operational staging service; do not treat it as either. No live provider calls are approved by this change.
+
 ## Release controls
 The current run_recheck is an injected offline callable, **not a scheduled service**. Settlement means *review only*. No production deployment, customer SMS, or billing is authorized by this document. Preserve draft PR status until tests and human approval are complete.
