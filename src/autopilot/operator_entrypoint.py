@@ -42,7 +42,7 @@ class OfflineOperatorEntrypoint:
 
     def apply(self, command: OperatorCommand, control: WorkerControl, *,
               now=None) -> bool:
-        if not isinstance(command, OperatorCommand):
+        if not isinstance(command, OperatorCommand) or not isinstance(control, WorkerControl):
             return False
         if (not isinstance(command.operator_id, str)
                 or not isinstance(command.credential, str)
