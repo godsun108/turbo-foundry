@@ -27,7 +27,7 @@ class WorkerTests(unittest.TestCase):
         self.queue.schedule("t","p",now=NOW)
     def tearDown(self): self.tmp.cleanup()
     def run_job(self,now=NOW,pager=None):
-        return run_recheck(self.path,"t","p",now=now,call_ended_at=END,
+        return run_recheck(self.path,"t","p",enabled=True,now=now,call_ended_at=END,
                            pager=pager or Pager(),clock=lambda:now)
     def test_first_observation(self):
         result=self.run_job()
@@ -72,7 +72,7 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(len(self.store.load("t","p")),1)
 
     def test_slow_provider_expired_lease_cannot_persist(self):
-        result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+        result=run_recheck(self.path,enabled=True,"t","p",now=NOW,call_ended_at=END,
                            pager=Pager(),lease_seconds=10,
                            clock=lambda: NOW+timedelta(seconds=11))
         self.assertFalse(result.recorded)
@@ -89,14 +89,14 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(self.store.load("t","p"),())
 
     def test_backwards_clock_does_not_write(self):
-        result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+        result=run_recheck(self.path,enabled=True,"t","p",now=NOW,call_ended_at=END,
                            pager=Pager(),clock=lambda:NOW-timedelta(seconds=5))
         self.assertEqual(result.reason,"invalid_completion_clock")
         self.assertEqual(self.store.load("t","p"),())
         self.assertIsNotNone(self.leases.claim("t","p",now=NOW))
 
     def test_naive_clock_does_not_write(self):
-        result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+        result=run_recheck(self.path,enabled=True,"t","p",now=NOW,call_ended_at=END,
                            pager=Pager(),clock=lambda:NOW.replace(tzinfo=None))
         self.assertEqual(result.reason,"invalid_completion_clock")
         self.assertEqual(self.store.load("t","p"),())
@@ -121,7 +121,7 @@ class WorkerTests(unittest.TestCase):
         class BrokenPager:
             def enumerate_all(self,parent):
                 raise TimeoutError("simulated slow provider")
-        result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+        result=run_recheck(self.path,enabled=True,"t","p",now=NOW,call_ended_at=END,
                            pager=BrokenPager(),lease_seconds=10,
                            clock=lambda:NOW+timedelta(seconds=11))
         self.assertEqual(result.reason,"lease_lost_or_storage_error")
@@ -130,13 +130,13 @@ class WorkerTests(unittest.TestCase):
 
     def test_observation_uses_post_request_clock(self):
         finished=NOW+timedelta(seconds=45)
-        result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+        result=run_recheck(self.path,enabled=True,"t","p",now=NOW,call_ended_at=END,
                            pager=Pager(),clock=lambda:finished)
         self.assertTrue(result.recorded)
         self.assertEqual(self.store.load("t","p")[0].observed_at,finished)
 
     def test_naive_start_clock_is_rejected(self):
-        result=run_recheck(self.path,"t","p",now=NOW.replace(tzinfo=None),
+        result=run_recheck(self.path,enabled=True,"t","p",now=NOW.replace(tzinfo=None),
                            call_ended_at=END,pager=Pager(),clock=lambda:NOW)
         self.assertEqual(result.reason,"invalid_start_clock")
         self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
@@ -154,7 +154,7 @@ class WorkerTests(unittest.TestCase):
     def test_release_storage_error_fails_closed(self):
         with patch("src.autopilot.recheck_worker.RecheckLeases.release",
                    side_effect=sqlite3.OperationalError("database locked")):
-            result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+            result=run_recheck(self.path,enabled=True,"t","p",now=NOW,call_ended_at=END,
                                pager=Pager(),clock=lambda:NOW-timedelta(seconds=1))
         self.assertEqual(result.reason,"lease_lost_or_storage_error")
         self.assertFalse(result.recorded)
@@ -167,7 +167,7 @@ class WorkerTests(unittest.TestCase):
                 takeover["token"]=self.leases.claim(
                     "t","p",now=NOW+timedelta(seconds=11),lease_seconds=60)
                 return Pager().result
-        result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+        result=run_recheck(self.path,enabled=True,"t","p",now=NOW,call_ended_at=END,
                            pager=TakeoverPager(),lease_seconds=10,
                            clock=lambda:NOW+timedelta(seconds=11))
         self.assertTrue(takeover["token"])
@@ -187,7 +187,7 @@ class WorkerTests(unittest.TestCase):
         pager=NeverCallPager()
         with patch("src.autopilot.recheck_worker.RecheckLeases.claim",
                    side_effect=sqlite3.OperationalError("database locked")):
-            result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+            result=run_recheck(self.path,enabled=True,"t","p",now=NOW,call_ended_at=END,
                                pager=pager,clock=lambda:NOW)
         self.assertEqual(result.reason,"claim_failed")
         self.assertEqual(pager.calls,0)
@@ -205,7 +205,7 @@ class WorkerTests(unittest.TestCase):
         pager=CountingPager()
         with patch("src.autopilot.recheck_worker.RecheckLeases.__init__",
                    side_effect=sqlite3.OperationalError("database unavailable")):
-            result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+            result=run_recheck(self.path,enabled=True,"t","p",now=NOW,call_ended_at=END,
                                pager=pager,clock=lambda:NOW)
         self.assertEqual(result.reason,"claim_failed")
         self.assertFalse(result.recorded)
@@ -216,9 +216,9 @@ class WorkerTests(unittest.TestCase):
         # Tenants may reuse a provider call identifier in offline fixtures:
         # lease, retry, and observation keys must remain tenant-scoped.
         self.queue.schedule("other","p",now=NOW)
-        first=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+        first=run_recheck(self.path,enabled=True,"t","p",now=NOW,call_ended_at=END,
                           pager=Pager(ids=(SID,)),clock=lambda:NOW)
-        second=run_recheck(self.path,"other","p",now=NOW,call_ended_at=END,
+        second=run_recheck(self.path,enabled=True,"other","p",now=NOW,call_ended_at=END,
                            pager=Pager(ids=("CA"+"b"*32,)),clock=lambda:NOW)
         self.assertTrue(first.recorded)
         self.assertTrue(second.recorded)
@@ -237,7 +237,7 @@ class WorkerTests(unittest.TestCase):
         pager=CountingPager()
         with patch("src.autopilot.recheck_worker.RecheckLeases.claim",
                    side_effect=AssertionError("disabled worker must not claim")):
-            result=run_recheck(self.path,"t","p",now=NOW,
+            result=run_recheck(self.path,enabled=True,"t","p",now=NOW,
                                call_ended_at=END,pager=pager,
                                clock=lambda:NOW,enabled=False)
         self.assertEqual(result.reason,"worker_disabled")
@@ -248,7 +248,7 @@ class WorkerTests(unittest.TestCase):
 
     def test_non_boolean_worker_enable_fails_closed(self):
         for value in (None,0,1,"true",[],{}):
-            result=run_recheck(self.path,"t","p",now=NOW,
+            result=run_recheck(self.path,enabled=True,"t","p",now=NOW,
                                call_ended_at=END,pager=Pager(),
                                clock=lambda:NOW,enabled=value)
             self.assertEqual(result.reason,"worker_disabled")
