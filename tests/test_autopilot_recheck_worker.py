@@ -227,6 +227,33 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(self.run_job().reason,"not_claimed")
         self.assertEqual(self.queue.due(now=NOW),[])
 
+    def test_disabled_worker_never_claims_or_calls_provider(self):
+        class CountingPager:
+            def __init__(self):
+                self.calls=0
+            def enumerate_all(self,parent):
+                self.calls+=1
+                return Pager().result
+        pager=CountingPager()
+        with patch("src.autopilot.recheck_worker.RecheckLeases.claim",
+                   side_effect=AssertionError("disabled worker must not claim")):
+            result=run_recheck(self.path,"t","p",now=NOW,
+                               call_ended_at=END,pager=pager,
+                               clock=lambda:NOW,enabled=False)
+        self.assertEqual(result.reason,"worker_disabled")
+        self.assertFalse(result.recorded)
+        self.assertEqual(pager.calls,0)
+        self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
+        self.assertEqual(self.store.load("t","p"),())
+
+    def test_non_boolean_worker_enable_fails_closed(self):
+        for value in (None,0,1,"true",[],{}):
+            result=run_recheck(self.path,"t","p",now=NOW,
+                               call_ended_at=END,pager=Pager(),
+                               clock=lambda:NOW,enabled=value)
+            self.assertEqual(result.reason,"worker_disabled")
+        self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
+
     def test_changing_records(self):
         self.run_job()
         result=self.run_job(now=NOW+timedelta(minutes=3),pager=Pager(ids=()))
