@@ -20,7 +20,7 @@ class RecheckLeases:
             raise ValueError("timezone-aware timestamp required")
         return value.astimezone(timezone.utc).isoformat()
 
-    def claim(self,tenant_id,parent_sid,*,now,lease_seconds=120):
+    def claim(self,tenant_id,parent_sid,*,now,lease_seconds=120,control=None):
         stamp=self.stamp(now)
         if not tenant_id or not parent_sid or not isinstance(lease_seconds,int) or isinstance(lease_seconds,bool) or not 1<=lease_seconds<=3600:
             raise ValueError("invalid lease")
@@ -28,6 +28,14 @@ class RecheckLeases:
         expiry=self.stamp(now+timedelta(seconds=lease_seconds))
         with sqlite3.connect(self.db_path,timeout=10) as db:
             db.execute("BEGIN IMMEDIATE")
+            if control is not None:
+                if (not isinstance(control,WorkerControl)
+                        or os.path.abspath(control.db_path)!=os.path.abspath(self.db_path)):
+                    return None
+                gate=db.execute("""SELECT enabled FROM worker_control
+                    WHERE name='read_only_recheck'""").fetchone()
+                if gate is None or gate[0]!=1:
+                    return None
             row=db.execute("""SELECT status,next_due FROM provider_rechecks
                 WHERE tenant_id=? AND parent_sid=?""",(tenant_id,parent_sid)).fetchone()
             if row is None or row[0]!="pending" or row[1]>stamp:
