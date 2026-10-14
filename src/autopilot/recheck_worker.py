@@ -18,12 +18,11 @@ def run_recheck(db_path,tenant_id,parent_sid,*,now: datetime,
     """Process one due job; caller supplies authenticated, account-bound pager."""
     if enabled is not True:
         return WorkerResult(False,False,"worker_disabled")
-    if control is not None:
-        try:
-            if not isinstance(control, WorkerControl) or not control.is_enabled():
-                return WorkerResult(False,False,"worker_disabled")
-        except Exception:
+    try:
+        if not isinstance(control, WorkerControl) or not control.is_enabled():
             return WorkerResult(False,False,"worker_disabled")
+    except Exception:
+        return WorkerResult(False,False,"worker_disabled")
     if clock is None:
         clock=lambda: datetime.now(timezone.utc)
     # The same trusted clock must govern claim and completion in production.
