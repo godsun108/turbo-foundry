@@ -33,7 +33,13 @@ jobs:
             echo 'ERROR: public showcase must have no active data collection, tracking or checkout'
             exit 1
           fi
-          test ! -e showcase/CNAME
+          grep -q 'Illustrative walkthrough' showcase/index.html
+          grep -q 'Evidence limit:' showcase/index.html
+          grep -q 'issues/new?template=business-discovery.md' showcase/index.html
+          test -s .github/ISSUE_TEMPLATE/business-discovery.md
+          grep -q 'This issue is PUBLIC' .github/ISSUE_TEMPLATE/business-discovery.md
+          grep -q 'No live integration, checkout' .github/ISSUE_TEMPLATE/business-discovery.md
+                    test ! -e showcase/CNAME
           echo 'Read-only public showcase validated.'
       - name: Bundle site for review
         uses: actions/upload-artifact@v4
