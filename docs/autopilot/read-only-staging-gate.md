@@ -1,10 +1,10 @@
 # Read-only staging release gate (NOT approved for deployment)
 
-Status: **blocked until CI and security review pass**.
+Status: **CI passed on `2dcf1d66dfa713d38e99b14c81fe37841ec1ed40`; staging and security review still blocked**. A new commit requires fresh CI verification.
 
 ## Preflight
-- [ ] Both Foundry CI and Autopilot unit tests pass on the exact candidate commit.
-- [ ] Resolve any queued GitHub Actions runner/capacity problem before interpreting results.
+- [x] Both Foundry CI and Autopilot unit tests passed on `2dcf1d6` (runs 38583553662 and 38583553651). Reverify on any newer release candidate.
+- [x] The previous GitHub Actions queue cleared; both jobs executed successfully on the verified commit.
 - [ ] Confirm worker tests: concurrent claims, expired leases, database failures and delayed provider records.
 - [ ] Pin trusted server clock, verified Twilio AccountSid and credentials; never accept client-provided pager, time, tenant, or provider account identity.
 - [ ] Ensure durable SQLite storage, schema migrations, backups, and one shared database for queue, lease, and observation tables.
@@ -18,3 +18,12 @@ The read-only `run_recheck` worker defaults to `enabled=False` and rejects all v
 
 ## Release controls
 The current run_recheck is an injected offline callable, **not a scheduled service**. Settlement means *review only*. No production deployment, customer SMS, or billing is authorized by this document. Preserve draft PR status until tests and human approval are complete.
+
+## Next isolated staging rehearsal (not yet executed)
+1. Use a disposable local SQLite database and synthetic tenant/call IDs. Do not connect a live Twilio client or load production credentials.
+2. Run the unit tests with `python -m unittest discover -s tests -p 'test_*.py' -v` on the exact candidate commit; confirm all required tests execute and pass.
+3. Exercise `run_recheck` first with its default disabled state, then with `enabled=True` and an injected offline pager only. Verify no provider requests when disabled, tenant-scoped observations, bounded retries and no outbound SMS.
+4. Record the commit SHA, test logs, expected/actual observations, and any errors. Preserve logs without secrets or real caller numbers.
+5. Separately review storage backups, trusted account-bound credentials, operational kill switch, monitoring, and compliance before requesting authorization for any real-provider staging access.
+
+**Exit criteria:** green exact-commit CI plus documented offline rehearsal and explicit human approval. Passing CI alone does not satisfy staging readiness.
