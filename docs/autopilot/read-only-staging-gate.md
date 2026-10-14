@@ -27,3 +27,6 @@ The current run_recheck is an injected offline callable, **not a scheduled servi
 5. Separately review storage backups, trusted account-bound credentials, operational kill switch, monitoring, and compliance before requesting authorization for any real-provider staging access.
 
 **Exit criteria:** green exact-commit CI plus documented offline rehearsal and explicit human approval. Passing CI alone does not satisfy staging readiness.
+
+## Persistent operator control (offline safeguard)
+`WorkerControl(db_path)` persists a default-off `read_only_recheck` flag in SQLite. The optional `control=` parameter to `run_recheck` blocks processing before provider access when the flag is off, unreadable, or malformed. The caller must still pass `enabled=True` explicitly. This is an **optional** gate: call sites that omit `control` can still run with `enabled=True`. It is therefore **not a complete centrally enforced emergency-stop mechanism**. It also does not interrupt already-running provider requests. Do not claim operational kill-switch readiness until every invocation is required to use a trusted gate and revocation behavior is tested.
