@@ -46,7 +46,7 @@ class OfflineIdentityGateway:
                     operator_id, now=now, max_attempts=5,
                     window_seconds=300):
                 return None
-        except (OSError, ValueError, Exception):
+        except Exception:  # SQLite failures must never grant a session.
             return None
         record = self._secrets.get(operator_id)
         if record is None:
