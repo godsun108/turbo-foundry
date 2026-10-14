@@ -63,7 +63,7 @@ def run_recheck(db_path,tenant_id,parent_sid,*,now: datetime,
             return WorkerResult(False,False,"invalid_completion_clock")
         if not enumerated.complete:
             if leases.finish(tenant_id,parent_sid,token,now=finished_at,
-                             reason=enumerated.reason):
+                             reason=enumerated.reason,control=control):
                 return WorkerResult(False,False,enumerated.reason)
             return WorkerResult(False,False,"lease_lost")
         observation=Observation(finished_at,enumerated.child_sids,True)
@@ -81,7 +81,7 @@ def run_recheck(db_path,tenant_id,parent_sid,*,now: datetime,
     except Exception:
         # Record the failed attempt through the same lease-fenced retry path.
         try:
-            if leases.finish(tenant_id,parent_sid,token,now=clock(),reason="worker_error"):
+            if leases.finish(tenant_id,parent_sid,token,now=clock(),reason="worker_error",control=control):
                 return WorkerResult(False,False,"worker_error")
         except Exception:
             pass
