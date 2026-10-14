@@ -39,3 +39,6 @@ The worker now rechecks its persistent control after injected provider paginatio
 
 ## Retry-path transactional stop fence
 `RecheckLeases.finish` now also requires a trusted `WorkerControl` referencing the same database. Inside its `BEGIN IMMEDIATE` transaction it checks the persisted enabled flag before consuming a retry or completing a job. Both normal incomplete-pagination and unexpected-exception worker paths supply the control; separate tests reject stopped, missing, and foreign controls. This protects retry state only through `finish`; other queue methods and direct maintenance operations are outside this gate. A stop does not cancel already running provider network requests or erase previously committed evidence. Fresh CI results must be checked before considering this change verified.
+
+## Stop-transaction concurrency regression
+`tests/test_autopilot_stop_race.py` verifies offline that a previously committed stop blocks both observation persistence and retry completion; it also exercises a stop update blocked behind an active SQLite writer transaction and verifies that a later observation cannot commit after the stop completes. This is a narrow SQLite serialization test, **not** proof of cancellation of active provider requests or an exhaustive concurrent interleaving model. These tests use synthetic identifiers and no live provider access.
