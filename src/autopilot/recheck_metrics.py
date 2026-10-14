@@ -5,6 +5,8 @@ No network, messaging, or job-state mutations. Counts are tenant scoped.
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import sqlite3
+import os
+from urllib.parse import quote
 
 
 @dataclass(frozen=True)
@@ -24,9 +26,7 @@ def snapshot_recheck_metrics(db_path: str, tenant_id: str, *, now: datetime) -> 
         raise ValueError("timezone-aware time required")
     stamp = now.astimezone(timezone.utc).isoformat()
     # Explicitly read-only: never create a schema or an empty replacement DB.
-    uri = "file:" + __import__("urllib.parse", fromlist=["quote"]).quote(
-        __import__("os").path.abspath(db_path)
-    ) + "?mode=ro"
+    uri = "file:" + quote(os.path.abspath(db_path), safe="/") + "?mode=ro"
     with sqlite3.connect(uri, uri=True) as db:
         db.execute("BEGIN")
         rows = dict(db.execute(
