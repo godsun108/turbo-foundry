@@ -37,3 +37,6 @@ Decision: **NO-GO for connected staging and customer pilot.** This report is a d
 **Customer SMS/billing/production:** **DISABLED / NOT AUTHORIZED**.
 
 Operational before victory. Evidence before confidence. Truth before theater.
+
+## Sprint 78: synthetic operator rehearsal added (verification pending)
+`tests/test_autopilot_operator_rehearsal.py` exercises a disposable SQLite database, a counting offline pager, operator enablement, one persisted review-only observation, revocation, reopening the control object, a blocked subsequent worker invocation, and tenant-scoped read-only metrics. It asserts no second provider-adapter invocation after stop, no added observation, and unchanged retry attempts. This is an **automated synthetic rehearsal only**, not an independently deployed staging environment. Re-evaluate its status after CI passes on the exact new commit; previous passing workflows do not cover it.
