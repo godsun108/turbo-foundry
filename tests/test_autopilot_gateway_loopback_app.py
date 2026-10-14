@@ -14,12 +14,12 @@ class LoopbackTests(unittest.TestCase):
             str(Path(self.temp.name) / "local.sqlite"))
 
     def call(self, method="GET", path="/api/history", remote="127.0.0.1",
-             authorization="", query=""):
+             authorization="", query="", host="127.0.0.1"):
         captured = []
         def start(status, headers):
             captured.append(status)
         environ = dict(REQUEST_METHOD=method, PATH_INFO=path,
-                       REMOTE_ADDR=remote, HTTP_AUTHORIZATION=authorization,
+                       REMOTE_ADDR=remote, HTTP_HOST=host, HTTP_AUTHORIZATION=authorization,
                        QUERY_STRING=query)
         body = b"".join(self.app(environ, start))
         return captured[0], body
@@ -45,6 +45,7 @@ class LoopbackTests(unittest.TestCase):
         self.assertEqual(self.call()[0], "401 Unauthorized")
         self.assertEqual(self.call(remote="192.0.2.4")[0], "403 Forbidden")
         self.assertEqual(self.call(query="tenant=wrong")[0], "400 Bad Request")
+        self.assertEqual(self.call(host="attacker.example")[0], "403 Forbidden")
         self.assertEqual(self.call(method="DELETE")[0], "405 Method Not Allowed")
 
     def test_health_marks_synthetic(self):
