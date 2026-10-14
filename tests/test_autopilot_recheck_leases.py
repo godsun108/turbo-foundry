@@ -4,6 +4,7 @@ import unittest
 from datetime import datetime,timedelta,timezone
 from src.autopilot.recheck_queue import RecheckQueue
 from src.autopilot.recheck_leases import RecheckLeases
+from src.autopilot.worker_control import WorkerControl
 NOW=datetime(2026,10,13,18,0,tzinfo=timezone.utc)
 class LeaseTests(unittest.TestCase):
     def setUp(self):
@@ -11,30 +12,53 @@ class LeaseTests(unittest.TestCase):
         self.path=os.path.join(self.tmp.name,"work.db")
         self.queue=RecheckQueue(self.path)
         self.leases=RecheckLeases(self.path)
+        self.control=WorkerControl(self.path)
+        self.control.set_enabled(True)
         self.queue.schedule("t","p",now=NOW)
+    def finish(self,tenant,parent,token,**kwargs):
+        return self.leases.finish(tenant,parent,token,control=self.control,**kwargs)
     def tearDown(self): self.tmp.cleanup()
     def test_fenced_finish(self):
         token=self.leases.claim("t","p",now=NOW)
-        self.assertTrue(self.leases.finish("t","p",token,now=NOW,reason="done",completed=True))
+        self.assertTrue(self.finish("t","p",token,now=NOW,reason="done",completed=True))
         self.assertEqual(self.queue.due(now=NOW+timedelta(days=1)),[])
 
     def test_stale_worker_cannot_finish(self):
         old=self.leases.claim("t","p",now=NOW,lease_seconds=10)
         later=NOW+timedelta(seconds=11)
         new=self.leases.claim("t","p",now=later)
-        self.assertFalse(self.leases.finish("t","p",old,now=later,reason="stale",completed=True))
-        self.assertTrue(self.leases.finish("t","p",new,now=later,reason="retry"))
+        self.assertFalse(self.finish("t","p",old,now=later,reason="stale",completed=True))
+        self.assertTrue(self.finish("t","p",new,now=later,reason="retry"))
         self.assertEqual(self.queue.due(now=later),[])
 
     def test_expired_lease_cannot_finish(self):
         token=self.leases.claim("t","p",now=NOW,lease_seconds=10)
-        self.assertFalse(self.leases.finish("t","p",token,
+        self.assertFalse(self.finish("t","p",token,
                          now=NOW+timedelta(seconds=11),reason="late"))
 
     def test_double_finish_rejected(self):
         token=self.leases.claim("t","p",now=NOW)
-        self.assertTrue(self.leases.finish("t","p",token,now=NOW,reason="retry"))
-        self.assertFalse(self.leases.finish("t","p",token,now=NOW,reason="again"))
+        self.assertTrue(self.finish("t","p",token,now=NOW,reason="retry"))
+        self.assertFalse(self.finish("t","p",token,now=NOW,reason="again"))
+
+    def test_disabled_control_blocks_retry_and_preserves_lease(self):
+        token=self.leases.claim("t","p",now=NOW)
+        self.control.set_enabled(False)
+        self.assertFalse(self.finish("t","p",token,now=NOW,reason="timeout"))
+        self.assertTrue(self.leases.owns("t","p",token,now=NOW))
+        self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
+
+    def test_missing_control_blocks_retry(self):
+        token=self.leases.claim("t","p",now=NOW)
+        self.assertFalse(self.leases.finish("t","p",token,now=NOW,reason="timeout"))
+        self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
+
+    def test_foreign_control_blocks_retry(self):
+        token=self.leases.claim("t","p",now=NOW)
+        foreign=WorkerControl(os.path.join(self.tmp.name,"other.db"))
+        foreign.set_enabled(True)
+        self.assertFalse(self.leases.finish("t","p",token,now=NOW,reason="timeout",control=foreign))
+        self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
 
     def test_claim_exclusive(self):
         token=self.leases.claim("t","p",now=NOW)
