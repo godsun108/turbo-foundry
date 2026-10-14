@@ -60,6 +60,26 @@ class LeaseTests(unittest.TestCase):
         self.assertFalse(self.leases.finish("t","p",token,now=NOW,reason="timeout",control=foreign))
         self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
 
+    def test_guarded_claim_fails_when_stopped_without_lease(self):
+        self.control.set_enabled(False)
+        self.assertIsNone(self.leases.claim("t","p",now=NOW,control=self.control))
+        self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
+        self.control.set_enabled(True)
+        self.assertTrue(self.leases.claim("t","p",now=NOW,control=self.control))
+
+    def test_guarded_claim_rejects_foreign_control(self):
+        foreign=WorkerControl(os.path.join(self.tmp.name,"foreign.db"))
+        foreign.set_enabled(True)
+        self.assertIsNone(self.leases.claim("t","p",now=NOW,control=foreign))
+        self.assertTrue(self.leases.claim("t","p",now=NOW,control=self.control))
+
+    def test_guarded_claim_fails_closed_on_missing_control_table(self):
+        import sqlite3
+        with sqlite3.connect(self.path) as db:
+            db.execute("DROP TABLE worker_control")
+        self.assertIsNone(self.leases.claim("t","p",now=NOW,control=self.control))
+        self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
+
     def test_claim_exclusive(self):
         token=self.leases.claim("t","p",now=NOW)
         self.assertTrue(token)
