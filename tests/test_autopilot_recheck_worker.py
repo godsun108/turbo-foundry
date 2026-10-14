@@ -52,7 +52,7 @@ class WorkerTests(unittest.TestCase):
         self.leases.release("t","p",token)
     def test_timeout_retries_then_exhausts(self):
         for attempt in range(4):
-            result=self.run_job(now=NOW+timedelta(minutes=3*attempt),
+            result=self.run_job(now=NOW+timedelta(minutes=4*attempt),
                                 pager=Pager(False,"provider_timeout"))
             self.assertFalse(result.recorded)
         self.assertEqual(self.queue.due(now=NOW+timedelta(days=1)),[])
