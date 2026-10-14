@@ -212,6 +212,21 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(pager.calls,0)
         self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
 
+    def test_same_parent_sid_isolated_across_tenants(self):
+        # Tenants may reuse a provider call identifier in offline fixtures:
+        # lease, retry, and observation keys must remain tenant-scoped.
+        self.queue.schedule("other","p",now=NOW)
+        first=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+                          pager=Pager(ids=(SID,)),clock=lambda:NOW)
+        second=run_recheck(self.path,"other","p",now=NOW,call_ended_at=END,
+                           pager=Pager(ids=("CA"+"b"*32,)),clock=lambda:NOW)
+        self.assertTrue(first.recorded)
+        self.assertTrue(second.recorded)
+        self.assertEqual(self.store.load("t","p")[0].child_sids,(SID,))
+        self.assertEqual(self.store.load("other","p")[0].child_sids,("CA"+"b"*32,))
+        self.assertEqual(self.run_job().reason,"not_claimed")
+        self.assertEqual(self.queue.due(now=NOW),[])
+
     def test_changing_records(self):
         self.run_job()
         result=self.run_job(now=NOW+timedelta(minutes=3),pager=Pager(ids=()))
