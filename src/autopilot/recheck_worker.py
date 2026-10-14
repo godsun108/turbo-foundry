@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from .recheck_leases import RecheckLeases
+from .worker_control import WorkerControl
 from .observation_store import ObservationStore
 from .atomic_observation import commit_observation
 from .settlement import Observation, assess_settlement
@@ -13,10 +14,16 @@ class WorkerResult:
     reason: str
 
 def run_recheck(db_path,tenant_id,parent_sid,*,now: datetime,
-                call_ended_at: datetime,pager,lease_seconds=120, clock=None, enabled=False):
+                call_ended_at: datetime,pager,lease_seconds=120, clock=None, enabled=False, control=None):
     """Process one due job; caller supplies authenticated, account-bound pager."""
     if enabled is not True:
         return WorkerResult(False,False,"worker_disabled")
+    if control is not None:
+        try:
+            if not isinstance(control, WorkerControl) or not control.is_enabled():
+                return WorkerResult(False,False,"worker_disabled")
+        except Exception:
+            return WorkerResult(False,False,"worker_disabled")
     if clock is None:
         clock=lambda: datetime.now(timezone.utc)
     # The same trusted clock must govern claim and completion in production.
