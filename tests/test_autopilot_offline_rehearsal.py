@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from src.autopilot.recheck_queue import RecheckQueue
 from src.autopilot.observation_store import ObservationStore
 from src.autopilot.recheck_worker import run_recheck
+from src.autopilot.worker_control import WorkerControl
 
 START = datetime(2026, 10, 14, 12, 0, tzinfo=timezone.utc)
 ENDED = START - timedelta(minutes=20)
@@ -34,6 +35,7 @@ class OfflineStagingRehearsal(unittest.TestCase):
             store = ObservationStore(db_path)
             self.assertTrue(queue.schedule("synthetic-tenant", "synthetic-parent", now=START))
             pager = OfflinePager()
+            control = WorkerControl(db_path)
 
             disabled = run_recheck(
                 db_path, "synthetic-tenant", "synthetic-parent",
@@ -44,20 +46,22 @@ class OfflineStagingRehearsal(unittest.TestCase):
             self.assertEqual(pager.calls, 0)
             self.assertEqual(store.load("synthetic-tenant", "synthetic-parent"), ())
 
+            control.set_enabled(True)
             first = run_recheck(
                 db_path, "synthetic-tenant", "synthetic-parent",
                 now=START, call_ended_at=ENDED, pager=pager,
-                clock=lambda: START, enabled=True,
+                clock=lambda: START, enabled=True, control=control,
             )
             self.assertTrue(first.recorded)
             self.assertFalse(first.settled_for_review)
             self.assertEqual(first.reason, "insufficient_observations")
 
+            control.set_enabled(True)
             later = START + timedelta(minutes=3)
             second = run_recheck(
                 db_path, "synthetic-tenant", "synthetic-parent",
                 now=later, call_ended_at=ENDED, pager=pager,
-                clock=lambda: later, enabled=True,
+                clock=lambda: later, enabled=True, control=control,
             )
             self.assertTrue(second.recorded)
             self.assertTrue(second.settled_for_review)
