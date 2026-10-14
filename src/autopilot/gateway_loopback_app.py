@@ -117,15 +117,16 @@ def make_synthetic_app(db_path: str):
         pass
     sessions = LocalGatewaySessions(db_path, reads)
     control = WorkerControl(db_path)
+    # Every app construction, including embedded/test startup, resets the
+    # persistent operator gate to off. This is not an atomic stop fence.
+    control.set_enabled(False, actor="local_boot", reason="default_off_on_restart")
     return LoopbackSyntheticApp(sessions, control), sessions, control
 
 
 def main():
     # Refuse configurable host binding; always localhost even if HOST is set.
     db_path = os.environ.get("FOUNDRY_SYNTHETIC_DB", "foundry-local-synthetic.sqlite")
-    app, _, control = make_synthetic_app(db_path)
-    # A restart must never inherit a previously enabled rehearsal gate.
-    control.set_enabled(False, actor="local_boot", reason="default_off_on_restart")
+    app, _, _ = make_synthetic_app(db_path)
     port = int(os.environ.get("PORT", "8091"))
     if not 1024 <= port <= 65535:
         raise ValueError("non-privileged local port required")
