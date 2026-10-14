@@ -9,6 +9,7 @@ import json
 from wsgiref.simple_server import make_server
 
 from .commercial_catalog import OFFERS
+from .universal_business_templates import TEMPLATES
 from .signup_preview import render_signup_preview
 
 MAX_RESPONSE = 200_000
@@ -45,6 +46,16 @@ def application(environ, start_response):
             {"slug": item.slug, "title": item.title, "status": item.status,
              "buyer": item.buyer, "proposed_outcome": item.proposed_outcome}
             for item in OFFERS
+        ])
+        media = "application/json"
+        status = "200 OK"
+    elif path == "/api/industries":
+        response = _json([
+            {"slug": industry.slug, "label": industry.label,
+             "example_workflows": industry.example_workflows,
+             "qualifying_question": industry.qualifying_question,
+             "status": industry.status}
+            for industry in TEMPLATES
         ])
         media = "application/json"
         status = "200 OK"
