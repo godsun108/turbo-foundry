@@ -64,6 +64,33 @@ class EntrypointTests(unittest.TestCase):
             self.control, now=NOW))
         self.assertFalse(self.control.is_enabled())
 
+    def test_repeated_bad_credentials_lock_out_and_survive_recreation(self):
+        from datetime import timedelta
+        for _ in range(5):
+            self.assertFalse(self.entry.apply(
+                OperatorCommand("admin", "incorrect", True, "guess"),
+                self.control, now=NOW))
+        reopened = OfflineOperatorEntrypoint({"admin": SECRET}, self.auth)
+        self.assertFalse(reopened.apply(
+            OperatorCommand("admin", SECRET, True, "locked"),
+            self.control, now=NOW))
+        self.assertFalse(self.control.is_enabled())
+        self.assertEqual(self.control.audit_events(), [])
+        later = NOW + timedelta(minutes=6)
+        self.assertTrue(reopened.apply(
+            OperatorCommand("admin", SECRET, True, "new window"),
+            self.control, now=later))
+        self.assertTrue(self.control.is_enabled())
+
+    def test_rate_limit_storage_failure_fails_closed(self):
+        from unittest.mock import patch
+        with patch("src.autopilot.operator_entrypoint.OperatorAttemptLimiter",
+                   side_effect=OSError("storage unavailable")):
+            self.assertFalse(self.entry.apply(
+                OperatorCommand("admin", SECRET, True, "attempt"),
+                self.control, now=NOW))
+        self.assertFalse(self.control.is_enabled())
+
     def test_short_secret_configuration_rejected(self):
         with self.assertRaises(ValueError):
             OfflineOperatorEntrypoint({"admin": "guessable"},
