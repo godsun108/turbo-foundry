@@ -14,6 +14,11 @@ main{max-width:1000px;margin:auto;padding:22px}
 nav{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #33504a;padding:12px 0;gap:12px}
 .brand{font-size:1.2rem;font-weight:800;letter-spacing:.03em}
 nav a{color:#bdeed5;text-decoration:none}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin:24px 0}
+.action{display:inline-block;border-radius:9px;padding:11px 17px;background:#a8eec6;color:#0b2119;text-decoration:none;font-weight:750}
+.action.secondary{background:transparent;border:1px solid #a8eec6;color:#c8f9da}
+ol{padding-left:22px}li{margin-bottom:12px}li strong{color:#e7fef1}
+.demo{border:1px solid #3b6557;border-radius:15px;padding:23px;background:#12252a;margin:24px 0}
 .hero{padding:68px 0 38px;max-width:760px}
 h1{font-size:clamp(2.3rem,6vw,4.2rem);line-height:1.13;margin:.3em 0}
 h2{font-size:1.8rem;margin-top:2rem}
@@ -34,6 +39,7 @@ footer{border-top:1px solid #33504a;margin-top:60px;padding:22px 0;color:#a7c0b8
 <h1>Less busywork. More time for your customers.</h1>
 <p>We're researching practical automation for local service businesses. Explore what we're building and help shape workflows that would genuinely make your team's work easier.</p>
 <p><strong>Research and offline demonstration stage.</strong> No live automated messaging, online purchases, or production installations are currently offered.</p>
+<div class="actions"><a class="action" href="#demo">Explore a fictional demo</a><a class="action secondary" href="#contact">Share feedback</a></div>
 </section>
 <section id="solutions"><h2>Automation opportunities</h2><div class="grid">
 <article><span class="status">Offline demo available</span><h3>Missed-call follow-up</h3><p>A fictional-data simulation of permission-aware follow-up, duplicate prevention, and opt-out decisions. No real calls or texts.</p></article>
@@ -42,10 +48,25 @@ footer{border-top:1px solid #33504a;margin-top:60px;padding:22px 0;color:#a7c0b8
 <article><span class="status">Concept — discovery only</span><h3>Customer feedback workflows</h3><p>Explore unbiased feedback requests and escalation to people.</p></article>
 <article><span class="status">Concept — discovery only</span><h3>Support triage</h3><p>Explore grounded answers with transparent human escalation.</p></article>
 </div></section>
-<section class="notice" aria-label="Readiness disclosure">
+<section id="demo" class="demo" aria-label="Fictional missed-call decision walkthrough">
+<div class="eyebrow">Illustrative walkthrough · not a live service</div>
+<h2>What our offline missed-call demo tests</h2>
+<p>Imagine a fictional HVAC business misses a service inquiry. The prototype evaluates eligibility and messaging safeguards locally; it never calls or texts the fictional customer.</p>
+<ol>
+<li><strong>Incoming event:</strong> a fabricated missed-call record reaches the decision workflow.</li>
+<li><strong>Permission check:</strong> a fictional eligible record can proceed to a <em>simulated</em> follow-up decision. A missed call does not imply consent.</li>
+<li><strong>Duplicate protection:</strong> a repeated event is suppressed so the same inquiry isn't treated as a fresh lead.</li>
+<li><strong>Opt-out:</strong> a fictional opted-out contact is rejected instead of receiving an automated message.</li>
+<li><strong>Human review:</strong> real provider connections, consent, customer setup, and actual delivery must be verified separately.</li>
+</ol>
+<p><strong>Evidence limit:</strong> synthetic scenarios do not establish recovered customers, ROI, actual SMS deliverability, or a production AI receptionist.</p>
+</section>
+<section id="contact" class="notice" aria-label="Research contact and readiness disclosure">
 <h2>Interested in helping shape the product?</h2>
 <p>We're conducting brief discovery conversations about current business workflows. This public preview does not accept submissions, collect payment, provide subscriptions, or activate automations.</p>
-<p>For an introduction, use a previously established communication channel with the Foundry team. We will publish verified business contact details only after they're operational.</p>
+<p>You can share <strong>general product feedback publicly</strong> through our GitHub issue template. Please do not post callers' names, phone numbers, customer lists, company secrets, credentials, or anything confidential. A GitHub account may be required, and issues are public.</p>
+<p><a class="action" href="https://github.com/godsun108/turbo-foundry/issues/new?template=business-discovery.md" rel="noopener noreferrer">Share public discovery feedback on GitHub</a></p>
+<p>For a private commercial conversation, use an existing direct contact channel. We don't yet have a verified business-only public mailbox, and a GitHub issue is not a private sales form.</p>
 </section>
 <section><h2>How we work</h2>
 <p>Discover the workflow → demonstrate safely with fictional information → prove value and reliability → review permissions, pricing and terms → launch only after verification.</p>
