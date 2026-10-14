@@ -54,6 +54,20 @@ class WorkerControlTests(unittest.TestCase):
             self.assertEqual(queue.due(now=NOW), [("tenant", "parent", 0, 4)])
             self.assertEqual(ObservationStore(path).load("tenant", "parent"), ())
 
+    def test_enabled_flag_cannot_bypass_missing_control(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "control.db")
+            queue = RecheckQueue(path)
+            queue.schedule("tenant", "parent", now=NOW)
+            pager = CountingPager()
+            result = run_recheck(
+                path, "tenant", "parent", now=NOW, call_ended_at=END,
+                pager=pager, clock=lambda: NOW, enabled=True,
+            )
+            self.assertEqual(result.reason, "worker_disabled")
+            self.assertEqual(pager.calls, 0)
+            self.assertEqual(queue.due(now=NOW), [("tenant", "parent", 0, 4)])
+
     def test_invalid_values_and_missing_table_fail_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "control.db")
