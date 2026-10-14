@@ -1,0 +1,65 @@
+name: Foundry Public Showcase
+
+on:
+  pull_request:
+    paths:
+      - 'showcase/**'
+      - '.github/workflows/foundry-public-showcase.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'showcase/**'
+      - '.github/workflows/foundry-public-showcase.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate public page without backend or tracking
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s showcase/index.html
+          grep -q 'No live automated messaging' showcase/index.html
+          grep -q 'Offline demo available' showcase/index.html
+          test "$(grep -o 'Concept — discovery only' showcase/index.html | wc -l)" -eq 4
+          if grep -Eiq '<form|<script|fetch\(|XMLHttpRequest|<iframe|<input|<button|<link[^>]*href="https?://' showcase/index.html; then
+            echo 'ERROR: public showcase must have no active data collection, tracking or checkout'
+            exit 1
+          fi
+          test ! -e showcase/CNAME
+          echo 'Read-only public showcase validated.'
+      - name: Bundle site for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: foundry-public-showcase
+          path: showcase/
+          retention-days: 7
+          if-no-files-found: error
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: showcase/
+      - id: deployment
+        uses: actions/deploy-pages@v4
