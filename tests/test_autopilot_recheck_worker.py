@@ -218,7 +218,7 @@ class WorkerTests(unittest.TestCase):
         self.queue.schedule("other","p",now=NOW)
         first=run_recheck(self.path,"t","p",enabled=True,now=NOW,call_ended_at=END,
                           pager=Pager(ids=(SID,)),clock=lambda:NOW)
-        second=run_recheck(self.path,enabled=True,"other","p",now=NOW,call_ended_at=END,
+        second=run_recheck(self.path,"other","p",enabled=True,now=NOW,call_ended_at=END,
                            pager=Pager(ids=("CA"+"b"*32,)),clock=lambda:NOW)
         self.assertTrue(first.recorded)
         self.assertTrue(second.recorded)
