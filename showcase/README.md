@@ -26,3 +26,17 @@ A likely standard Pages URL for a public repository would follow `https://godsun
 - A public GitHub repository means **all showcase source is publicly viewable**. Never commit prospects' private details, API credentials or personal customer records.
 
 No paid service has been provisioned by this change.
+
+## Pages 404 recovery
+
+GitHub Pages being enabled *after* a previous merge may not replay an old `push` workflow. A new push to `main` touching `showcase/**` triggers fresh validation and deploy. The workflow also has an explicit manual **Run workflow** option on `main`.
+
+If the site returns 404:
+
+1. Check repository **Settings → Pages**: Source **GitHub Actions** (not Deploy from a branch).
+2. Go to **Actions → Foundry Public Showcase** and inspect the newest **main** run. It should include **validate** and **deploy** jobs. The prior PR runs validate only.
+3. If no main run appears, select **Run workflow → Branch: main → Run workflow**. Do not re-run an old PR validation job expecting publication.
+4. If deploy fails, inspect the failed job (especially Pages permissions/environment configuration). Fix it before retrying; don't assume the site is live.
+5. After deploy succeeds, use the exact deployment URL shown in the successful job. Allow a little time for public CDN propagation, then check that actual path in Safari.
+
+A static HTML file by itself is not evidence of a live Pages website.
