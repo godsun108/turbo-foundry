@@ -30,3 +30,6 @@ The current run_recheck is an injected offline callable, **not a scheduled servi
 
 ## Persistent operator control (offline safeguard)
 `WorkerControl(db_path)` persists a default-off `read_only_recheck` flag in SQLite. The required `control=` parameter to `run_recheck` blocks processing before provider access when the flag is absent, off, unreadable, or malformed. The caller must still pass `enabled=True` explicitly. All worker invocations must supply a trusted `WorkerControl` instance; no control means no provider access. This is a per-invocation persistent gate, **not yet a centrally administered emergency-stop service**. It does not interrupt already-running provider requests, and revocation races require further testing.
+
+## Mid-request stop rehearsal
+The worker now rechecks its persistent control after injected provider pagination returns, before recording an observation or consuming a retry attempt. Offline regression tests cover disabling the control during both successful and unsuccessful pagination. **Limitation:** this is not an atomic stop-versus-commit fence; revocation between the second check and a database write is still a race, and an in-flight provider request is not canceled. A transaction-scoped control check is required before asserting complete revocation safety.
