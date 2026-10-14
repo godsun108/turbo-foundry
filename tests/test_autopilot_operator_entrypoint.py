@@ -91,6 +91,24 @@ class EntrypointTests(unittest.TestCase):
                 self.control, now=NOW))
         self.assertFalse(self.control.is_enabled())
 
+    def test_invalid_control_object_fails_closed(self):
+        for value in (None, object(), "malformed"):
+            self.assertFalse(self.entry.apply(
+                OperatorCommand("admin", SECRET, True, "attempt"),
+                value, now=NOW))
+        self.assertFalse(self.control.is_enabled())
+        self.assertEqual(self.control.audit_events(), [])
+
+    def test_direct_control_mutation_is_known_auth_bypass(self):
+        # Explicit regression evidence: this legacy local method does not
+        # enforce operator authentication and MUST NOT be exposed to clients.
+        self.control.set_enabled(True, actor="unattributed_local_caller",
+                                 reason="legacy_local_call", now=NOW)
+        self.assertTrue(self.control.is_enabled())
+        self.assertEqual(self.control.audit_events()[0][2],
+                         "unattributed_local_caller")
+        self.control.set_enabled(False, now=NOW)
+
     def test_short_secret_configuration_rejected(self):
         with self.assertRaises(ValueError):
             OfflineOperatorEntrypoint({"admin": "guessable"},
