@@ -246,6 +246,13 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
         self.assertEqual(self.store.load("t","p"),())
 
+    def test_worker_is_disabled_by_default(self):
+        result=run_recheck(self.path,"t","p",now=NOW,call_ended_at=END,
+                           pager=Pager(),clock=lambda:NOW)
+        self.assertEqual(result.reason,"worker_disabled")
+        self.assertEqual(self.queue.due(now=NOW),[("t","p",0,4)])
+        self.assertEqual(self.store.load("t","p"),())
+
     def test_non_boolean_worker_enable_fails_closed(self):
         for value in (None,0,1,"true",[],{}):
             result=run_recheck(self.path,"t","p",now=NOW,
