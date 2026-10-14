@@ -76,6 +76,8 @@ class IdentityDispatchRehearsal(unittest.TestCase):
                                                credential=ALICE_SECRET, now=next_window))
 
     def test_attempt_database_failure_denies_login(self):
+        from src.autopilot.operator_attempt_limiter import OperatorAttemptLimiter
+        OperatorAttemptLimiter(self.db)
         with sqlite3.connect(self.db) as db:
             db.execute("DROP TABLE operator_attempt_windows")
             db.execute("CREATE VIEW operator_attempt_windows AS SELECT 1 AS attempts, 1 AS operator_id, 1 AS window_start")
