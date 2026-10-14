@@ -7,7 +7,30 @@ import unittest
 
 from src.autopilot.onboarding_invites import OnboardingInvites, OnboardingDenied
 from src.autopilot.stripe_test_checkout import TestCheckoutLedger
-from tests.test_autopilot_stripe_test_checkout import signed, paid_event, SECRET, T
+import hashlib
+import hmac
+import json
+
+SECRET = "whsec_synthetic_testing_only"
+T = 1792000000
+
+def signed(event):
+    raw = json.dumps(event).encode()
+    signature = hmac.new(SECRET.encode(),
+        str(T).encode() + b"." + raw, hashlib.sha256).hexdigest()
+    return raw, f"t={T},v1={signature}"
+
+def paid_event():
+    return {
+        "id": "evt_fixture_001", "livemode": False,
+        "type": "checkout.session.completed",
+        "data": {"object": {
+            "id": "cs_test_fixture_001",
+            "payment_intent": "pi_fixture_001",
+            "amount_total": 25000, "currency": "usd",
+            "payment_status": "paid", "mode": "payment",
+        }},
+    }
 
 NOW = datetime.fromtimestamp(T, tz=timezone.utc)
 
