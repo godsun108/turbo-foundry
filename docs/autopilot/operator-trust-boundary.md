@@ -24,3 +24,6 @@ Baseline reviewed: 2026-10-14. All described checks are local/offline only.
 ## Immediate development rule
 
 **Never equate credential checking in a helper with a security boundary when untrusted callers can reach the underlying mutation function.** Keep the PR draft, the worker off by default, and provider access, SMS, billing and production disabled.
+
+## Sprint 86: explicit SQLite read-only view (CI verification pending)
+`ReadOnlyOperatorView` connects to an existing SQLite database with `mode=ro` and exposes a state/audit-count snapshot without schema creation or mutation methods. Synthetic tests explicitly try to update the stop flag and delete audit records through this read-only connection; SQLite must deny both attempts. Missing files also fail without database creation. This demonstrates **connection-level read-only behavior only**. It does not prevent a process with filesystem permissions from opening a separate writable connection or calling `WorkerControl.set_enabled`; production isolation requires independent OS identities, file/directory permissions, and an authenticated writer service with a limited surface. No security approval or connected staging authorization is implied.
