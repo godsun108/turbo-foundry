@@ -30,7 +30,7 @@ def run_recheck(db_path,tenant_id,parent_sid,*,now: datetime,
         return WorkerResult(False,False,"invalid_start_clock")
     try:
         leases=RecheckLeases(db_path)
-        token=leases.claim(tenant_id,parent_sid,now=now,lease_seconds=lease_seconds)
+        token=leases.claim(tenant_id,parent_sid,now=now,lease_seconds=lease_seconds,control=control)
     except Exception:
         # No provider access or messaging is permitted when job ownership
         # cannot be established due to storage or validation failure.
