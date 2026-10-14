@@ -42,3 +42,6 @@ The worker now rechecks its persistent control after injected provider paginatio
 
 ## Stop-transaction concurrency regression
 `tests/test_autopilot_stop_race.py` verifies offline that a previously committed stop blocks both observation persistence and retry completion; it also exercises a stop update blocked behind an active SQLite writer transaction and verifies that a later observation cannot commit after the stop completes. This is a narrow SQLite serialization test, **not** proof of cancellation of active provider requests or an exhaustive concurrent interleaving model. These tests use synthetic identifiers and no live provider access.
+
+## Guarded lease claim
+The read-only worker now supplies its mandatory persistent control to `RecheckLeases.claim`. With a control supplied, lease acquisition checks the enabled flag inside `BEGIN IMMEDIATE`, serialized with operator stop updates in the same SQLite database. Missing control tables and mismatched database references fail closed. **Direct maintenance calls that omit `control` remain available** and must never be used to launch provider work. Stopping after a lease claim may still allow an in-flight provider read; final observation and retry writes are separately transaction-fenced.
