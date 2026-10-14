@@ -55,6 +55,8 @@ small,.note{color:#afc6d5}.note{border-left:4px solid #a9edc7;padding-left:16px}
 <p><strong>Next step after an actual verified payment:</strong> restricted onboarding review, provider ownership verification, permissions/consent checks, and operational approval. Payment alone will never automatically start messaging.</p>
 <label><input type="checkbox" id="understand" style="width:auto"> I understand this is an offline prototype and no order will be placed.</label>
 <button type="button" id="preview">Preview my setup summary</button>
+<button type="button" id="export" disabled>Save discovery worksheet (.txt)</button>
+<p><small>Only the business name and high-level workflow needs are included. Do not enter client records, passwords, API keys, phone numbers or sensitive information. The worksheet stays on your device until you choose to share it.</small></p>
 <div id="output" role="status" aria-live="polite"></div>
 </section>
 <section class="card"><h2>4. Secure checkout</h2>
@@ -66,8 +68,13 @@ small,.note{color:#afc6d5}.note{border-left:4px solid #a9edc7;padding-left:16px}
 (() => {
   const val = id => document.getElementById(id).value.trim();
   const out = document.getElementById('output');
+  const exportButton = document.getElementById('export');
+  let worksheet = '';
+  const clean = value => value.replace(/[\\u0000-\\u001f\\u007f]/g, ' ').slice(0, 500);
   document.getElementById('preview').addEventListener('click', () => {
     out.replaceChildren();
+    exportButton.disabled = true;
+    worksheet = '';
     if (!document.getElementById('understand').checked) {
       out.textContent = 'Please confirm you understand the preview limitations.';
       return;
@@ -90,9 +97,31 @@ small,.note{color:#afc6d5}.note{border-left:4px solid #a9edc7;padding-left:16px}
       p.textContent=key+': '+value;
       out.appendChild(p);
     });
+    worksheet = [
+      'FOUNDRY — DISCOVERY WORKSHEET (NOT AN ORDER)',
+      'No purchase or service activation has occurred.',
+      'Business: '+clean(business),
+      'Automation: '+clean(document.getElementById('product').selectedOptions[0].textContent),
+      'Problem: '+clean(problem),
+      'Industry: '+clean(val('industry')||'Not provided'),
+      'Current systems: '+clean(val('system')||'Not provided'),
+      'Goal: '+clean(val('goal')||'Not provided'),
+      'Status: Discovery only; price, scope and delivery not yet approved.'
+    ].join('\\n');
+    exportButton.disabled = false;
     const note=document.createElement('p');
     note.textContent='NOT SUBMITTED. No payment requested or service activated.';
     out.appendChild(note);
+  });
+  exportButton.addEventListener('click', () => {
+    if (!worksheet || exportButton.disabled) return;
+    const blob = new Blob([worksheet + '\\n'], {type: 'text/plain;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'foundry-discovery-worksheet.txt';
+    link.click();
+    URL.revokeObjectURL(url);
   });
 })();
 </script></body></html>"""
