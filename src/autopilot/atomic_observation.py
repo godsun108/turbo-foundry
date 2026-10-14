@@ -1,8 +1,10 @@
 """Atomic lease-fenced observation persistence and recheck advancement."""
 import json
+import os
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from .settlement import Observation
+from .worker_control import WorkerControl
 
 def _stamp(value):
     if not isinstance(value, datetime) or value.tzinfo is None or value.utcoffset() is None:
@@ -11,8 +13,10 @@ def _stamp(value):
 
 def commit_observation(db_path, tenant_id, parent_sid, lease_token, *,
                        now, observation: Observation, reason="observation_saved",
-                       completed=False, base_delay_seconds=60):
+                       completed=False, base_delay_seconds=60, control=None):
     """Return False for stale leases; raise on conflicting evidence, rolling back."""
+    if not isinstance(control, WorkerControl) or os.path.abspath(control.db_path)!=os.path.abspath(db_path):
+        return False
     stamp=_stamp(now)
     if not tenant_id or not parent_sid or not lease_token:
         raise ValueError("missing identity")
@@ -34,6 +38,12 @@ def commit_observation(db_path, tenant_id, parent_sid, lease_token, *,
     ids=json.dumps(sorted(observation.child_sids))
     with sqlite3.connect(db_path,timeout=10) as db:
         db.execute("BEGIN IMMEDIATE")
+        # Serialized with WorkerControl.set_enabled() in this same SQLite DB:
+        # whichever transaction commits first determines the result.
+        gate=db.execute("""SELECT enabled FROM worker_control
+            WHERE name='read_only_recheck'""").fetchone()
+        if gate is None or gate[0]!=1:
+            return False
         lease=db.execute("""SELECT expires_at FROM recheck_leases
             WHERE tenant_id=? AND parent_sid=? AND lease_token=?""",
             (tenant_id,parent_sid,lease_token)).fetchone()
