@@ -11,6 +11,7 @@ from types import SimpleNamespace
 
 from src.autopilot.observation_store import ObservationStore
 from src.autopilot.recheck_metrics import snapshot_recheck_metrics
+from src.autopilot.recheck_leases import RecheckLeases
 from src.autopilot.recheck_queue import RecheckQueue
 from src.autopilot.recheck_worker import run_recheck
 from src.autopilot.worker_control import WorkerControl
@@ -38,6 +39,7 @@ class OperatorRehearsalTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             db = os.path.join(temp, "synthetic-operator.db")
             queue = RecheckQueue(db)
+            RecheckLeases(db)  # Explicitly initialize the shared lease schema before metrics.
             observations = ObservationStore(db)
             control = WorkerControl(db)
             pager = CountingOfflinePager()
