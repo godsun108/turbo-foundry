@@ -25,3 +25,7 @@ The program leaves its gate **OFF** and does not issue sessions. For automated c
 - No new money, hosting project, metered provider API, SMS or customer data was used.
 
 **Next:** establish an isolated runtime security boundary before contemplating any real provider access; verify stop fencing at adapter entry, service logs/monitoring and threat-model tests.
+
+## October 14 hardening verification
+
+The loopback harness now rejects nonlocal Host headers (a basic DNS-rebinding defense), rechecks its default-off operator gate after a fictional adapter call before returning results, and explicitly disables the gate when the standalone server starts even if a prior SQLite database had been enabled. Regression tests simulate stopping a read after the underlying synthetic observation and require that no child count is returned. These are defense-in-depth checks, **not** cancellation or atomic fencing for a real provider request: already-running work may finish and privileged local code can bypass the HTTP layer. Never expose this development service beyond localhost.
