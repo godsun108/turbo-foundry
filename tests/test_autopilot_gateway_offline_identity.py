@@ -78,6 +78,7 @@ class IdentityDispatchRehearsal(unittest.TestCase):
     def test_attempt_database_failure_denies_login(self):
         with sqlite3.connect(self.db) as db:
             db.execute("DROP TABLE operator_attempt_windows")
+            db.execute("CREATE VIEW operator_attempt_windows AS SELECT 1 AS attempts, 1 AS operator_id, 1 AS window_start")
         self.assertIsNone(self.identity.login(operator_id="alice",
                                                credential=ALICE_SECRET, now=NOW))
 
