@@ -32,8 +32,11 @@ class RecheckLeases:
                 if (not isinstance(control,WorkerControl)
                         or os.path.abspath(control.db_path)!=os.path.abspath(self.db_path)):
                     return None
-                gate=db.execute("""SELECT enabled FROM worker_control
-                    WHERE name='read_only_recheck'""").fetchone()
+                try:
+                    gate=db.execute("""SELECT enabled FROM worker_control
+                        WHERE name='read_only_recheck'""").fetchone()
+                except sqlite3.Error:
+                    return None
                 if gate is None or gate[0]!=1:
                     return None
             row=db.execute("""SELECT status,next_due FROM provider_rechecks
