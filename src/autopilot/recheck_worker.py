@@ -13,8 +13,10 @@ class WorkerResult:
     reason: str
 
 def run_recheck(db_path,tenant_id,parent_sid,*,now: datetime,
-                call_ended_at: datetime,pager,lease_seconds=120, clock=None):
+                call_ended_at: datetime,pager,lease_seconds=120, clock=None, enabled=True):
     """Process one due job; caller supplies authenticated, account-bound pager."""
+    if enabled is not True:
+        return WorkerResult(False,False,"worker_disabled")
     if clock is None:
         clock=lambda: datetime.now(timezone.utc)
     # The same trusted clock must govern claim and completion in production.
