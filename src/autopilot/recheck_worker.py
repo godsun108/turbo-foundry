@@ -39,6 +39,18 @@ def run_recheck(db_path,tenant_id,parent_sid,*,now: datetime,
         return WorkerResult(False,False,"not_claimed")
     try:
         enumerated=pager.enumerate_all(parent_sid)
+        # A stop during provider pagination must prevent subsequent writes.
+        # This check does not yet close the race between checking and commit.
+        try:
+            still_enabled=control.is_enabled()
+        except Exception:
+            still_enabled=False
+        if not still_enabled:
+            try:
+                leases.release(tenant_id,parent_sid,token)
+            except Exception:
+                return WorkerResult(False,False,"lease_lost_or_storage_error")
+            return WorkerResult(False,False,"worker_disabled")
         finished_at=clock()
         if (not isinstance(finished_at,datetime) or finished_at.tzinfo is None
                 or finished_at.utcoffset() is None or finished_at<now):
