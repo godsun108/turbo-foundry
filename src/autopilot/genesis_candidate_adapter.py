@@ -25,6 +25,14 @@ class GenesisCandidateAdapter:
     def respond(self, *, tenant, session, industry, message, verified_facts=None):
         # Authentication/authorization must be performed by the calling gateway.
         # Never accept tenant/session identifiers from the customer utterance.
+        # Never send urgent, opt-out, or human-escalation utterances to an
+        # optional model. The deterministic boundary owns these decisions.
+        import re
+        if re.search(r"\\b(stop|unsubscribe|opt out|gas leak|smell gas|carbon monoxide|sparks|electrical fire|fire|flooding|burst pipe|smoke|human|person|manager|representative|agent|complaint)\\b", message, re.I):
+            result = self._boundary.respond(
+                tenant=tenant, session=session, industry=industry,
+                message=message, candidate=None, verified_facts=verified_facts)
+            return AdapterTurn(result.reply, result.source, result.intent, result.disposition)
         candidate = None
         if self._infer is not None:
             try:
