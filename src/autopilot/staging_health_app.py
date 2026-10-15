@@ -8,6 +8,16 @@ import os
 from wsgiref.simple_server import make_server
 
 
+def _allowed_host(environ):
+    host = environ.get("HTTP_HOST")
+    port = environ.get("SERVER_PORT")
+    return (isinstance(host, str) and isinstance(port, str)
+            and port.isdecimal() and 1 <= int(port) <= 65535
+            and host in ("127.0.0.1", "localhost", "[::1]",
+                         "127.0.0.1:" + port, "localhost:" + port,
+                         "[::1]:" + port))
+
+
 def application(environ, start_response):
     # Explicitly reject reverse proxies and nonloopback network clients.
     if environ.get("REMOTE_ADDR") not in ("127.0.0.1", "::1"):
@@ -17,10 +27,7 @@ def application(environ, start_response):
         "HTTP_X_FORWARDED_HOST", "HTTP_X_FORWARDED_PROTO",
     )):
         code, result = "403 Forbidden", {"error": "proxy_forbidden"}
-    elif environ.get("HTTP_HOST") not in (
-        "127.0.0.1", "localhost", "[::1]",
-        "127.0.0.1:8094", "localhost:8094",
-    ):
+    elif not _allowed_host(environ):
         code, result = "403 Forbidden", {"error": "host_not_allowed"}
     elif environ.get("REQUEST_METHOD") not in ("GET", "HEAD"):
         code, result = "405 Method Not Allowed", {"error": "read_only"}
