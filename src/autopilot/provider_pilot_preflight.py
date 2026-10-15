@@ -5,7 +5,6 @@ customer service active. It rejects invalid deployment requests and produces
 a bounded, redacted, human-review-only staging plan.
 """
 from dataclasses import dataclass
-from datetime import datetime, timezone
 import re
 
 _ALLOWED = frozenset({"twilio"})
@@ -36,7 +35,8 @@ def inspect_provider_pilot(request: ProviderPilotRequest) -> dict:
     """
     if not isinstance(request, ProviderPilotRequest):
         raise ProviderPreflightDenied("typed request required")
-    if (not _TENANT.fullmatch(request.tenant_id)
+    if (not isinstance(request.tenant_id, str)
+            or not _TENANT.fullmatch(request.tenant_id)
             or request.provider not in _ALLOWED
             or not isinstance(request.provider_account_id, str)
             or not _SID.fullmatch(request.provider_account_id)
