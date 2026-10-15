@@ -114,6 +114,8 @@ class OfflineWorkflowRunner:
         # Never run a network client while holding this lock.
         with sqlite3.connect(self.db_path,timeout=10) as db:
             db.execute("BEGIN IMMEDIATE")
+            if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='mock_claim_jobs'").fetchone():
+                raise RunnerDenied("claimed execution mode: legacy dispatch disabled")
             items=db.execute("""SELECT tenant,job_id,action,attempts,due_at
                 FROM offline_jobs WHERE state='queued' AND due_at<=?
                 ORDER BY due_at,tenant,job_id LIMIT ?""",(now,limit)).fetchall()
