@@ -18,11 +18,20 @@ class ClaimedMockExecutor:
         self.runner = runner
         self.ledger = OfflineClaimLedger(runner.db_path)
 
-    def execute(self, *, tenant, job_id, worker_token, now, lease_seconds=30):
+    def execute(self, *, tenant, job_id, worker_token, now, lease_seconds=30, capability_digest=None):
         if (not all(_id(x) for x in (tenant,job_id,worker_token))
                 or not _clock(now) or type(lease_seconds) is not int
                 or not 1 <= lease_seconds <= 3600):
             raise RunnerDenied("invalid fictional claim request")
+        # A capability-enabled database must not accept unverified direct calls.
+        with sqlite3.connect(self.runner.db_path,timeout=10) as db:
+            if db.execute("SELECT name FROM sqlite_master WHERE name=?",
+                          ("offline_capabilities",)).fetchone():
+                permitted=db.execute("""SELECT 1 FROM offline_capabilities
+                    WHERE digest=? AND tenant=? AND role='worker'
+                    AND revoked=0""",(capability_digest,tenant)).fetchone()
+                if not permitted or worker_token!="cap_"+capability_digest[:40]:
+                    raise RunnerDenied("capability required for mock execution")
         job=self.runner.status(tenant=tenant,job_id=job_id)
         if job is None or job.state!="queued" or job.due_at>now:
             raise RunnerDenied("job not approved or not due")
