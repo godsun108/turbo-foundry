@@ -45,13 +45,17 @@ class ClaimedMockExecutor:
             # A callback could have acted before raising. Do not auto-retry.
             self.ledger.quarantine_expired(now=claim.lease_until)
             raise RunnerDenied("mock callback outcome uncertain; quarantined") from None
-        # Receipt is a fictional acknowledgement, not provider evidence.
-        try:
-            self.ledger.complete(claim=claim,receipt="mock_ack_"+job_id,now=now)
-        except ClaimDenied as exc:
-            raise RunnerDenied("mock receipt uncertain; manual reconciliation") from exc
+        # Both state changes share one SQLite transaction: a crash cannot
+        # persist the receipt without marking the runner job completed.
         with sqlite3.connect(self.runner.db_path,timeout=10) as db:
             db.execute("BEGIN IMMEDIATE")
+            updated=db.execute("""UPDATE mock_claim_jobs SET
+                state='completed',receipt=?,token=NULL,lease_until=NULL
+                WHERE tenant=? AND job_id=? AND state='claimed'
+                AND token=? AND lease_until>?""",
+                ("mock_ack_"+job_id,tenant,job_id,worker_token,now)).rowcount
+            if updated!=1:
+                raise RunnerDenied("mock receipt uncertain; manual reconciliation")
             count=db.execute("""UPDATE offline_jobs SET state='completed',
                 attempts=attempts+1 WHERE tenant=? AND job_id=?
                 AND state='queued'""",(tenant,job_id)).rowcount
