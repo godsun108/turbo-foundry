@@ -28,7 +28,7 @@ class GenesisCandidateAdapter:
         # Never send urgent, opt-out, or human-escalation utterances to an
         # optional model. The deterministic boundary owns these decisions.
         import re
-        if re.search(r"\\b(stop|unsubscribe|opt out|gas leak|smell gas|carbon monoxide|sparks|electrical fire|fire|flooding|burst pipe|smoke|human|person|manager|representative|agent|complaint)\\b", message, re.I):
+        if re.search(r"\b(stop|unsubscribe|opt out|gas leak|smell gas|carbon monoxide|sparks|electrical fire|fire|flooding|burst pipe|smoke|human|person|manager|representative|agent|complaint)\b", message, re.I):
             result = self._boundary.respond(
                 tenant=tenant, session=session, industry=industry,
                 message=message, candidate=None, verified_facts=verified_facts)
