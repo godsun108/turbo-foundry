@@ -1,0 +1,39 @@
+name: Autopilot disposable isolation rehearsal
+
+# Explicit opt-in only; never run on push, PR, schedule, or production.
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Enter RUN_DISPOSABLE_ISOLATION to authorize a privileged test on an ephemeral GitHub runner'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-posix-test:
+    if: ${{ inputs.confirmation == 'RUN_DISPOSABLE_ISOLATION' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact selected revision
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run opt-in offline two-UID isolation rehearsal
+        run: |
+          set -eu
+          # Hosted runner only. No secrets or provider credentials are supplied.
+          echo "Git commit: $(git rev-parse HEAD)"
+          echo "Runner OS: $(uname -s)"
+          echo "Invoking disposable root-only test; expected child identity: nobody"
+          sudo env AUTOPILOT_RUN_PRIVILEGED_ISOLATION=1 \
+            python3 -m unittest discover -s tests \
+              -p 'test_autopilot_posix_identity_isolation.py' -v
+      - name: Record scope
+        if: always()
+        run: |
+          echo 'This workflow exercises only a local disposable SQLite file.'
+          echo 'It does not deploy, access Twilio, send SMS or modify billing.'

@@ -1,0 +1,42 @@
+name: Foundry Static Preview Artifact
+
+on:
+  push:
+    paths:
+      - 'src/autopilot/**'
+      - 'tests/test_autopilot_static_preview_build.py'
+      - 'tests/test_autopilot_signup_preview.py'
+      - '.github/workflows/foundry-static-preview-artifact.yml'
+  pull_request:
+    paths:
+      - 'src/autopilot/**'
+      - 'tests/test_autopilot_static_preview_build.py'
+      - 'tests/test_autopilot_signup_preview.py'
+      - '.github/workflows/foundry-static-preview-artifact.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  package-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify no-network preview tests
+        run: |
+          python -m unittest discover -s tests -p 'test_autopilot_signup_preview.py' -v
+          python -m unittest discover -s tests -p 'test_autopilot_static_preview_build.py' -v
+      - name: Build read-only customer discovery preview
+        run: |
+          python -m src.autopilot.static_preview_build
+          test -f outputs/foundry-static-preview/index.html
+          test -f outputs/foundry-static-preview/readiness.json
+          grep -q 'Checkout — not yet available' outputs/foundry-static-preview/index.html
+      - name: Upload preview (no deployment)
+        uses: actions/upload-artifact@v4
+        with:
+          name: foundry-static-preview
+          path: outputs/foundry-static-preview/
+          retention-days: 7
+          if-no-files-found: error
