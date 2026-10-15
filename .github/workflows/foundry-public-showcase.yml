@@ -40,6 +40,14 @@ jobs:
           grep -q 'This issue is PUBLIC' .github/ISSUE_TEMPLATE/business-discovery.md
           grep -q 'No live integration, checkout' .github/ISSUE_TEMPLATE/business-discovery.md
                     test ! -e showcase/CNAME
+          test -s showcase/discovery.html
+          grep -q 'Research-stage only' showcase/discovery.html
+          grep -q 'no dedicated business mailbox' showcase/discovery.html || grep -q 'has not yet published a verified dedicated business mailbox' showcase/discovery.html
+          grep -q 'discovery.html' showcase/index.html
+          if grep -Eiq '<form|<script|<iframe|<input|<button|fetch\\(|XMLHttpRequest|mailto:|https?://[^"]+\\?[^"]*token' showcase/discovery.html; then
+            echo 'ERROR: discovery guide must not collect data, create active forms or expose mailboxes'
+            exit 1
+          fi
           echo 'Read-only public showcase validated.'
       - name: Bundle site for review
         uses: actions/upload-artifact@v4
