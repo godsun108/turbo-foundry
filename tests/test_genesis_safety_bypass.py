@@ -29,6 +29,21 @@ class SafetyBypassTests(unittest.TestCase):
         self.assertEqual(len(calls), 1)
         self.assertEqual(result.source, "deterministic")
 
+    def test_invalid_scope_never_reaches_inference(self):
+        calls = []
+        def infer(payload):
+            calls.append(payload)
+            return None
+        adapter = GenesisCandidateAdapter(infer=infer)
+        for kwargs in [
+            {"tenant": "bad tenant", "session": "ok", "industry": "hvac", "message": "hello"},
+            {"tenant": "ok", "session": "ok", "industry": "hvac", "message": "x" * 1001},
+            {"tenant": "ok", "session": "ok", "industry": "hvac", "message": "hello", "verified_facts": {"private": "secret"}},
+        ]:
+            with self.assertRaises(ValueError):
+                adapter.respond(**kwargs)
+        self.assertEqual(calls, [])
+
 
 if __name__ == "__main__":
     unittest.main()
