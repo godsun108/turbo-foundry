@@ -84,6 +84,9 @@ class OfflineWorkflowRunner:
             raise RunnerDenied("fictional reviewer required")
         with sqlite3.connect(self.db_path,timeout=10) as db:
             db.execute("BEGIN IMMEDIATE")
+            if db.execute("SELECT name FROM sqlite_master WHERE name=?",
+                          ("offline_capabilities",)).fetchone():
+                raise RunnerDenied("capability approval required")
             count=db.execute("""UPDATE offline_jobs SET state='queued'
                 WHERE tenant=? AND job_id=? AND state='awaiting_review'""",
                 (tenant,job_id)).rowcount
