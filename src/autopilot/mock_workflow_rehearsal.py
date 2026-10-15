@@ -46,8 +46,9 @@ def execute():
 
 
 def main():
-    print(json.dumps(execute(),indent=2,sort_keys=True))
-    return 0 if execute()["passed"] else 1
+    evidence = execute()
+    print(json.dumps(evidence,indent=2,sort_keys=True))
+    return 0 if evidence["passed"] else 1
 
 
 if __name__=="__main__":
