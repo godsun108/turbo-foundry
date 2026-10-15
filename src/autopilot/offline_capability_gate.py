@@ -84,4 +84,5 @@ class OfflineCapabilityGate:
         # Worker token is a digest-derived fictional claim identifier, not a
         # provider identity. Authorization checked before the local mock action.
         return self.executor.execute(tenant=tenant,job_id=job_id,
-                                     worker_token="cap_"+digest[:40],now=now,\n                                     capability_digest=digest)
+                                     worker_token="cap_"+digest[:40],now=now,
+                                     capability_digest=digest)
