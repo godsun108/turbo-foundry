@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Foundry Voice Lab — Offline Rehearsal</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101827;color:#f4f7fb}
+body{max-width:700px;margin:auto;padding:20px}h1{font-size:1.65rem}p,small{color:#c7d3e5;line-height:1.5}
+button,select,textarea{font:inherit;color:inherit;background:#25344b;border:1px solid #60738c;border-radius:10px;padding:12px}
+button{cursor:pointer;margin:5px 4px 5px 0}button:disabled{opacity:.45}
+textarea{display:block;width:100%;box-sizing:border-box;min-height:90px}
+#log{white-space:pre-wrap;background:#1a273b;padding:16px;border-radius:12px;min-height:100px;max-height:45vh;overflow:auto}
+#status{padding:10px;background:#27364c;border-radius:8px}label{display:block;margin:12px 0 6px}
+</style></head><body>
+<h1>Foundry Voice Lab</h1>
+<p><strong>Fictional offline receptionist rehearsal.</strong> No real calls, messages, bookings, staff notifications, or AI model. This scripted prototype is not human-level conversational AI. Browser speech recognition may use your device/browser's speech provider. Do not enter personal information.</p>
+<label for="industry">Demo business</label><select id="industry">
+<option value="automotive">Automotive repair</option><option value="hvac">HVAC</option><option value="plumbing">Plumbing / electrical</option><option value="landscaping">Landscaping</option><option value="cleaning">Cleaning</option><option value="general">General services</option>
+</select>
+<p id="status" role="status">Ready. Text input works without microphone access.</p>
+<div><button id="listen">🎙 Speak</button><button id="stop">Stop listening / speech</button><button id="reset">Reset demo</button></div>
+<label for="input">Customer message</label><textarea id="input" maxlength="1000" placeholder="Example: Can I book a brake inspection tomorrow?"></textarea>
+<button id="send">Send to receptionist</button><label><input id="voice" type="checkbox" checked> Read replies aloud (device voice)</label>
+<h2>Conversation</h2><div id="log" role="log" aria-live="polite"></div>
+<small>Explicitly synthetic responses; no server, model key, or customer data storage. Audio is not recorded by this page. Clear/reset closes the current session. Some browsers do not support speech recognition or synthesis.</small>
+<script>
+(()=>{'use strict';
+const el=id=>document.getElementById(id), status=s=>el('status').textContent=s;
+let recognizer=null,closed=false,turns=0,activeIndustry=el('industry').value;
+const urgent=/\b(gas leak|smell gas|carbon monoxide|sparks|electrical fire|fire|flooding|burst pipe|smoke)\b/i;
+const stop=/\b(stop|unsubscribe|opt out)\b/i;
+const human=/\b(human|person|manager|representative|agent|complaint)\b/i;
+const quote=/\b(price|cost|quote|estimate|how much)\b/i;
+const booking=/\b(book|appointment|schedule|available|availability|tomorrow|today)\b/i;
+function append(role,text){const div=document.createElement('div');div.textContent=role+': '+text;el('log').appendChild(div);el('log').appendChild(document.createElement('hr'));el('log').scrollTop=el('log').scrollHeight}
+function speak(text){if(!el('voice').checked)return;if(!('speechSynthesis' in window)){status('Speech synthesis unavailable; reply shown as text.');return}try{speechSynthesis.cancel();const utter=new SpeechSynthesisUtterance(text);utter.lang='en-US';utter.rate=.96;speechSynthesis.speak(utter)}catch{status('Could not play device speech; text reply is available.')}}
+function respond(msg){
+if(closed)return 'This fictional conversation is closed. Reset to start again.';
+if(stop.test(msg)){closed=true;return 'Understood. This fictional conversation is closed. No real contact preferences were changed.'}
+if(urgent.test(msg))return 'This may be urgent. Move away from immediate danger and contact local emergency services or a qualified professional. I cannot dispatch help.';
+if(human.test(msg))return 'I can flag a request for a human in this demo, but no staff member has been contacted.';
+if(quote.test(msg))return 'I can help prepare a quote request, but cannot verify a price. What service do you need?';
+if(booking.test(msg))return 'I can help prepare an appointment request. I cannot see live availability or confirm a booking. What service and preferred day work for you?';
+return 'Thanks for contacting our fictional '+el('industry').selectedOptions[0].text+' business. I am an automated demo receptionist. What service do you need help with?';
+}
+el('send').onclick=()=>{const msg=el('input').value.trim();if(!msg)return;if(msg.length>1000){status('Message too long.');return}
+if(activeIndustry!==el('industry').value){status('Reset before switching businesses.');return}
+append('Customer',msg);el('input').value='';turns++;const answer=respond(msg);append('Foundry demo',answer);status('Demo turn '+turns+' completed. No external business action occurred.');speak(answer)};
+el('reset').onclick=()=>{recognizer?.abort();speechSynthesis?.cancel();closed=false;turns=0;activeIndustry=el('industry').value;el('log').replaceChildren();el('input').value='';status('Demo reset. No conversation stored.')};
+el('stop').onclick=()=>{recognizer?.abort();speechSynthesis?.cancel();status('Listening and speech stopped.')};
+const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!Recognition){el('listen').disabled=true;status('Speech recognition unavailable in this browser. Text input is ready.')}
+else el('listen').onclick=()=>{try{recognizer?.abort();speechSynthesis?.cancel();recognizer=new Recognition();recognizer.lang='en-US';recognizer.interimResults=false;recognizer.onresult=e=>{el('input').value=e.results[0][0].transcript;status('Speech captured. Review it and press Send.')};recognizer.onerror=e=>status('Speech recognition unavailable: '+e.error+'. Use text input.');recognizer.onend=()=>{recognizer=null};recognizer.start();status('Listening. Speech recognition may use a browser/device provider.')}catch(e){status('Microphone unavailable: '+e.message)}};
+})();
+</script></body></html>
