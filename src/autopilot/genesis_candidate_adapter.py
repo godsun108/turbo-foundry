@@ -24,6 +24,18 @@ class GenesisCandidateAdapter:
 
     def respond(self, *, tenant, session, industry, message, verified_facts=None):
         # Authentication/authorization must be performed by the calling gateway.
+        # Validate scope before invoking inference: never leak an invalid tenant
+        # or oversized utterance to a provider.
+        import re
+        if (not isinstance(tenant, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", tenant)
+                or not isinstance(session, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", session)
+                or industry not in {"automotive", "hvac", "plumbing", "landscaping", "cleaning", "general"}
+                or not isinstance(message, str) or not 1 <= len(message) <= 1000
+                or (verified_facts is not None and (
+                    not isinstance(verified_facts, dict)
+                    or bool(set(verified_facts) - {"business_name", "service_area", "services"})
+                    or any(not isinstance(v, str) or len(v) > 160 for v in verified_facts.values())))):
+            raise ValueError("invalid Genesis customer turn")
         # Never accept tenant/session identifiers from the customer utterance.
         # Never send urgent, opt-out, or human-escalation utterances to an
         # optional model. The deterministic boundary owns these decisions.
