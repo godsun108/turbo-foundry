@@ -11,7 +11,7 @@ textarea{display:block;width:100%;box-sizing:border-box;min-height:90px}
 #status{padding:10px;background:#27364c;border-radius:8px}label{display:block;margin:12px 0 6px}
 </style></head><body>
 <h1>Foundry Voice Lab</h1>
-<p><strong>Fictional offline receptionist rehearsal.</strong> No real calls, messages, bookings, staff notifications, or AI model. This scripted prototype is not human-level conversational AI. Browser speech recognition may use your device/browser's speech provider. Do not enter personal information.</p>
+<p><strong>Fictional offline receptionist rehearsal.</strong> No real calls, messages, bookings, staff notifications, or AI model. This contextual scripted prototype is not human-level conversational AI. Browser speech recognition may use your device/browser's speech provider. Do not enter personal information.</p>
 <label for="industry">Demo business</label><select id="industry">
 <option value="automotive">Automotive repair</option><option value="hvac">HVAC</option><option value="plumbing">Plumbing / electrical</option><option value="landscaping">Landscaping</option><option value="cleaning">Cleaning</option><option value="general">General services</option>
 </select>
@@ -25,6 +25,7 @@ textarea{display:block;width:100%;box-sizing:border-box;min-height:90px}
 (()=>{'use strict';
 const el=id=>document.getElementById(id), status=s=>el('status').textContent=s;
 let recognizer=null,closed=false,turns=0,activeIndustry=el('industry').value;
+let context={intent:null,service:null,preferredDay:null,followup:null};
 const urgent=/\b(gas leak|smell gas|carbon monoxide|sparks|electrical fire|fire|flooding|burst pipe|smoke)\b/i;
 const stop=/\b(stop|unsubscribe|opt out)\b/i;
 const human=/\b(human|person|manager|representative|agent|complaint)\b/i;
@@ -37,14 +38,31 @@ if(closed)return 'This fictional conversation is closed. Reset to start again.';
 if(stop.test(msg)){closed=true;return 'Understood. This fictional conversation is closed. No real contact preferences were changed.'}
 if(urgent.test(msg))return 'This may be urgent. Move away from immediate danger and contact local emergency services or a qualified professional. I cannot dispatch help.';
 if(human.test(msg))return 'I can flag a request for a human in this demo, but no staff member has been contacted.';
-if(quote.test(msg))return 'I can help prepare a quote request, but cannot verify a price. What service do you need?';
-if(booking.test(msg))return 'I can help prepare an appointment request. I cannot see live availability or confirm a booking. What service and preferred day work for you?';
+const lower=msg.toLowerCase();
+const services=['brakes','brake','oil change','air conditioning','ac','heater','leak','drain','lawn','mowing','cleaning','inspection','detailing'];
+const found=services.find(s=>lower.includes(s));if(found)context.service=found;
+const day=lower.match(/\b(today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i);
+if(day)context.preferredDay=day[1].toLowerCase();
+if(quote.test(msg))context.intent='quote';
+else if(booking.test(msg))context.intent='appointment';
+if(context.intent==='quote'){
+if(!context.service){context.followup='service';return 'I can help prepare a fictional quote request, but cannot verify pricing. What service do you need?'}
+context.followup='details';
+return 'I have noted '+context.service+' for this fictional quote request. Can you describe the issue? A real estimate requires staff review.';
+}
+if(context.intent==='appointment'){
+if(!context.service){context.followup='service';return 'I can prepare a fictional appointment request. What service do you need?'}
+if(!context.preferredDay){context.followup='day';return 'I have noted '+context.service+'. Which day would you prefer? I cannot check live availability.'}
+context.followup='details';
+return 'I have noted '+context.service+' and '+context.preferredDay+' as your preferred day. This is only a rehearsal: no appointment has been booked or staff notified. Is there anything else the team should know?';
+}
+if(context.followup==='details')return 'Thank you. Your additional details are part of this fictional conversation only; no staff member has received them.';
 return 'Thanks for contacting our fictional '+el('industry').selectedOptions[0].text+' business. I am an automated demo receptionist. What service do you need help with?';
 }
 el('send').onclick=()=>{const msg=el('input').value.trim();if(!msg)return;if(msg.length>1000){status('Message too long.');return}
 if(activeIndustry!==el('industry').value){status('Reset before switching businesses.');return}
 append('Customer',msg);el('input').value='';turns++;const answer=respond(msg);append('Foundry demo',answer);status('Demo turn '+turns+' completed. No external business action occurred.');speak(answer)};
-el('reset').onclick=()=>{recognizer?.abort();speechSynthesis?.cancel();closed=false;turns=0;activeIndustry=el('industry').value;el('log').replaceChildren();el('input').value='';status('Demo reset. No conversation stored.')};
+el('reset').onclick=()=>{recognizer?.abort();speechSynthesis?.cancel();closed=false;turns=0;context={intent:null,service:null,preferredDay:null,followup:null};activeIndustry=el('industry').value;el('log').replaceChildren();el('input').value='';status('Demo reset. No conversation stored.')};
 el('stop').onclick=()=>{recognizer?.abort();speechSynthesis?.cancel();status('Listening and speech stopped.')};
 const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
 if(!Recognition){el('listen').disabled=true;status('Speech recognition unavailable in this browser. Text input is ready.')}
