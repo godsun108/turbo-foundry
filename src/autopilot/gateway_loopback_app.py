@@ -32,6 +32,22 @@ def _reply(start_response, status, data, *, head=False):
     return [] if head else [body]
 
 
+
+def _safe_loopback_host(host):
+    """Accept local authorities only, with optional valid decimal TCP port."""
+    if not isinstance(host, str) or not host or any(
+            ch in host for ch in ("@", "/", " ", "\t", "\r", "\n", "?", "#")):
+        return False
+    authority = host.lower()
+    for allowed in ("127.0.0.1", "localhost", "[::1]"):
+        if authority == allowed:
+            return True
+        if authority.startswith(allowed + ":"):
+            port = authority[len(allowed) + 1:]
+            return (port.isascii() and port.isdecimal()
+                    and 1 <= len(port) <= 5 and 1 <= int(port) <= 65535)
+    return False
+
 class LoopbackSyntheticApp:
     """A narrowly scoped integration harness with no public login endpoint."""
 
@@ -57,9 +73,7 @@ class LoopbackSyntheticApp:
             return _reply(start_response, "403 Forbidden", {"error": "proxy_forbidden"})
         # Reject DNS rebinding and nonlocal Host values.
         host = environ.get("HTTP_HOST", "")
-        allowed_hosts = ("127.0.0.1", "localhost", "[::1]")
-        if (not isinstance(host, str) or host.lower().split(":")[0] not in allowed_hosts
-                or any(ch in host for ch in ("@", "/", " ", "\t", "\r", "\n"))):
+        if not _safe_loopback_host(host):
             return _reply(start_response, "403 Forbidden", {"error": "invalid_host"})
         method, path = environ.get("REQUEST_METHOD"), environ.get("PATH_INFO")
         if method not in ("GET", "HEAD"):
@@ -70,6 +84,10 @@ class LoopbackSyntheticApp:
                           {"status": "ok", "mode": "synthetic_loopback_only"}, head=head)
         if path != "/api/history":
             return _reply(start_response, "404 Not Found", {"error": "not_found"}, head=head)
+        # HEAD on history must never perform a provider read or write an audit.
+        if head:
+            return _reply(start_response, "405 Method Not Allowed",
+                          {"error": "history_requires_get"}, head=True)
         if environ.get("QUERY_STRING", ""):
             return _reply(start_response, "400 Bad Request",
                           {"error": "query_parameters_forbidden"}, head=head)
