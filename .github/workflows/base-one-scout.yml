@@ -2,8 +2,6 @@ name: Base One Scout
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "17 12 * * *"
 
 permissions:
   contents: read
