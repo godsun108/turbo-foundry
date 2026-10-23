@@ -39,3 +39,17 @@ No product may be advertised as GOTS-certified unless documentation supports the
 
 ## Next milestone
 Create an evidence table for the three products with supplier, exact SKU, composition, certifications, base cost, print cost, shipping, and source link. Unverified fields stay blank.
+
+## 2026-10-23: Zero-subscription channel comparison (public documentation, not account verification)
+- Shopify: user confirms no paid subscription currently. Treat prior AUREL storefront as historical, not operational.
+- Printify Free: $0/month. Standard integrations require separate merchant payment for fulfillment; supplier can charge card before marketplace payout.
+  Sources: https://printify.com/pricing/ ; https://help.printify.com/hc/en-us/articles/4483601124113-How-does-the-payment-process-work
+- **Printify Pop-Up Store (preferred to investigate):** Printify collects customer payment and pays production/shipping; profit paid via Stripe after verification. Eligibility, supported countries, product selection, organic claims, payout delays and refund liabilities remain unverified.
+  Source: https://help.printify.com/hc/en-us/articles/4483626302609-How-will-Printify-charge-me
+- Printful Free: $0/month but merchant pays Printful for product/printing, shipping, taxes and possible digitization on orders. Not zero working capital in ordinary checkout flow.
+  Source: https://help.printful.com/hc/en-us/articles/50261163157905-How-much-does-Printful-cost
+- Stripe Payment Links: no monthly platform fee on standard pricing, but processing fees and separate fulfillment funding remain; not the preferred initial flow.
+  Source: https://stripe.com/payments/payment-links
+
+### Gate before accepting any orders
+Confirm account eligibility, actual organic blank SKUs and substantiated claims, complete per-order cost/tax/returns, payment and payout timing, ownership of customer support, and the ability to disable orders safely. Do not connect accounts, create storefront, publish products or enable live payments without separate approval.
