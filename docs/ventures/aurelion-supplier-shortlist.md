@@ -26,3 +26,15 @@ Retail price − base product and decoration − shipping subsidy − applicable
 2. Get garment-specific certification documentation, and verify which claims can lawfully be made on decorated final goods.
 3. Find an organic cotton-rich jogger with verified Printify Pop-Up support, or defer joggers.
 4. Calculate scenario margins including tax and refund allowance; no live transactions.
+
+## 2026-10-23 jogger follow-up
+**Updated material evidence:** Stanley/Stella Flyer SXU006 is publicly listed by multiple garment retailers as 80% organic combed ring-spun cotton / 20% recycled polyester, 350 GSM. Independent retailer listings are corroboration, not primary certification documentation. Printify catalog lists SXU006 from $53.15, 8 sizes and 8 colors, Fulfill Engine. Thus material composition is provisionally corroborated; do not claim final decorated goods are certified.
+- Printify brand catalog: https://printify.com/app/brand/15/stanley-stella
+- Supplier retail listing: https://printnatural.com/products/stanley-stella-unisex-flyer-organic-jogger-sxu006
+- Alternative: Stanley/Stella Mover 2.0 STBU185 described by retailer as 100% organic cotton; **not verified in Printify**: https://www.gsworkwear.com/products/stanley-stella-unisex-mover-2-0-iconic-jogger-pants-stbu185
+
+**Eligibility:** Printify documents the US as eligible for Pop-Up Store subject to account Stripe verification. Storefront creation is a write and is NOT authorized by this research. Pop-Up orders may proceed to production even under 'manual' order approval after a timeout, so never publish a product as a harmless test.
+- https://help.printify.com/hc/en-us/articles/19768094570385-Am-I-an-eligible-merchant-for-Printify-Pop-Up-Store
+- https://help.printify.com/hc/en-us/articles/12051129478417-What-is-Printify-Pop-Up-Store
+
+**Next:** confirm product-specific certification, decoration method/placement, Printify Pop-Up eligibility and payout setup via account read-only inspection; do not create a store, publish products, or submit orders.
