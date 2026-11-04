@@ -78,6 +78,8 @@ def build_metadata(score: Any) -> list[dict[str, Any]]:
             if not isinstance(text, str) or not text.strip():
                 errors.append(f"{label}: text is required")
                 continue
+            if text != "<SP>" and len(text.split()) != 1:
+                errors.append(f"{label}: each lyric unit must contain exactly one word")
             if not isinstance(phones, list) or not phones or any(not isinstance(p, str) or not p for p in phones):
                 errors.append(f"{label}: explicit phoneme array is required")
                 continue
@@ -96,6 +98,8 @@ def build_metadata(score: Any) -> list[dict[str, Any]]:
                 if text != "<SP>" or phones != ["<SP>"] or pitch != 0:
                     errors.append(f"{label}: rest must use text <SP>, phonemes [<SP>], and pitch 0")
             else:
+                if pitch == 0:
+                    errors.append(f"{label}: pitched word units must use MIDI pitch 1–127")
                 if text == "<SP>" or any(p not in ARPABET for p in phones):
                     errors.append(f"{label}: English word units require explicit ARPABET phoneme tokens")
             words.append(text)
