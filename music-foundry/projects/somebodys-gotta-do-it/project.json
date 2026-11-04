@@ -6,14 +6,15 @@
     "status": "arrangement-spec",
     "lyrics_source": "user-original-draft",
     "genre": [
-      "wonky tech",
-      "free-form bass house"
+      "wonky bass house",
+      "dubstep-influenced bass music",
+      "free-form club bass"
     ],
     "target_bpm": 127,
     "bpm_status": "provisional",
     "meter": "4/4",
     "key": "undecided",
-    "energy": "playful everyday absurdity escalating into aggressive club chaos"
+    "energy": "playful everyday absurdity escalating into aggressive, warehouse-ready club chaos"
   },
   "vocal_modes": {
     "primary": "spoken",
@@ -51,7 +52,44 @@
       "lead.mid",
       "drums.mid"
     ],
-    "rights": "original lyrics; use only original or appropriately licensed sound assets"
+    "rights": "original lyrics; use only original or appropriately licensed sound assets",
+    "direction": "Keep the track's wonky bass-house groove and spoken-comedy personality, but raise the sound-design ambition with dubstep-influenced bass movement, heavier low-end impact, sharper transient design, dramatic tension, and memorable drop contrast. Do not turn it into a straight dubstep track.",
+    "dubstep_influences": {
+      "bass_design": [
+        "original growling/reese bass phrases",
+        "formant and vowel-like movement",
+        "sub-bass fundamentals kept clean and centered",
+        "mid-bass call-and-response with the spoken lead",
+        "short fills, pitch dives, and rhythmic stutters"
+      ],
+      "drop_design": [
+        "clear pre-drop subtraction and silence",
+        "first chorus drop at bar 17",
+        "hard-hitting kick and snare with controlled low-end",
+        "bass phrases that answer the vocal hook",
+        "half-time bridge with a heavier dubstep pocket before the final return"
+      ],
+      "sound_quality": [
+        "use high-quality original or appropriately licensed one-shots and synth sources",
+        "separate sub, mid-bass, drums, music and vocal buses",
+        "preserve headroom and avoid clipping",
+        "stereo width in upper layers while keeping sub mono",
+        "reference-check on headphones, car speakers and club/PA playback"
+      ],
+      "mix_priority": "Vocal intelligibility and kick/sub translation take priority over raw loudness"
+    },
+    "vocal_recording_plan": {
+      "first_pass": "record the full spoken lead from the cue sheet in one or more clean takes",
+      "next_passes": [
+        "gang-shouted Somebody's gotta do it hook",
+        "pre-drop Is this too much? / Are we sure? / Fuck it. exchange",
+        "verse response ad-libs",
+        "bridge word chops",
+        "final chorus doubles and outro tag"
+      ],
+      "capture": "dry, close microphone, quiet room, no reverb or effects; effects are added non-destructively in the timeline",
+      "source_of_truth": "cue-sheet.md"
+    }
   },
   "sections": [
     {
@@ -152,6 +190,7 @@
     "spoken_vocal_automation": "implemented take-relative keyframe automation for gain, low-pass cutoff, delay wet and feedback; visible clip markers; browser preview/WAV export and Python assembler render matching linear ramps; maximum 64 points per take; verified by 38 passing Music Foundry CI tests and JavaScript syntax checks; iPhone/Safari runtime still requires device testing",
     "spoken_phrase_performance": "implemented bounded per-take phrase selection, repeats, reverse and optional extra repeat at first chorus drop (bar 17); browser preview/offline WAV and Python assembler parity; non-destructive manifest metadata; tests and CI pending",
     "spoken_vocal_performance_controls": "implemented per-take and per-layer mute/solo, isolated phrase audition, touch-friendly 10ms/100ms nudges, and quick recorded-take A/B audition over loop region A; tests and CI pending",
-    "tempo_synced_loop_lab": "implemented two global loop regions A/B with visible timeline bands; selectable quarter/eighth/sixteenth/bar snapping at 127 BPM; A, B, and sequential A/B loop preview; adjustable 0–100 ms crossfades (12 ms default); source-offset automation alignment; manifest persistence; 15-minute playback cap; tests and CI pending"
+    "tempo_synced_loop_lab": "implemented two global loop regions A/B with visible timeline bands; selectable quarter/eighth/sixteenth/bar snapping at 127 BPM; A, B, and sequential A/B loop preview; adjustable 0–100 ms crossfades (12 ms default); source-offset automation alignment; manifest persistence; 15-minute playback cap; tests and CI pending",
+    "production_direction": "updated to include dubstep-influenced bass-house and higher sound-quality targets; no polished mix or new audio engine claimed"
   }
 }
