@@ -12,7 +12,7 @@ from pathlib import Path
 
 LAYERS = ("dry_lead", "gang_vocals", "adlibs", "chops", "whisper_double")
 DEFAULT_RATE = 48000
-MAX_SECONDS = 900
+MAX_SECONDS = 180
 MAX_TAKES = 128
 
 
@@ -85,10 +85,14 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
     if not isinstance(takes, list) or len(takes) > MAX_TAKES:
         raise ValueError(f"takes must be a list with no more than {MAX_TAKES} entries")
     total_frames = math.ceil(duration * sample_rate)
+    used_layers = {take.get("layer") for take in takes if isinstance(take, dict)}
+    unknown_layers = used_layers - set(LAYERS)
+    if unknown_layers:
+        raise ValueError(f"unsupported vocal layers: {sorted(unknown_layers)}")
     layer_buffers = {
         name: (array.array("d", [0.0]) * total_frames,
                array.array("d", [0.0]) * total_frames)
-        for name in LAYERS
+        for name in used_layers
     }
     source_root = manifest_path.parent
     take_records = []
