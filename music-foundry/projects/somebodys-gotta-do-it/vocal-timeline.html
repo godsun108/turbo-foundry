@@ -33,7 +33,7 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#11170a
 .clip[data-layer="chops"]{background:linear-gradient(135deg,#32677a,#1b3b4b);border-color:#9ce8ff}
 .clip[data-layer="whisper_double"]{background:linear-gradient(135deg,#59616e,#303744);border-color:#d2d9e4}
 .clip.selected{outline:2px solid white;outline-offset:2px}
-.editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.fx-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.fx-title{margin:16px 0 4px;color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.1em}
 small{color:var(--muted)}.hint{font-size:12px}.back{color:var(--muted);text-decoration:none}
 @media(min-width:760px){main{padding-left:24px;padding-right:24px}.grid{grid-template-columns:1fr 1fr}.panel{padding:18px}}
 </style>
@@ -65,6 +65,15 @@ small{color:var(--muted)}.hint{font-size:12px}.back{color:var(--muted);text-deco
 <div><label for="gain">Gain (dB, -60 to +12)</label><input id="gain" type="number" min="-60" max="12" step="0.5" value="0"></div>
 <div><label for="pan">Pan (-1 left to +1 right)</label><input id="pan" type="number" min="-1" max="1" step="0.05" value="0"></div>
 </div>
+<div class="fx-title">PER-TAKE EFFECTS</div>
+<div class="fx-grid">
+<div><label for="drive">Saturation / drive (0–24 dB)</label><input id="drive" type="number" min="0" max="24" step="1" value="0"></div>
+<div><label for="filter">Low-pass filter (500–20000 Hz)</label><input id="filter" type="number" min="500" max="20000" step="100" value="20000"></div>
+<div><label for="delay">Delay time (0–500 ms)</label><input id="delay" type="number" min="0" max="500" step="5" value="0"></div>
+<div><label for="feedback">Delay feedback (0–75%)</label><input id="feedback" type="number" min="0" max="75" step="5" value="25"></div>
+<div><label for="wet">Delay wet (0–100%)</label><input id="wet" type="number" min="0" max="100" step="5" value="0"></div>
+<div><label for="stutter">Stutter repeat</label><select id="stutter"><option value="off">Off</option><option value="1/4">1/4 beat</option><option value="1/8">1/8 beat</option><option value="1/16">1/16 beat</option></select></div>
+</div>
 <div class="actions"><button id="apply" class="primary" disabled>Apply take edits</button><button id="remove" disabled>Remove take</button></div>
 </section>
 <section class="panel">
@@ -95,7 +104,7 @@ function duration(){return Math.max(PROJECT_DURATION,Math.min(MAX_SECONDS,Number
 function validateManifest(m){
  if(!m||m.schema!=='turbo.music-foundry.spoken-takes.v1'||!Array.isArray(m.takes)||m.takes.length>MAX_TAKES)throw Error('Unsupported manifest or more than 128 takes.');
  if(!(Number(m.duration_seconds)>0&&Number(m.duration_seconds)<=MAX_SECONDS))throw Error('Project duration must be between 0 and 180 seconds.');
- for(const t of m.takes){if(!t||!LAYERS.includes(t.layer)||typeof t.file!=='string'||!t.file||!Number.isFinite(Number(t.offset_ms))||Number(t.offset_ms)<0||Number(t.offset_ms)>180000||!Number.isFinite(Number(t.gain_db??0))||Number(t.gain_db??0)<-60||Number(t.gain_db??0)>12||!Number.isFinite(Number(t.pan??0))||Number(t.pan??0)<-1||Number(t.pan??0)>1)throw Error('A take has invalid layer, file, offset, gain or pan data.');}
+ for(const t of m.takes){if(!t||!LAYERS.includes(t.layer)||typeof t.file!=='string'||!t.file||!Number.isFinite(Number(t.offset_ms))||Number(t.offset_ms)<0||Number(t.offset_ms)>180000||!Number.isFinite(Number(t.gain_db??0))||Number(t.gain_db??0)<-60||Number(t.gain_db??0)>12||!Number.isFinite(Number(t.pan??0))||Number(t.pan??0)<-1||Number(t.pan??0)>1)throw Error('A take has invalid layer, file, offset, gain or pan data.');const fx=t.effects||{};if(!Number.isFinite(Number(fx.drive_db??0))||Number(fx.drive_db??0)<0||Number(fx.drive_db??0)>24||!Number.isFinite(Number(fx.lowpass_hz??20000))||Number(fx.lowpass_hz??20000)<500||Number(fx.lowpass_hz??20000)>20000||!Number.isFinite(Number(fx.delay_ms??0))||Number(fx.delay_ms??0)<0||Number(fx.delay_ms??0)>500||!Number.isFinite(Number(fx.delay_feedback??25))||Number(fx.delay_feedback??25)<0||Number(fx.delay_feedback??25)>75||!Number.isFinite(Number(fx.delay_wet??0))||Number(fx.delay_wet??0)<0||Number(fx.delay_wet??0)>100||!['off','1/4','1/8','1/16'].includes(fx.stutter||'off'))throw Error('A take has invalid effect settings.');}
 }
 async function context(){const C=window.AudioContext||window.webkitAudioContext;if(!C)throw Error('Web Audio is unavailable in this browser.');if(!decodedContext)decodedContext=new C();if(decodedContext.state==='suspended')await decodedContext.resume();return decodedContext;}
 function draw(){
@@ -111,7 +120,7 @@ function draw(){
  $('apply').disabled=selected<0;$('remove').disabled=selected<0;
  $('play').disabled=!clips.length;$('exportManifest').disabled=!clips.length;$('render').disabled=!clips.length;
 }
-function select(i){selected=i;const c=clips[i];if(!c)return;$('layer').value=c.layer;$('offset').value=c.offset_ms;$('gain').value=c.gain_db;$('pan').value=c.pan;draw();}
+function select(i){selected=i;const c=clips[i];if(!c)return;const fx=c.effects||{};$('layer').value=c.layer;$('offset').value=c.offset_ms;$('gain').value=c.gain_db;$('pan').value=c.pan;$('drive').value=fx.drive_db??0;$('filter').value=fx.lowpass_hz??20000;$('delay').value=fx.delay_ms??0;$('feedback').value=fx.delay_feedback??25;$('wet').value=fx.delay_wet??0;$('stutter').value=fx.stutter||'off';draw();}
 function beginDrag(e,i,el){
  if(e.target.closest('button'))return;e.preventDefault();select(i);const startX=e.clientX,startOffset=Number(clips[i].offset_ms);el.setPointerCapture?.(e.pointerId);
  const move=ev=>{const delta=Math.round((ev.clientX-startX)/PIXELS_PER_SECOND*1000/10)*10;const next=Math.max(0,Math.min(180000,startOffset+delta));clips[i].offset_ms=next;manifest.takes[i].offset_ms=next;el.style.left=(next/1000*PIXELS_PER_SECOND+90)+'px';const small=el.querySelector('small');if(small)small.textContent=(next/1000).toFixed(2)+'s · '+clips[i].duration.toFixed(1)+'s';$('offset').value=next;};
@@ -123,16 +132,16 @@ async function loadAudioFiles(files){
  if(!manifest.takes.length)throw Error('Load a take manifest first.');if(files.length>MAX_TAKES)throw Error('Select no more than 128 WAV files.');
  const ctx=await context(),byName=new Map(Array.from(files).map(f=>[f.name.toLowerCase(),f]));const next=[];
  for(let i=0;i<manifest.takes.length;i++){const t=manifest.takes[i],file=byName.get(basename(t.file));if(!file)continue;const buffer=await ctx.decodeAudioData(await file.arrayBuffer());const offset=Number(t.offset_ms)||0;if(offset/1000+buffer.duration>MAX_SECONDS)throw Error(file.name+' extends beyond the 180-second project limit.');
-  next.push({file,buffer,name:file.name,filePath:t.file,layer:t.layer,offset_ms:offset,gain_db:Number(t.gain_db)||0,pan:Number(t.pan)||0,duration:buffer.duration});
+  next.push({file,buffer,name:file.name,filePath:t.file,layer:t.layer,offset_ms:offset,gain_db:Number(t.gain_db)||0,pan:Number(t.pan)||0,effects:t.effects||{},duration:buffer.duration});
  }
  if(!next.length)throw Error('No WAV filenames matched the manifest file paths.');clips=next;selected=0;syncManifest();select(0);status('Loaded '+clips.length+' matching takes. Only matched WAV files are included in this editing session.');draw();
 }
-function syncManifest(){manifest.takes=clips.map(c=>({file:c.filePath||('takes/'+c.name),layer:c.layer,offset_ms:c.offset_ms,gain_db:c.gain_db,pan:c.pan}));manifest.duration_seconds=Number(Math.max(PROJECT_DURATION,...clips.map(c=>c.offset_ms/1000+c.duration)).toFixed(3));}
+function syncManifest(){manifest.takes=clips.map(c=>({file:c.filePath||('takes/'+c.name),layer:c.layer,offset_ms:c.offset_ms,gain_db:c.gain_db,pan:c.pan,effects:c.effects||{drive_db:0,lowpass_hz:20000,delay_ms:0,delay_feedback:25,delay_wet:0,stutter:'off'}}));manifest.duration_seconds=Number(Math.max(PROJECT_DURATION,...clips.map(c=>c.offset_ms/1000+c.duration)).toFixed(3));}
 $('manifestFile').addEventListener('change',async e=>{try{if(e.target.files[0])await loadManifestFile(e.target.files[0]);}catch(err){status(err.message);}});
 $('audioFiles').addEventListener('change',async e=>{try{if(e.target.files.length)await loadAudioFiles(Array.from(e.target.files));}catch(err){status(err.message);}});
 $('loadDemo').addEventListener('click',()=>{manifest={schema:'turbo.music-foundry.spoken-takes.v1',duration_seconds:105.827,takes:[]};clips=[];selected=-1;draw();status('Example project grid loaded. Import a manifest and matching WAV takes to populate the timeline.');});
 $('clear').addEventListener('click',()=>{stopPlayback();manifest={schema:'turbo.music-foundry.spoken-takes.v1',duration_seconds:105.827,takes:[]};clips=[];selected=-1;$('manifestFile').value='';$('audioFiles').value='';draw();status('Session cleared.');renderStatus('');});
-$('apply').addEventListener('click',()=>{if(selected<0)return;const c=clips[selected],offset=Number($('offset').value),gain=Number($('gain').value),pan=Number($('pan').value);if(!Number.isFinite(offset)||offset<0||offset>180000||!Number.isFinite(gain)||gain<-60||gain>12||!Number.isFinite(pan)||pan<-1||pan>1){status('Check offset, gain and pan limits.');return;}c.layer=$('layer').value;c.offset_ms=offset;c.gain_db=gain;c.pan=pan;syncManifest();draw();select(selected);status('Take edits applied.');});
+$('apply').addEventListener('click',()=>{if(selected<0)return;const c=clips[selected],offset=Number($('offset').value),gain=Number($('gain').value),pan=Number($('pan').value);if(!Number.isFinite(offset)||offset<0||offset>180000||!Number.isFinite(gain)||gain<-60||gain>12||!Number.isFinite(pan)||pan<-1||pan>1){status('Check offset, gain and pan limits.');return;}const drive=Number($('drive').value),filter=Number($('filter').value),delay=Number($('delay').value),feedback=Number($('feedback').value),wet=Number($('wet').value);if(!Number.isFinite(drive)||drive<0||drive>24||!Number.isFinite(filter)||filter<500||filter>20000||!Number.isFinite(delay)||delay<0||delay>500||!Number.isFinite(feedback)||feedback<0||feedback>75||!Number.isFinite(wet)||wet<0||wet>100){status('Check effect limits.');return;}c.layer=$('layer').value;c.offset_ms=offset;c.gain_db=gain;c.pan=pan;c.effects={drive_db:drive,lowpass_hz:filter,delay_ms:delay,delay_feedback:feedback,delay_wet:wet,stutter:$('stutter').value};syncManifest();draw();select(selected);status('Take edits applied.');});
 $('remove').addEventListener('click',()=>{if(selected<0)return;clips.splice(selected,1);selected=-1;syncManifest();draw();status('Take removed from this edit session; original downloaded WAV is unchanged.');});
 function stopPlayback(){playSources.forEach(s=>{try{s.stop();}catch(_){}});playSources=[];playing=false;$('stop').disabled=true;$('play').disabled=!clips.length;}
 $('stop').addEventListener('click',stopPlayback);
