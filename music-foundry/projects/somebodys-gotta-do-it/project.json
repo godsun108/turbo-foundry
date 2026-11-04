@@ -144,6 +144,7 @@
     "vocal_render_contract": "provider-neutral spoken/sung WAV request contract implemented; validation only",
     "offline_instrumental_wav": "dependency-free procedural renderer implemented; CI generation configured; execution not yet verified",
     "spoken_vocal_timing": "section-level recording landmarks and take plan implemented; not a vocal renderer",
-    "midi_tempo_meta_event": "binary MIDI tempo meta-event corrected and regression assertion added; CI execution not yet verified"
+    "midi_tempo_meta_event": "binary MIDI tempo meta-event corrected and regression assertion added; CI execution not yet verified",
+    "recorded_spoken_take_assembly": "offline 16-bit PCM WAV take placement, layer stems, and spoken mix implemented; manual offsets; no synthesis; CI execution not yet verified"
   }
 }
