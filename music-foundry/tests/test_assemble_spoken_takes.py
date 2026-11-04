@@ -56,6 +56,47 @@ class SpokenTakeAssemblyTests(unittest.TestCase):
             self.assertFalse(result["source_takes_modified"])
             self.assertEqual(result["take_count"], 1)
 
+    def test_applies_vocal_effects_without_modifying_source_take(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "lead.wav"
+            write_source(source, [1000, 2000, -1000, -2000] * 200, 16000)
+            original = source.read_bytes()
+            manifest = {
+                "schema": "turbo.music-foundry.spoken-takes.v1",
+                "duration_seconds": 1.0,
+                "takes": [{
+                    "file": "lead.wav", "layer": "dry_lead",
+                    "offset_ms": 0, "gain_db": 0, "pan": 0,
+                    "effects": {"drive_db": 8, "lowpass_hz": 6000,
+                                "delay_ms": 80, "delay_feedback": 35,
+                                "delay_wet": 30, "stutter": "1/8"}
+                }]
+            }
+            path = root / "spoken-takes.json"
+            path.write_text(json.dumps(manifest))
+            out = assembler.assemble(path, root / "out", 8000)
+            self.assertEqual(source.read_bytes(), original)
+            result = json.loads((out / "spoken_audio_manifest.json").read_text())
+            self.assertEqual(result["takes"][0]["effects"]["drive_db"], 8)
+            with wave.open(str(out / "dry_lead.wav"), "rb") as wav:
+                self.assertEqual(wav.getframerate(), 8000)
+                self.assertEqual(wav.getnchannels(), 2)
+
+    def test_rejects_out_of_range_effects(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_source(root / "lead.wav", [1000, -1000] * 20, 16000)
+            path = root / "spoken-takes.json"
+            path.write_text(json.dumps({
+                "schema": "turbo.music-foundry.spoken-takes.v1",
+                "duration_seconds": 1,
+                "takes": [{"file": "lead.wav", "layer": "dry_lead",
+                           "effects": {"drive_db": 99}}]
+            }))
+            with self.assertRaises(ValueError):
+                assembler.assemble(path, root / "out", 8000)
+
     def test_output_must_not_overwrite_source_folder(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
