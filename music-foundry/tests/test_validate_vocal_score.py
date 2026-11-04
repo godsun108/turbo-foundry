@@ -50,6 +50,8 @@ class VocalScoreValidatorTests(unittest.TestCase):
         score = copy.deepcopy(self.scaffold)
         score["tempo_status"] = "locked"
         score["score_status"] = "reviewed"
+        for other in (score["phrases"][3], score["phrases"][5], score["phrases"][7]):
+            other["delivery"] = "gang_shout"
         phrase = score["phrases"][1]
         phrase.update({
             "alignment_status": "reviewed",
