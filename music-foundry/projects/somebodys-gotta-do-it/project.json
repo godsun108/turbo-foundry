@@ -193,6 +193,6 @@
     "tempo_synced_loop_lab": "implemented two global loop regions A/B with visible timeline bands; selectable quarter/eighth/sixteenth/bar snapping at 127 BPM; A, B, and sequential A/B loop preview; adjustable 0–100 ms crossfades (12 ms default); source-offset automation alignment; manifest persistence; 15-minute playback cap; tests and CI pending",
     "production_direction": "updated to include dubstep-influenced bass-house and higher sound-quality targets; no polished mix or new audio engine claimed",
     "local_spoken_synthesis_adapter": "Local Piper CLI adapter implemented with explicit dispatch authorization, local-only execution, 16-bit WAV normalization, and mocked regression tests; actual Piper executable/model installation and audio quality not yet verified",
-    "kokoro_browser_voice_studio": "Browser-local MediaPipe TTS/Kokoro prototype implemented with local model-file selection, worker-based synthesis, voice enumeration and 24 kHz mono WAV export; CDN runtime dependency and real model/iPhone Safari audio verification pending"
+    "kokoro_browser_voice_studio": "Browser-local MediaPipe TTS/Kokoro prototype with local model selection, worker synthesis, diagnostics and bounded spoken WAV export; static syntax checks only, real model/iPhone Safari runtime and audio quality unverified"
   }
 }
