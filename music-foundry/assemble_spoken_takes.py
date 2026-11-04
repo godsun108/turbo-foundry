@@ -149,7 +149,9 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
         max((abs(v) for v in mix_right), default=0.0)
     )
     normalization_gain = min(1.0, 29490.0 / peak) if peak else 1.0
-    output = Path(output)
+    output = Path(output).resolve()
+    if output == source_root:
+        raise ValueError("output folder must be separate from the source-take folder")
     output.mkdir(parents=True, exist_ok=True)
     rendered = []
     for name, (left, right) in layer_buffers.items():
