@@ -140,7 +140,8 @@
     "midi_generation": "track-specific 56-bar MIDI arrangement implemented; CI execution not yet verified",
     "spoken_audio_rendering": "not implemented",
     "sung_audio_rendering": "not implemented",
-    "wav_export": "not implemented",
-    "vocal_render_contract": "provider-neutral spoken/sung WAV request contract implemented; validation only"
+    "wav_export": "instrumental WAV mix and four stems implemented; vocal WAV export not implemented",
+    "vocal_render_contract": "provider-neutral spoken/sung WAV request contract implemented; validation only",
+    "offline_instrumental_wav": "dependency-free procedural renderer implemented; CI generation configured; execution not yet verified"
   }
 }
