@@ -70,6 +70,9 @@ class VocalTimelineContractTests(unittest.TestCase):
             self.assertIn(token, self.source)
         self.assertIn("manifest.loop=", self.source)
         self.assertIn("A/B compare playing", self.source)
+        self.assertIn("sourceOffset=0", self.source)
+        self.assertIn("offsetMs-previous.time_ms", self.source)
+        self.assertIn("snappedEnd<=snappedStart", self.source)
         self.assertIn("Loop preview exceeds the 15-minute safety limit", self.source)
         self.assertIn("Math.round(Number(value)/step)*step", self.source)
 
