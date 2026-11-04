@@ -59,6 +59,60 @@ def _resample(samples, source_rate, target_rate):
     return result
 
 
+def _apply_effects(samples, sample_rate, effects):
+    """Apply bounded offline vocal effects without modifying source samples."""
+    effects = effects or {}
+    drive_db = effects.get("drive_db", 0)
+    lowpass_hz = effects.get("lowpass_hz", 20000)
+    delay_ms = effects.get("delay_ms", 0)
+    delay_feedback = effects.get("delay_feedback", 25)
+    delay_wet = effects.get("delay_wet", 0)
+    stutter = effects.get("stutter", "off")
+    if not isinstance(drive_db, (int, float)) or not 0 <= drive_db <= 24:
+        raise ValueError("effects.drive_db must be between 0 and 24")
+    if not isinstance(lowpass_hz, (int, float)) or not 500 <= lowpass_hz <= 20000:
+        raise ValueError("effects.lowpass_hz must be between 500 and 20000")
+    if not isinstance(delay_ms, (int, float)) or not 0 <= delay_ms <= 500:
+        raise ValueError("effects.delay_ms must be between 0 and 500")
+    if not isinstance(delay_feedback, (int, float)) or not 0 <= delay_feedback <= 75:
+        raise ValueError("effects.delay_feedback must be between 0 and 75")
+    if not isinstance(delay_wet, (int, float)) or not 0 <= delay_wet <= 100:
+        raise ValueError("effects.delay_wet must be between 0 and 100")
+    if stutter not in ("off", "1/4", "1/8", "1/16"):
+        raise ValueError("effects.stutter must be off, 1/4, 1/8 or 1/16")
+    output = [float(value) for value in samples]
+    if stutter != "off" and output:
+        divisor = {"1/4": 4, "1/8": 8, "1/16": 16}[stutter]
+        slice_frames = max(1, round((60.0 / 127.0 / divisor) * sample_rate))
+        first_slice = output[:slice_frames]
+        output = [first_slice[index % len(first_slice)] for index in range(len(output))]
+    if drive_db:
+        amount = 10.0 ** (drive_db / 20.0)
+        normalizer = math.tanh(amount)
+        output = [math.tanh((value / 32768.0) * amount) / normalizer * 32768.0
+                  for value in output]
+    if lowpass_hz < 19999 and output:
+        alpha = 1.0 - math.exp(-2.0 * math.pi * lowpass_hz / sample_rate)
+        previous = 0.0
+        filtered = []
+        for value in output:
+            previous += alpha * (value - previous)
+            filtered.append(previous)
+        output = filtered
+    if delay_ms and delay_wet and output:
+        delay_frames = max(1, round(delay_ms * sample_rate / 1000.0))
+        feedback = delay_feedback / 100.0
+        wet = delay_wet / 100.0
+        ring = [0.0] * delay_frames
+        delayed = []
+        for index, value in enumerate(output):
+            echo = ring[index % delay_frames]
+            delayed.append(value * (1.0 - wet) + echo * wet)
+            ring[index % delay_frames] = value + echo * feedback
+        output = delayed
+    return output
+
+
 def _write_stereo(path, left, right, sample_rate, gain=1.0):
     frames = array.array("h")
     for l_value, r_value in zip(left, right):
@@ -121,6 +175,10 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
             raise ValueError(f"take {index}: source WAV not found: {relative_path}")
         samples, source_rate = _read_pcm16(source_path)
         samples = _resample(samples, source_rate, sample_rate)
+        effects = take.get("effects", {})
+        if not isinstance(effects, dict):
+            raise ValueError(f"take {index}: effects must be an object")
+        samples = _apply_effects(samples, sample_rate, effects)
         start = round(offset_ms * sample_rate / 1000)
         if start >= total_frames:
             raise ValueError(f"take {index}: offset starts after project duration")
@@ -135,7 +193,7 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
             right[start + frame] += value * right_pan
         take_records.append({
             "file": relative_path, "layer": layer, "offset_ms": offset_ms,
-            "gain_db": gain_db, "pan": pan, "source_sample_rate": source_rate,
+            "gain_db": gain_db, "pan": pan, "effects": effects, "source_sample_rate": source_rate,
             "frames_placed": count
         })
     mix_left = array.array("d", [0.0]) * total_frames
