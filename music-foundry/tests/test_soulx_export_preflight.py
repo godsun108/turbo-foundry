@@ -21,7 +21,7 @@ class SoulXExportPreflightTests(unittest.TestCase):
         score = json.loads(json.dumps(self.scaffold))
         score["tempo_status"] = "locked"
         score["score_status"] = "reviewed"
-        with self.assertRaisesRegex(ValueError, "lyric_units"):
+        with self.assertRaisesRegex(ValueError, "alignment_status"):
             build_metadata(score)
 
     def test_spoken_only_score_has_no_singing_target(self):
