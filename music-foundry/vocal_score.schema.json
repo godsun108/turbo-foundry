@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://godsun108.github.io/turbo-foundry/schemas/vocal-score.v1.schema.json",
+  "title": "Turbo Music Foundry Vocal Score",
+  "description": "Engine-neutral, non-destructive lyric-to-performance score. Unaligned fields must remain null or empty until deliberately authored and reviewed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "project_id", "source_ref", "tempo_bpm", "tempo_status", "meter", "ppq", "score_status", "phrases"],
+  "properties": {
+    "schema": { "const": "turbo.music-foundry.vocal-score.v1" },
+    "project_id": { "type": "string", "minLength": 1 },
+    "source_ref": { "type": "string", "minLength": 1 },
+    "tempo_bpm": { "type": "number", "exclusiveMinimum": 0 },
+    "tempo_status": { "enum": ["provisional", "locked"] },
+    "meter": { "type": "string", "pattern": "^[1-9][0-9]*/[1-9][0-9]*$" },
+    "ppq": { "type": "integer", "minimum": 1 },
+    "score_status": { "enum": ["scaffold", "phrase_aligned", "syllable_aligned", "reviewed"] },
+    "rules": {
+      "type": "object",
+      "properties": {
+        "bar_numbering": { "const": "zero-based" },
+        "beat_numbering": { "const": "zero-based; fractional beats allowed" },
+        "lyric_authority": { "const": "source_ref; score text is a verbatim excerpt, never an independent rewrite" },
+        "null_alignment_policy": { "const": "Do not infer or synthesize missing note, phoneme, onset, or duration data." }
+      },
+      "additionalProperties": false
+    },
+    "phrases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "text", "delivery", "layer", "alignment_status", "syllables"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+          "text": { "type": "string", "minLength": 1 },
+          "delivery": { "enum": ["spoken", "chant", "sung", "gang_shout", "whisper", "adlib"] },
+          "layer": { "type": "string", "minLength": 1 },
+          "source_section": { "type": "string", "minLength": 1 },
+          "anchor_marker_id": { "type": ["string", "null"] },
+          "alignment_status": { "enum": ["unaligned", "phrase_aligned", "syllable_aligned", "reviewed"] },
+          "start_beat": { "type": ["number", "null"], "minimum": 0 },
+          "duration_beats": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+          "syllables": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["text", "phoneme", "onset_beats", "duration_beats", "notes"],
+              "properties": {
+                "text": { "type": "string", "minLength": 1 },
+                "phoneme": { "type": ["string", "null"] },
+                "onset_beats": { "type": ["number", "null"], "minimum": 0 },
+                "duration_beats": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+                "notes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["midi_pitch", "duration_beats", "note_type"],
+                    "properties": {
+                      "midi_pitch": { "type": "integer", "minimum": 0, "maximum": 127 },
+                      "duration_beats": { "type": "number", "exclusiveMinimum": 0 },
+                      "note_type": { "enum": ["normal", "tie", "rest", "slur"] },
+                      "f0_hz": { "type": ["number", "null"], "exclusiveMinimum": 0 }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "performance_notes": { "type": "string" }
+        }
+      }
+    },
+    "export_profiles": {
+      "type": "object",
+      "description": "Renderer-specific mappings are derived from this canonical score and must not overwrite it.",
+      "additionalProperties": { "type": "object" }
+    }
+  }
+}
