@@ -38,6 +38,8 @@ jobs:
           node --check /tmp/vocal-timeline.js
       - name: Syntax-check vocal score editor module
         run: node --check --input-type=module < music-foundry/projects/somebodys-gotta-do-it/vocal-score-editor.js
+      - name: Test SoulX phone inventory
+        run: node --test music-foundry/tests/test_soulx_phone_inventory.mjs
       - name: Syntax-check Genesis Voice Studio modules
         run: |
           node --check music-foundry/projects/somebodys-gotta-do-it/genesis-voice-studio.js
