@@ -18,6 +18,24 @@ jobs:
           python-version: '3.12'
       - name: Unit tests
         run: python3 -m unittest discover -s music-foundry/tests -v
+      - name: Syntax-check browser audio editors
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          files = [
+              Path("music-foundry/projects/somebodys-gotta-do-it/recording-booth.html"),
+              Path("music-foundry/projects/somebodys-gotta-do-it/vocal-timeline.html"),
+          ]
+          for source in files:
+              html = source.read_text(encoding="utf-8")
+              scripts = re.findall(r"<script(?:\\s[^>]*)?>(.*?)</script>", html, re.S)
+              if not scripts:
+                  raise SystemExit(f"No inline script found in {source}")
+              Path(f"/tmp/{source.stem}.js").write_text("\\n".join(scripts), encoding="utf-8")
+          PY
+          node --check /tmp/recording-booth.js
+          node --check /tmp/vocal-timeline.js
       - name: Generate MIDI
         run: python3 music-foundry/generate.py --output music-foundry/output
       - name: Generate Somebody's Gotta Do It arrangement
