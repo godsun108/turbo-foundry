@@ -101,6 +101,39 @@ def _validate_automation(points):
     return sorted(points, key=lambda point: point["time_ms"])
 
 
+def _apply_phrase_performance(samples, sample_rate, performance, offset_ms):
+    """Apply a bounded phrase repeat/reverse and optional first-drop repeat."""
+    if performance is None:
+        return samples
+    if not isinstance(performance, dict):
+        raise ValueError("performance must be an object")
+    start_ms, end_ms = performance.get("start_ms"), performance.get("end_ms")
+    repeats = performance.get("repeats", 1)
+    reverse = performance.get("reverse", False)
+    drop_repeat = performance.get("drop_repeat", False)
+    if (not isinstance(start_ms, (int, float)) or not isinstance(end_ms, (int, float))
+            or start_ms < 0 or end_ms <= start_ms or end_ms > 180000
+            or not isinstance(repeats, int) or not 1 <= repeats <= 8
+            or not isinstance(reverse, bool) or not isinstance(drop_repeat, bool)):
+        raise ValueError("performance phrase edit is outside allowed bounds")
+    start = min(len(samples), round(start_ms * sample_rate / 1000))
+    end = min(len(samples), round(end_ms * sample_rate / 1000))
+    if end <= start:
+        raise ValueError("performance phrase range does not overlap the take")
+    phrase = samples[start:end]
+    if reverse:
+        phrase = list(reversed(phrase))
+    prefix, suffix = samples[:start], samples[end:]
+    result = prefix + phrase * repeats + suffix
+    if drop_repeat:
+        drop_seconds = 16 * 4 * 60 / 127
+        relative_seconds = drop_seconds - offset_ms / 1000
+        if relative_seconds >= 0:
+            drop_at = min(len(result), round(relative_seconds * sample_rate))
+            result = result[:drop_at] + phrase + result[drop_at:]
+    return result
+
+
 def _apply_effects(samples, sample_rate, effects, automation=None):
     """Apply bounded offline vocal effects without modifying source samples."""
     effects = effects or {}
@@ -227,9 +260,11 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
         samples = _resample(samples, source_rate, sample_rate)
         effects = take.get("effects", {})
         automation = _validate_automation(take.get("automation", []))
+        performance = take.get("performance")
         if not isinstance(effects, dict):
             raise ValueError(f"take {index}: effects must be an object")
         samples = _apply_effects(samples, sample_rate, effects, automation)
+        samples = _apply_phrase_performance(samples, sample_rate, performance, offset_ms)
         start = round(offset_ms * sample_rate / 1000)
         if start >= total_frames:
             raise ValueError(f"take {index}: offset starts after project duration")
@@ -245,7 +280,7 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
             right[start + frame] += value * right_pan
         take_records.append({
             "file": relative_path, "layer": layer, "offset_ms": offset_ms,
-            "gain_db": gain_db, "pan": pan, "effects": effects, "automation": automation, "source_sample_rate": source_rate,
+            "gain_db": gain_db, "pan": pan, "effects": effects, "automation": automation, "performance": performance, "source_sample_rate": source_rate,
             "frames_placed": count
         })
     mix_left = array.array("d", [0.0]) * total_frames
