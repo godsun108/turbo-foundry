@@ -83,6 +83,15 @@ class SpokenTakeAssemblyTests(unittest.TestCase):
                 self.assertEqual(wav.getframerate(), 8000)
                 self.assertEqual(wav.getnchannels(), 2)
 
+    def test_delay_effect_preserves_a_bounded_echo_tail(self):
+        rendered = assembler._apply_effects(
+            [1000.0] * 100, 8000,
+            {"delay_ms": 50, "delay_feedback": 40, "delay_wet": 50}
+        )
+        self.assertGreater(len(rendered), 100)
+        self.assertTrue(any(abs(value) > 0 for value in rendered[100:]))
+        self.assertLessEqual(len(rendered), 100 + 8 * 400)
+
     def test_rejects_out_of_range_effects(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
