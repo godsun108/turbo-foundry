@@ -71,6 +71,12 @@ class SoulXExportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "contiguous"):
             build_metadata(score)
 
+    def test_word_unit_cannot_contain_multiple_words(self):
+        score = aligned_fixture()
+        score["phrases"][1]["lyric_units"][0]["text"] = "Make the"
+        with self.assertRaisesRegex(ValueError, "exactly one word"):
+            build_metadata(score)
+
     def test_word_text_must_preserve_source_lyric(self):
         score = aligned_fixture()
         score["phrases"][1]["lyric_units"][0]["text"] = "Change"
