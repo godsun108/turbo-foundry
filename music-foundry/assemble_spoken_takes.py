@@ -245,7 +245,7 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
         raise ValueError("take mute and solo flags must be booleans")
     if any(take.get("solo", False) and take.get("muted", False) for take in takes):
         raise ValueError("a take cannot be both muted and soloed")
-    solo_active = any(take.get("solo", False) and not take.get("muted", False) for take in takes) or any(state["solo"] for state in normalized_layer_states.values())
+    solo_active = any(take.get("solo", False) and not take.get("muted", False) and not normalized_layer_states[take["layer"]]["muted"] for take in takes) or any(state["solo"] and not state["muted"] for state in normalized_layer_states.values())
     if unknown_layers:
         raise ValueError(f"unsupported vocal layers: {sorted(unknown_layers)}")
     layer_buffers = {
