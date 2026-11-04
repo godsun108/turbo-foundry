@@ -71,7 +71,7 @@ class VocalTimelineContractTests(unittest.TestCase):
         self.assertIn("manifest.loop=", self.source)
         self.assertIn("loop-band", self.source)
         self.assertIn("label.textContent='LOOP '+key", self.source)
-        self.assertIn("A/B compare playing", self.source)
+        self.assertIn("A/B loop comparison playing", self.source)
         self.assertIn("sourceOffset=0", self.source)
         self.assertIn("offsetMs-previous.time_ms", self.source)
         self.assertIn("snappedEnd<=snappedStart", self.source)
