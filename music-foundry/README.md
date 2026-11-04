@@ -180,3 +180,5 @@ The browser timeline supports per-take mute/solo and per-layer mute/solo. Layer 
 ## Tempo-synced loop lab and A/B comparison
 
 The vocal timeline includes two configurable global loop regions (A and B), with selectable 127 BPM grid snapping at quarter-note, eighth-note, sixteenth-note, or one-bar intervals. Preview modes include the full arrangement, A, B, or sequential A/B comparison. Repetition count (1–8) repeats each selected region; A/B comparison plays A then B for each cycle. Playback schedules only the portions of takes intersecting each region, while retaining take effects, automation, phrase edits, pan, mute and solo. Loop settings are persisted in the session manifest and included in the render metadata. Preview is capped at 15 minutes; source takes remain unchanged.
+
+The timeline ruler also displays translucent A and B region bands so the selected loop boundaries remain visible while arranging clips. Changing or snapping loop boundaries refreshes the visual markers.
