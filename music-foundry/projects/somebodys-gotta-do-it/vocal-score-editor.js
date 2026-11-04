@@ -1,4 +1,4 @@
-import { validateSoulXPhones } from "./soulx-phone-inventory.js";
+import { validateSoulXPhones } from "./soulx-phone-inventory.mjs";
 const $ = (id) => document.getElementById(id);
 let score = null;
 let drafts = {};
