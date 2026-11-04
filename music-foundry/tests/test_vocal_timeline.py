@@ -53,6 +53,15 @@ class VocalTimelineContractTests(unittest.TestCase):
         self.assertIn("processedBuffer", self.source)
         self.assertIn("effects_rendered:true", self.source)
 
+    def test_mute_solo_phrase_audition_and_fine_nudging_controls(self):
+        for token in ("muteTake", "soloTake", "auditionPhrase", "nudgeBack",
+                      "nudgeForward", "nudgeBack100", "nudgeForward100",
+                      "function audible", "layerStates", "layer_states",
+                      "src.start(when,start,end-start)"):
+            self.assertIn(token, self.source)
+        self.assertIn("clips.filter(audible)", self.source)
+        self.assertIn("aria-pressed", self.source)
+
     def test_phrase_chop_reverse_and_drop_trigger_controls(self):
         for token in ("phraseStart", "phraseEnd", "phraseRepeats", "phraseReverse",
                       "dropRepeat", "applyPhrase", "clearPhrase", "processedBuffer"):
