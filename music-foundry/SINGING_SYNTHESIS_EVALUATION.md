@@ -128,3 +128,11 @@ No SoulX-Singer weights or dependencies were downloaded or installed, and no inf
 - Official WebUI input and English example configuration: https://github.com/Soul-AILab/SoulX-Singer/blob/main/webui.py
 - Official preprocessing model card: https://huggingface.co/Soul-AILab/SoulX-Singer-Preprocess
 - Community Apple MLX conversion caveats: https://huggingface.co/mlx-community/SoulX-Singer
+
+
+### Music Foundry format gap discovered during integration review
+- The canonical track timing file currently supplies section boundaries, bar/beat landmarks, layer names, and lyric authority. It does not yet supply per-syllable phoneme sequences, per-phoneme durations, note pitches/types, or an F0 contour.
+- SoulX-Singer's official English metadata examples contain per-segment language, time range in milliseconds, duration sequence, text, phoneme sequence, note_pitch sequence, note_type sequence, and F0 sequence. The prompt metadata also references an actual prompt singing recording.
+- Therefore the current timing grid cannot be passed directly to SoulX-Singer. A future adapter must consume a proper vocal score/phoneme-alignment artifact and generate the model-specific metadata; it must not guess note pitches or syllable durations from section markers.
+- Recommended canonical extension: keep the existing cue sheet and bar/beat timing authoritative, then add a separate, versioned vocal-score artifact with syllable-to-note alignment, phoneme mapping, note durations, and render-layer IDs. Generate SoulX metadata as a derived export, never as the source of truth.
+- For a first proof, use one short English hook phrase rather than attempting all 56 bars. The existing chorus starts at zero-based bar 16, but its note-level vocal score still needs authoring and review.
