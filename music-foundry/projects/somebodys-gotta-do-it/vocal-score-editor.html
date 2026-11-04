@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101827">
+<title>Vocal Score Editor — Music Foundry</title>
+<style>
+:root{color-scheme:dark;font:16px/1.45 system-ui,-apple-system,sans-serif;background:#101827;color:#f4f7fb}
+*{box-sizing:border-box}body{max-width:1000px;margin:auto;padding:calc(18px + env(safe-area-inset-top)) 14px calc(28px + env(safe-area-inset-bottom))}
+h1{font-size:1.65rem;margin:.3rem 0}h2{font-size:1.12rem;margin:0 0 10px}p,.muted{color:#c7d3e5}
+a{color:#a8d3ff}.panel,.phrase{border:1px solid #42536b;border-radius:15px;padding:14px;margin:14px 0;background:#152237}
+label{display:block;font-weight:650;margin:10px 0 5px}input,select,button{font:inherit;width:100%;border-radius:10px;padding:10px;border:1px solid #60738c;background:#1b2a40;color:#f4f7fb}
+button{cursor:pointer;font-weight:650;background:#28476b}button:disabled{opacity:.45;cursor:not-allowed}
+button.secondary{background:#25344b}.row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.toprow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.word{border:1px solid #52657e;border-radius:12px;padding:10px;margin:10px 0;background:#192a40}
+.word h3{font-size:1rem;margin:0 0 4px}.word .row{grid-template-columns:2fr 1fr 1fr 1fr}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.status{padding:12px;border-radius:10px;background:#20334d;white-space:pre-wrap;overflow-wrap:anywhere}
+.eyebrow{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:#9fb7d4}.small{font-size:.83rem}
+@media(max-width:650px){.row,.word .row,.toprow,.actions{grid-template-columns:1fr 1fr}}
+@media(max-width:390px){.word .row{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<p><a href="./SUNG_HOOK_SCORE_WORKSHEET.md">← Manual worksheet</a></p>
+<p class="eyebrow">Music Foundry · Local score authoring</p>
+<h1>Sung Hook Score Editor</h1>
+<p>Import the canonical vocal score, author one word-note unit at a time, and review the result before export. This page has no network calls and does not generate pronunciations, pitches, or timing.</p>
+<section class="panel">
+<h2>1 · Open score / resume work</h2>
+<label for="scoreFile">Canonical vocal_score.json or saved workbench file</label>
+<input id="scoreFile" type="file" accept=".json,application/json">
+<div class="toprow">
+<div><label for="tempo">Tempo (BPM)</label><input id="tempo" type="number" min="1" max="400" step="0.001" value="127"></div>
+<div><label for="tempoLock">Tempo status</label><select id="tempoLock"><option value="provisional">Provisional</option><option value="locked">Locked</option></select></div>
+</div>
+<p class="small muted">127 BPM is the current provisional arrangement tempo. Lock it only when the performance tempo is decided.</p>
+<div class="actions">
+<button id="saveWork" class="secondary" disabled>Save workbench file</button>
+<button id="exportScore" disabled>Export reviewed vocal score</button>
+</div>
+</section>
+<div id="phrases"></div>
+<section class="panel">
+<h2>Review gate</h2>
+<p id="status" class="status" role="status" aria-live="polite">Import vocal_score.json to begin. Your edits stay in this browser until you export.</p>
+<ul class="small muted">
+<li>Every source word must remain unchanged and in order.</li>
+<li>Enter reviewed ARPABET phones; use spaces between phones, e.g. M EY1 K.</li>
+<li>Onsets and durations are quarter-note beats, contiguous from zero within each phrase.</li>
+<li>Enter one MIDI pitch and note type per word. Silence must be an explicit &lt;SP&gt; unit in a separately authored score; this editor does not insert rests.</li>
+<li>Every phrase must be reviewed, and tempo must be locked, before canonical export.</li>
+</ul>
+</section>
+<script type="module" src="./vocal-score-editor.js"></script>
+</body>
+</html>
