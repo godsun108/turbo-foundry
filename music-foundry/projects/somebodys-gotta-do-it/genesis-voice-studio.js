@@ -1,5 +1,6 @@
 const $ = (id) => document.getElementById(id);
 const worker = new Worker("./genesis-voice-worker.js", { type: "module" });
+$("text").maxLength = 1200;
 let ready = false;
 let busy = false;
 let audioUrl = null;
