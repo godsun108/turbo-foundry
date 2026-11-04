@@ -83,3 +83,48 @@ DiffSinger remains a technically promising research candidate, but **the default
 - Community vocoder license overview: https://openvpi.github.io/vocoders/
 
 No model weights were downloaded, no dependencies were installed, and no runtime synthesis was performed during this audit.
+
+
+## SoulX-Singer candidate audit — 2026-11-04
+
+### Why it is now the leading singing candidate
+- Official project: https://github.com/Soul-AILab/SoulX-Singer
+- Official model card: https://huggingface.co/Soul-AILab/SoulX-Singer
+- The official README describes zero-shot singing voice synthesis (SVS) with either melody/F0 conditioning or score/MIDI conditioning, plus a separate singing voice conversion (SVC) model.
+- English, Mandarin, and Cantonese are listed as supported languages. The project reports 42,000+ hours of aligned multilingual vocal training data.
+- The official repository README explicitly says its Apache-2.0 license applies to code and model weights. The official Hugging Face model card also labels the model Apache-2.0. The official preprocessing model repository is likewise labeled Apache-2.0. This is a materially cleaner starting point than the DiffSinger community vocoder license found in the previous audit.
+- Main SVS checkpoint model.pt is 2.82 GB (official Hugging Face file metadata). The full model repository is listed at approximately 5.61 GB because it also includes SVC assets and other files. Do not download the SVC checkpoint for this track unless SVC is specifically needed.
+
+### Important practical constraints
+- Official example inference invokes --device cuda and --fp16; the published reference path is NVIDIA CUDA/GPU, not an iPhone or browser runtime.
+- The requirements include PyTorch 2.2.0, NeMo 2.6.1, SageAttention, audio preprocessing, and other substantial packages. This is a large desktop environment, not a lightweight install.
+- The synthesis input is not simply raw lyrics plus MIDI. It requires a prompt singing WAV, prompt metadata, target metadata, and a phoneme set. The project recommends manually correcting metadata alignment in its MIDI editor because automatic lyric/note alignment can be imperfect.
+- The official WebUI lists a reference prompt WAV and separate prompt/target metadata, and provides English example prompt/target assets. That makes an English proof-of-concept plausible, but it still needs a rights-cleared reference singing recording and validated score/lyric metadata.
+- The official model card says code and weights are Apache-2.0; keep separate rights records for any prompt/reference singer recording, generated performance, lyrics, and other user-supplied material. The model's zero-shot timbre transfer must only use a voice recording the operator is authorized to use.
+- Model files are PyTorch .pt checkpoints. Download and load only from the official upstream project/model repository after explicit user approval; never accept untrusted pickle checkpoints.
+
+### Apple Silicon investigation (not yet adopted)
+- A community MLX conversion is published at https://huggingface.co/mlx-community/SoulX-Singer and documents a 2.6 GB BF16 model variant.
+- Its own model card explicitly says this is not yet a pure end-to-end MLX audio runtime: full audio generation still uses the official PyTorch model structure through a separate bridge project. It is therefore not evidence of native iPhone support and is not yet an approved simplification of the official CUDA workflow.
+- Do not assume that Apple Silicon conversion means iOS/iPhone compatibility. No iOS runtime has been verified.
+
+### Proposed proof gate before any integration
+1. Confirm the user's available local render hardware and available disk/RAM/VRAM; do not install anything yet.
+2. If a compatible NVIDIA desktop/GPU is available, request explicit approval before downloading the 2.82 GB official SVS checkpoint and only the preprocessing assets required for the selected manual/automatic workflow.
+3. Prepare one short original English test phrase with a manually checked target score/lyric alignment.
+4. Use only an operator-owned or explicitly licensed reference singing sample; no third-party voice cloning by default.
+5. Render one short WAV, inspect pitch, timing, pronunciation, intelligibility, artifacts, sample rate, and stem import into Music Foundry.
+6. Only after this proof succeeds should we design a production adapter. Preserve the existing Music Foundry project as canonical and keep model assets out of Git.
+
+### Current decision
+SoulX-Singer is the leading research candidate for sung hooks because the official project documents MIDI-conditioned English SVS and Apache-2.0 code/weights. It is not yet a production-approved or locally verified engine: it requires a large model, a singing reference prompt, aligned metadata, and a GPU-oriented runtime. The immediate song path remains spoken-vocal synthesis through Kokoro; SoulX-Singer is the separate sung-hook lane to validate later.
+
+No SoulX-Singer weights or dependencies were downloaded or installed, and no inference was run during this audit.
+
+### Sources reviewed
+- Official inference code and license: https://github.com/Soul-AILab/SoulX-Singer
+- Official model card and checkpoint metadata: https://huggingface.co/Soul-AILab/SoulX-Singer
+- Official inference script: https://github.com/Soul-AILab/SoulX-Singer/blob/main/example/infer.sh
+- Official WebUI input and English example configuration: https://github.com/Soul-AILab/SoulX-Singer/blob/main/webui.py
+- Official preprocessing model card: https://huggingface.co/Soul-AILab/SoulX-Singer-Preprocess
+- Community Apple MLX conversion caveats: https://huggingface.co/mlx-community/SoulX-Singer
