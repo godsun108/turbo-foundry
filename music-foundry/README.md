@@ -22,3 +22,15 @@ Produces four editable Standard MIDI Files: chords, bass, lead, drums, plus a JS
 7. Add provenance, consent, rights review, and a catalog publishing gate.
 
 Audio separation does not guarantee perfect isolated instruments. Polyphonic transcription requires review. Upload only material you have permission to process; do not distribute separated copyrighted recordings without appropriate rights. Human creative authorship and licensed sound sources matter for commercial products.
+
+
+## Track project: Somebody's Gotta Do It
+
+A separate, track-specific arranger preserves the original generic sketch generator:
+
+```bash
+python3 music-foundry/arrange_project.py --output music-foundry/output/somebodys-gotta-do-it --bpm 127
+python3 -m unittest discover -s music-foundry/tests -v
+```
+
+It creates four editable MIDI files (chords, bass, lead, drums) and a section map for a 56-bar spoken-led wonky bass-house arrangement. Tempo is provisional. The MIDI is an instrumental sketch: it does not synthesize spoken or sung vocals and does not render WAV audio.
