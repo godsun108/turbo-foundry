@@ -1,6 +1,7 @@
 const $ = (id) => document.getElementById(id);
 const worker = new Worker("./genesis-voice-worker.js", { type: "module" });
 let ready = false;
+let busy = false;
 let audioUrl = null;
 let audioContext = null;
 
@@ -8,10 +9,13 @@ function setStatus(message) {
   $("status").textContent = message;
 }
 
-function setBusy(busy) {
+function setBusy(value) {
+  busy = value;
   $("load").disabled = busy || ready;
   $("synthesize").disabled = busy || !ready;
   $("stop").disabled = !busy;
+  $("model").disabled = busy || ready;
+  $("delegate").disabled = busy || ready;
 }
 
 function releaseAudioUrl() {
@@ -51,6 +55,7 @@ if (!navigator.gpu) setStatus("WebGPU is not detected. CPU mode selected; use a 
 $("load").addEventListener("click", () => {
   const file = $("model").files?.[0];
   if (!file) return setStatus("Choose a .litertlm model file first.");
+  if (!file.name.toLowerCase().endsWith(".litertlm") || file.size < 1024 * 1024) return setStatus("Choose a complete .litertlm model bundle.");
   const delegate = $("delegate").value;
   if (delegate === "GPU" && !navigator.gpu) {
     return setStatus("WebGPU is unavailable in this browser. Select CPU and a CPU-compatible model.");
@@ -68,7 +73,7 @@ $("load").addEventListener("click", () => {
 $("synthesize").addEventListener("click", async () => {
   const text = $("text").value.trim();
   if (!text) return setStatus("Enter text to synthesize.");
-  if (text.length > 4000) return setStatus("Text exceeds the 4,000-character limit.");
+  if (text.length > 1200) return setStatus("Text exceeds the 1,200-character prototype limit.");
   try {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextClass) throw new Error("Web Audio is unavailable.");
@@ -106,7 +111,9 @@ $("voice").addEventListener("change", () => {
 
 worker.addEventListener("message", async (event) => {
   const data = event.data || {};
-  if (data.type === "ready") {
+  if (data.type === "status") {
+    setStatus(data.message);
+  } else if (data.type === "ready") {
     ready = true;
     $("voice").replaceChildren();
     for (const voice of data.voices) {
@@ -154,7 +161,7 @@ worker.addEventListener("message", async (event) => {
   }
 });
 
-window.addEventListener("beforeunload", releaseAudioUrl);
+window.addEventListener("beforeunload", () => { releaseAudioUrl(); worker.terminate(); });
 
 worker.addEventListener("error", (event) => {
   setBusy(false);
