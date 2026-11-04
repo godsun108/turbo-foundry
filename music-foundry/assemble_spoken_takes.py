@@ -124,7 +124,7 @@ def _apply_phrase_performance(samples, sample_rate, performance, offset_ms):
     if reverse:
         phrase = list(reversed(phrase))
     prefix, suffix = samples[:start], samples[end:]
-    result = prefix + phrase * repeats + suffix
+    result = prefix + phrase * (repeats + 1) + suffix
     if drop_repeat:
         drop_seconds = 16 * 4 * 60 / 127
         relative_seconds = drop_seconds - offset_ms / 1000
