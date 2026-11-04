@@ -175,3 +175,8 @@ The spoken vocal timeline supports a bounded phrase edit per take: select a star
 ## Mute, solo and phrase audition
 
 The browser timeline supports per-take mute/solo and per-layer mute/solo. Layer state is stored in the manifest alongside take flags; the offline Python assembler honors the same precedence (muted tracks remain silent, and active solo flags exclude non-solo tracks). The mix renderer skips empty muted stems. A selected source phrase can be auditioned in isolation with its take effects, and clip start positions can be nudged by 10 ms or 100 ms using touch-friendly buttons. These audition and nudge controls are local to the editor; no network audio transport is used.
+
+
+## Tempo-synced loop lab and A/B comparison
+
+The vocal timeline includes two configurable global loop regions (A and B), with selectable 127 BPM grid snapping at quarter-note, eighth-note, sixteenth-note, or one-bar intervals. Preview modes include the full arrangement, A, B, or sequential A/B comparison. Repetition count (1–8) repeats each selected region; A/B comparison plays A then B for each cycle. Playback schedules only the portions of takes intersecting each region, while retaining take effects, automation, phrase edits, pan, mute and solo. Loop settings are persisted in the session manifest and included in the render metadata. Preview is capped at 15 minutes; source takes remain unchanged.
