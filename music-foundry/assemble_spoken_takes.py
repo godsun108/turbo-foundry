@@ -129,8 +129,12 @@ def _apply_phrase_performance(samples, sample_rate, performance, offset_ms):
         drop_seconds = 16 * 4 * 60 / 127
         relative_seconds = drop_seconds - offset_ms / 1000
         if relative_seconds >= 0:
-            drop_at = min(len(result), round(relative_seconds * sample_rate))
-            result = result[:drop_at] + phrase + result[drop_at:]
+            drop_at = round(relative_seconds * sample_rate)
+            if drop_at + len(phrase) > 180 * sample_rate:
+                raise ValueError("drop-triggered phrase repeat exceeds the 180-second project limit")
+            result = result[:drop_at] + [0] * max(0, drop_at - len(result)) + phrase + result[drop_at:]
+    if len(result) > 180 * sample_rate:
+        raise ValueError("phrase performance edit exceeds the 180-second project limit")
     return result
 
 
