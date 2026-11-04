@@ -1,0 +1,27 @@
+{
+  "schema": "turbo.music-foundry.vocal-score.v1",
+  "project_id": "somebodys-gotta-do-it",
+  "source_ref": "music-foundry/projects/somebodys-gotta-do-it/cue-sheet.md",
+  "tempo_bpm": 127,
+  "tempo_status": "provisional",
+  "meter": "4/4",
+  "ppq": 480,
+  "score_status": "scaffold",
+  "rules": {
+    "bar_numbering": "zero-based",
+    "beat_numbering": "zero-based; fractional beats allowed",
+    "lyric_authority": "source_ref; score text is a verbatim excerpt, never an independent rewrite",
+    "null_alignment_policy": "Do not infer or synthesize missing note, phoneme, onset, or duration data."
+  },
+  "phrases": [
+    { "id": "chorus_01", "text": "Somebody's gotta do it", "delivery": "gang_shout", "layer": "gang_vocals", "source_section": "chorus", "anchor_marker_id": "chorus_hook_1", "alignment_status": "unaligned", "start_beat": null, "duration_beats": null, "syllables": [], "performance_notes": "First hook phrase; preserve original wording." },
+    { "id": "chorus_02", "text": "Make the speakers scream", "delivery": "sung", "layer": "gang_vocals", "source_section": "chorus", "anchor_marker_id": null, "alignment_status": "unaligned", "start_beat": null, "duration_beats": null, "syllables": [], "performance_notes": "Optional pitched hook treatment; melody and syllable alignment not authored." },
+    { "id": "chorus_03", "text": "Somebody's gotta do it", "delivery": "gang_shout", "layer": "gang_vocals", "source_section": "chorus", "anchor_marker_id": "chorus_hook_2", "alignment_status": "unaligned", "start_beat": null, "duration_beats": null, "syllables": [], "performance_notes": "Second title-hook phrase; preserve original wording." },
+    { "id": "chorus_04", "text": "Make the lights go mean", "delivery": "sung", "layer": "gang_vocals", "source_section": "chorus", "anchor_marker_id": null, "alignment_status": "unaligned", "start_beat": null, "duration_beats": null, "syllables": [], "performance_notes": "Optional pitched hook treatment; melody and syllable alignment not authored." },
+    { "id": "chorus_05", "text": "Somebody's gotta do it", "delivery": "gang_shout", "layer": "gang_vocals", "source_section": "chorus", "anchor_marker_id": "chorus_hook_3", "alignment_status": "unaligned", "start_beat": null, "duration_beats": null, "syllables": [], "performance_notes": "Third title-hook phrase; preserve original wording." },
+    { "id": "chorus_06", "text": "Keep the freaks alive", "delivery": "sung", "layer": "gang_vocals", "source_section": "chorus", "anchor_marker_id": null, "alignment_status": "unaligned", "start_beat": null, "duration_beats": null, "syllables": [], "performance_notes": "Optional pitched hook treatment; melody and syllable alignment not authored." },
+    { "id": "chorus_07", "text": "Somebody's gotta do it", "delivery": "gang_shout", "layer": "gang_vocals", "source_section": "chorus", "anchor_marker_id": "chorus_hook_4", "alignment_status": "unaligned", "start_beat": null, "duration_beats": null, "syllables": [], "performance_notes": "Fourth title-hook phrase; preserve original wording." },
+    { "id": "chorus_08", "text": "And tonight that somebody's me", "delivery": "sung", "layer": "gang_vocals", "source_section": "chorus", "anchor_marker_id": null, "alignment_status": "unaligned", "start_beat": null, "duration_beats": null, "syllables": [], "performance_notes": "Optional pitched resolution; melody and syllable alignment not authored." }
+  ],
+  "export_profiles": {}
+}
