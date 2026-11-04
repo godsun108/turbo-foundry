@@ -18,6 +18,7 @@ class ProjectArrangementTests(unittest.TestCase):
                 data = (out / f"{name}.mid").read_bytes()
                 self.assertTrue(data.startswith(b"MThd"))
                 self.assertIn(b"MTrk", data)
+                self.assertIn(b"\x00\xff\x51\x03", data)
             manifest = json.loads((out / "manifest.json").read_text())
             self.assertEqual(manifest["bpm"], 127)
             self.assertEqual(manifest["bars"], 56)
