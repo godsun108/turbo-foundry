@@ -26,7 +26,7 @@ class RecordingBoothContractTests(unittest.TestCase):
 
     def test_local_wav_export_contract(self):
         self.assertIn("function wavFromMono", self.source)
-        self.assertIn("sampleRate = 48000", self.source)
+        self.assertIn("targetRate = 48000", self.source)
         self.assertIn("view.setUint16(34,16,true)", self.source)
         self.assertIn("type:'audio/wav'", self.source)
 
