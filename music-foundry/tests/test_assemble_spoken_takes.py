@@ -104,8 +104,7 @@ class SpokenTakeAssemblyTests(unittest.TestCase):
             self.assertEqual(result["audible_take_count"], 1)
             self.assertTrue(result["takes"][0]["audible"])
             self.assertFalse(result["takes"][1]["audible"])
-            with wave.open(str(out / "adlibs.wav"), "rb") as wav:
-                self.assertEqual(wav.getnframes(), 0)
+            self.assertFalse((out / "adlibs.wav").exists())
             manifest["takes"][0]["solo"] = False
             manifest["layer_states"] = {"adlibs": {"muted": True}}
             path.write_text(json.dumps(manifest))
