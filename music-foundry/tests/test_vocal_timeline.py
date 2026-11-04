@@ -31,6 +31,13 @@ class VocalTimelineContractTests(unittest.TestCase):
         self.assertIn("pan", self.source)
         self.assertIn("syncManifest", self.source)
 
+    def test_track_sections_are_mapped_to_the_127_bpm_grid(self):
+        self.assertIn("BPM=127", self.source)
+        self.assertIn("BAR_SECONDS=240/127", self.source)
+        self.assertIn("FINAL CHORUS + OUTRO", self.source)
+        self.assertIn("PROJECT_DURATION=105.827", self.source)
+        self.assertIn('id="sections"', self.source)
+
     def test_preview_and_wav_mix_stem_export_exist(self):
         self.assertIn("Preview arrangement", self.source)
         self.assertIn("OfflineAudioContext", self.source)
