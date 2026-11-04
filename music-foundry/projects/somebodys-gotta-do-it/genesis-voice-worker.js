@@ -40,20 +40,35 @@ self.addEventListener("message", async (event) => {
     }
     const job = ++activeJob;
     try {
-      const result = await engine.synthesize(data.text, { voiceId: data.voiceId });
+      const chunks = [];
+      let totalSamples = 0;
+      let sampleRateHz = 24000;
+      let chunkCount = 0;
+      for await (const chunk of engine.synthesizeStream(data.text, { voiceId: data.voiceId })) {
+        if (job !== activeJob) return;
+        const samples = chunk.samples instanceof Float32Array
+          ? new Float32Array(chunk.samples)
+          : Float32Array.from(chunk.samples);
+        chunks.push(samples);
+        totalSamples += samples.length;
+        sampleRateHz = chunk.sampleRateHz || sampleRateHz;
+        chunkCount++;
+        self.postMessage({ type: "progress", chunkCount });
+      }
       if (job !== activeJob) return;
-      const samples = result.samples instanceof Float32Array
-        ? result.samples
-        : Float32Array.from(result.samples);
-      const transferable = samples.buffer.slice(
-        samples.byteOffset,
-        samples.byteOffset + samples.byteLength
-      );
+      if (!totalSamples) throw new Error("The voice engine returned no audio samples.");
+      const combined = new Float32Array(totalSamples);
+      let offset = 0;
+      for (const chunk of chunks) {
+        combined.set(chunk, offset);
+        offset += chunk.length;
+      }
       self.postMessage({
         type: "audio",
-        samples: transferable,
-        sampleRateHz: result.sampleRateHz
-      }, [transferable]);
+        samples: combined.buffer,
+        sampleRateHz,
+        chunkCount
+      }, [combined.buffer]);
     } catch (error) {
       if (job === activeJob) {
         self.postMessage({ type: "error", message: error?.message || String(error) });
