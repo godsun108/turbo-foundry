@@ -123,6 +123,8 @@ worker.addEventListener("message", async (event) => {
     setBusy(false);
     $("load").disabled = true;
     setStatus("Model ready. " + data.voices.length + " voices available. No audio has been uploaded.");
+  } else if (data.type === "progress") {
+    setStatus("Generating speech locally… completed " + data.chunkCount + " audio chunk(s).");
   } else if (data.type === "audio") {
     const samples = new Float32Array(data.samples);
     const blob = encodeWav(samples, data.sampleRateHz);
@@ -153,3 +155,8 @@ worker.addEventListener("message", async (event) => {
 });
 
 window.addEventListener("beforeunload", releaseAudioUrl);
+
+worker.addEventListener("error", (event) => {
+  setBusy(false);
+  setStatus("Voice worker failed: " + (event.message || "unknown worker error"));
+});
