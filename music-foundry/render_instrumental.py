@@ -104,6 +104,10 @@ def render(output, bpm=127, sample_rate=DEFAULT_RATE):
         _write_wav(output / f"{name}.wav", stem, sample_rate)
         for frame, value in enumerate(stem):
             mix[frame] += value
+    peak = max((abs(value) for value in mix), default=0)
+    gain = min(1.0, 29490 / peak) if peak else 1.0
+    if gain < 1.0:
+        mix = array.array("i", (round(value * gain) for value in mix))
     _write_wav(output / "instrumental_mix.wav", mix, sample_rate)
     manifest = {
         "title": "Somebody's Gotta Do It",
@@ -116,6 +120,7 @@ def render(output, bpm=127, sample_rate=DEFAULT_RATE):
         "stems": [f"{name}.wav" for name in parts],
         "mix": "instrumental_mix.wav",
         "vocals_rendered": False,
+        "mix_peak_normalized": True,
         "note": "Original synthesized instrumental preview. No spoken or sung vocals are included."
     }
     (output / "audio_manifest.json").write_text(json.dumps(manifest, indent=2))
