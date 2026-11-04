@@ -191,6 +191,7 @@
     "spoken_phrase_performance": "implemented bounded per-take phrase selection, repeats, reverse and optional extra repeat at first chorus drop (bar 17); browser preview/offline WAV and Python assembler parity; non-destructive manifest metadata; tests and CI pending",
     "spoken_vocal_performance_controls": "implemented per-take and per-layer mute/solo, isolated phrase audition, touch-friendly 10ms/100ms nudges, and quick recorded-take A/B audition over loop region A; tests and CI pending",
     "tempo_synced_loop_lab": "implemented two global loop regions A/B with visible timeline bands; selectable quarter/eighth/sixteenth/bar snapping at 127 BPM; A, B, and sequential A/B loop preview; adjustable 0–100 ms crossfades (12 ms default); source-offset automation alignment; manifest persistence; 15-minute playback cap; tests and CI pending",
-    "production_direction": "updated to include dubstep-influenced bass-house and higher sound-quality targets; no polished mix or new audio engine claimed"
+    "production_direction": "updated to include dubstep-influenced bass-house and higher sound-quality targets; no polished mix or new audio engine claimed",
+    "local_spoken_synthesis_adapter": "Local Piper CLI adapter implemented with explicit dispatch authorization, local-only execution, 16-bit WAV normalization, and mocked regression tests; actual Piper executable/model installation and audio quality not yet verified"
   }
 }
