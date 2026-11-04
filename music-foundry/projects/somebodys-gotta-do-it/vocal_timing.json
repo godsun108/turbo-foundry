@@ -1,0 +1,310 @@
+{
+  "schema": "turbo.music-foundry.vocal-timing.v1",
+  "project_id": "somebodys-gotta-do-it",
+  "source_ref": "music-foundry/projects/somebodys-gotta-do-it/cue-sheet.md",
+  "tempo_bpm": 127,
+  "tempo_status": "provisional",
+  "meter": "4/4",
+  "ppq": 480,
+  "timing_status": "editorial_grid_not_performance_locked",
+  "rules": {
+    "bar_numbering": "zero-based",
+    "beat_numbering": "zero-based within each bar; fractional beats allowed",
+    "phrase_positions": "recording/editing landmarks; performer may push or pull for groove",
+    "lyric_authority": "cue-sheet.md; do not rewrite lyric text from timing metadata",
+    "spoken_primary": true,
+    "sung_mode": "separate future renderer; do not route spoken takes through sung mode"
+  },
+  "sections": [
+    {
+      "id": "intro_tag",
+      "start_bar": 0,
+      "bars": 4,
+      "lead": "whisper_to_dry_spoken",
+      "layers": [
+        "whisper_double",
+        "dry_lead"
+      ],
+      "markers": [
+        {
+          "id": "intro_whisper_1",
+          "bar": 0,
+          "beat": 0
+        },
+        {
+          "id": "intro_whisper_2",
+          "bar": 1,
+          "beat": 0
+        },
+        {
+          "id": "intro_whisper_3",
+          "bar": 2,
+          "beat": 0
+        },
+        {
+          "id": "fuck_it_i_do_it",
+          "bar": 3,
+          "beat": 0,
+          "layer": "dry_lead"
+        }
+      ]
+    },
+    {
+      "id": "verse_1",
+      "start_bar": 4,
+      "bars": 8,
+      "lead": "conversational_spoken",
+      "layers": [
+        "dry_lead",
+        "adlibs"
+      ],
+      "markers": [
+        {
+          "id": "v1_open",
+          "bar": 4,
+          "beat": 0
+        },
+        {
+          "id": "v1_domestic_run",
+          "bar": 6,
+          "beat": 0
+        },
+        {
+          "id": "v1_ex_block",
+          "bar": 8,
+          "beat": 0
+        },
+        {
+          "id": "v1_bass_warning",
+          "bar": 10,
+          "beat": 0
+        }
+      ]
+    },
+    {
+      "id": "pre",
+      "start_bar": 12,
+      "bars": 4,
+      "lead": "rising_spoken_intensity",
+      "layers": [
+        "dry_lead",
+        "whisper_double",
+        "gang_response"
+      ],
+      "markers": [
+        {
+          "id": "pre_booth",
+          "bar": 12,
+          "beat": 0
+        },
+        {
+          "id": "pre_floor",
+          "bar": 13,
+          "beat": 0
+        },
+        {
+          "id": "pre_wonky",
+          "bar": 14,
+          "beat": 0
+        },
+        {
+          "id": "pre_fuck_it_stop",
+          "bar": 15,
+          "beat": 0,
+          "edit": "brief_silence_before_drop"
+        }
+      ]
+    },
+    {
+      "id": "chorus",
+      "start_bar": 16,
+      "bars": 8,
+      "lead": "gang_shouted_spoken_hook",
+      "layers": [
+        "gang_vocals",
+        "dry_lead",
+        "chops"
+      ],
+      "markers": [
+        {
+          "id": "chorus_hook_1",
+          "bar": 16,
+          "beat": 0
+        },
+        {
+          "id": "chorus_hook_2",
+          "bar": 18,
+          "beat": 0
+        },
+        {
+          "id": "chorus_hook_3",
+          "bar": 20,
+          "beat": 0
+        },
+        {
+          "id": "chorus_hook_4",
+          "bar": 22,
+          "beat": 0
+        }
+      ]
+    },
+    {
+      "id": "verse_2",
+      "start_bar": 24,
+      "bars": 8,
+      "lead": "conversational_spoken_more_interruptions",
+      "layers": [
+        "dry_lead",
+        "adlibs",
+        "chops"
+      ],
+      "markers": [
+        {
+          "id": "v2_house",
+          "bar": 24,
+          "beat": 0
+        },
+        {
+          "id": "v2_sleep_bass",
+          "bar": 26,
+          "beat": 0
+        },
+        {
+          "id": "v2_plumber_groceries",
+          "bar": 28,
+          "beat": 0
+        },
+        {
+          "id": "v2_trash_plants",
+          "bar": 30,
+          "beat": 0
+        }
+      ]
+    },
+    {
+      "id": "bridge_half_time",
+      "start_bar": 32,
+      "bars": 8,
+      "lead": "robotic_spoken_word_stack",
+      "layers": [
+        "dry_lead",
+        "chops",
+        "whisper_double"
+      ],
+      "markers": [
+        {
+          "id": "bridge_gym_bills",
+          "bar": 32,
+          "beat": 0
+        },
+        {
+          "id": "bridge_dub_lights",
+          "bar": 33,
+          "beat": 0
+        },
+        {
+          "id": "bridge_taxes_haircut",
+          "bar": 34,
+          "beat": 0
+        },
+        {
+          "id": "bridge_bass_drop",
+          "bar": 35,
+          "beat": 0
+        },
+        {
+          "id": "bridge_repeated_title",
+          "bar": 36,
+          "beat": 0
+        },
+        {
+          "id": "bridge_stutter_build",
+          "bar": 38,
+          "beat": 0
+        }
+      ]
+    },
+    {
+      "id": "final_chorus",
+      "start_bar": 40,
+      "bars": 12,
+      "lead": "maximum_energy_spoken_gang_hook",
+      "layers": [
+        "gang_vocals",
+        "dry_lead",
+        "adlibs",
+        "chops"
+      ],
+      "markers": [
+        {
+          "id": "final_hook_1",
+          "bar": 40,
+          "beat": 0
+        },
+        {
+          "id": "final_hook_2",
+          "bar": 42,
+          "beat": 0
+        },
+        {
+          "id": "final_hook_3",
+          "bar": 44,
+          "beat": 0
+        },
+        {
+          "id": "final_hook_4",
+          "bar": 46,
+          "beat": 0
+        },
+        {
+          "id": "final_me_me_me",
+          "bar": 48,
+          "beat": 0
+        },
+        {
+          "id": "already_did",
+          "bar": 50,
+          "beat": 0
+        }
+      ]
+    },
+    {
+      "id": "outro",
+      "start_bar": 52,
+      "bars": 4,
+      "lead": "spoken_tag_then_cut",
+      "layers": [
+        "dry_lead",
+        "gang_vocals"
+      ],
+      "markers": [
+        {
+          "id": "outro_repeated_title",
+          "bar": 52,
+          "beat": 0
+        },
+        {
+          "id": "outro_not_done_yet",
+          "bar": 55,
+          "beat": 0,
+          "edit": "instrumental_cut_voice_exposed"
+        }
+      ]
+    }
+  ],
+  "export_groups": {
+    "spoken_lead": [
+      "dry_lead"
+    ],
+    "gang_vocals": [
+      "gang_vocals"
+    ],
+    "adlibs_and_chops": [
+      "adlibs",
+      "chops"
+    ],
+    "whisper_textures": [
+      "whisper_double"
+    ]
+  }
+}
