@@ -58,6 +58,7 @@ class VocalTimelineContractTests(unittest.TestCase):
         self.assertIn("layerStates[layer].muted=!!m.layer_states", self.source)
         self.assertIn("typeof t.muted!=='boolean'", self.source)
         self.assertIn("typeof t.solo!=='boolean'", self.source)
+        self.assertIn("t.muted&&t.solo", self.source)
 
     def test_mute_solo_phrase_audition_and_fine_nudging_controls(self):
         for token in ("muteTake", "soloTake", "auditionPhrase", "nudgeBack",
