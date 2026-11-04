@@ -169,14 +169,19 @@ $('applyPhrase').addEventListener('click',()=>{if(selected<0)return;const c=clip
 $('clearPhrase').addEventListener('click',()=>{if(selected<0)return;clips[selected].performance=null;syncManifest();$('phraseSummary').textContent='No phrase edit on selected take.';draw();status('Phrase edit cleared; source take remains unchanged.');});
 function processedBuffer(ctx,c){
  const fx=c.effects||{},source=c.buffer,perf=c.performance;
- let phrase=null,phraseStart=0,phraseEnd=0,repeatFrames=0,dropFrame=-1;
- if(perf){phraseStart=Math.max(0,Math.min(source.length,Math.floor(perf.start_ms*source.sampleRate/1000)));phraseEnd=Math.max(phraseStart,Math.min(source.length,Math.floor(perf.end_ms*source.sampleRate/1000)));repeatFrames=Math.max(0,phraseEnd-phraseStart);if(repeatFrames>0){phrase=[];for(let ch=0;ch<source.numberOfChannels;ch++){const segment=source.getChannelData(ch).slice(phraseStart,phraseEnd);if(perf.reverse)segment.reverse();phrase.push(segment);}if(perf.drop_repeat&&c.offset_ms/1000<DROP_SECONDS)dropFrame=Math.max(0,Math.floor((DROP_SECONDS-c.offset_ms/1000)*source.sampleRate));}}
- const repeats=perf&&repeatFrames?Math.max(1,Number(perf.repeats)||1):1,extra=(repeats-1)*repeatFrames,dropExtra=dropFrame>=0?repeatFrames:0;
- const edited=!!(perf&&repeatFrames&&(extra||dropExtra||perf.reverse));
- let base=source;
- if(edited){const requiredLength=Math.max(source.length+extra,dropFrame>=0?dropFrame+repeatFrames:0),length=Math.min(Math.floor(MAX_SECONDS*source.sampleRate),requiredLength),out=ctx.createBuffer(source.numberOfChannels,length,source.sampleRate);
- for(let ch=0;ch<source.numberOfChannels;ch++){const input=source.getChannelData(ch),target=out.getChannelData(ch),segment=phrase[ch];let write=0;for(let i=0;i<phraseStart&&write<length;i++)target[write++]=input[i];for(let r=0;r<repeats&&write<length;r++)for(let j=0;j<repeatFrames&&write<length;j++)target[write++]=segment[j];for(let i=phraseEnd;i<input.length&&write<length;i++){if(dropFrame>=0&&write===dropFrame){for(let j=0;j<repeatFrames&&write<length;j++)target[write++]=segment[j];}if(write<length)target[write++]=input[i];}if(dropFrame>=input.length){while(write<dropFrame&&write<length)target[write++]=0;for(let j=0;j<repeatFrames&&write<length;j++)target[write++]=segment[j];}}
- base=out;}
+ let base=source,phrase=null,phraseStart=0,phraseEnd=0,phraseFrames=0,dropFrame=-1;
+ if(perf){
+  phraseStart=Math.max(0,Math.min(source.length,Math.floor(perf.start_ms*source.sampleRate/1000)));
+  phraseEnd=Math.max(phraseStart,Math.min(source.length,Math.floor(perf.end_ms*source.sampleRate/1000)));
+  phraseFrames=phraseEnd-phraseStart;
+  if(phraseFrames>0){
+   phrase=[];for(let ch=0;ch<source.numberOfChannels;ch++){const segment=source.getChannelData(ch).slice(phraseStart,phraseEnd);if(perf.reverse)segment.reverse();phrase.push(segment);}
+   const repeats=Math.max(1,Number(perf.repeats)||1),extra=(repeats-1)*phraseFrames;
+   if(extra||perf.reverse){const length=Math.min(Math.floor(MAX_SECONDS*source.sampleRate),source.length+extra),out=ctx.createBuffer(source.numberOfChannels,length,source.sampleRate);for(let ch=0;ch<source.numberOfChannels;ch++){const input=source.getChannelData(ch),target=out.getChannelData(ch),segment=phrase[ch];let write=0;for(let i=0;i<phraseStart&&write<length;i++)target[write++]=input[i];for(let r=0;r<repeats&&write<length;r++)for(let j=0;j<phraseFrames&&write<length;j++)target[write++]=segment[j];for(let i=phraseEnd;i<input.length&&write<length;i++)target[write++]=input[i];}base=out;}
+   if(perf.drop_repeat&&c.offset_ms/1000<DROP_SECONDS)dropFrame=Math.max(0,Math.floor((DROP_SECONDS-c.offset_ms/1000)*source.sampleRate));
+  }
+ }
+ if(dropFrame>=0&&phraseFrames>0){const length=Math.min(Math.floor(MAX_SECONDS*source.sampleRate),Math.max(base.length,dropFrame)+phraseFrames),out=ctx.createBuffer(base.numberOfChannels,length,base.sampleRate);for(let ch=0;ch<base.numberOfChannels;ch++){const input=base.getChannelData(ch),target=out.getChannelData(ch),segment=phrase[ch],before=Math.min(dropFrame,input.length);target.set(input.subarray(0,before),0);for(let j=0;j<phraseFrames&&dropFrame+j<length;j++)target[dropFrame+j]=segment[j];const suffixStart=Math.min(dropFrame,input.length);target.set(input.subarray(suffixStart),dropFrame+phraseFrames);}base=out;}
  if(!fx.stutter||fx.stutter==='off')return base;
  const out=ctx.createBuffer(base.numberOfChannels,base.length,base.sampleRate),beat=60/BPM,step=beat/(fx.stutter==='1/4'?4:fx.stutter==='1/8'?8:16),slice=Math.max(1,Math.floor(step*base.sampleRate));
  for(let ch=0;ch<base.numberOfChannels;ch++){const input=base.getChannelData(ch),target=out.getChannelData(ch);for(let i=0;i<target.length;i++)target[i]=input[i%slice]||0;}
