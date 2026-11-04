@@ -64,11 +64,11 @@ def _synth_note(target, start, duration, pitch, velocity, sample_rate, kind, rng
         target[frame] += int(sample * amp * 32767)
 
 
-def _render_part(notes, total_frames, sample_rate, kind, seed):
+def _render_part(notes, total_frames, sample_rate, bpm, kind, seed):
     pcm = array.array("i", [0]) * total_frames
     rng = random.Random(seed)
     for pitch, start_tick, duration_tick, velocity in notes:
-        start = round(start_tick * sample_rate * 60 / (ARRANGER.PPQ * 127))
+        start = round(start_tick * sample_rate * 60 / (ARRANGER.PPQ * bpm))
         duration = max(1, round(duration_tick * sample_rate * 60 / (ARRANGER.PPQ * 127)))
         _synth_note(pcm, start, duration, pitch, velocity, sample_rate, kind, rng)
     return pcm
@@ -100,7 +100,7 @@ def render(output, bpm=127, sample_rate=DEFAULT_RATE):
     mix = array.array("i", [0]) * total_frames
     for index, (name, (notes, _channel, _program)) in enumerate(parts.items()):
         kind = "drums" if name == "drums" else name
-        stem = _render_part(notes, total_frames, sample_rate, kind, 127 + index)
+        stem = _render_part(notes, total_frames, sample_rate, bpm, kind, 127 + index)
         _write_wav(output / f"{name}.wav", stem, sample_rate)
         for frame, value in enumerate(stem):
             mix[frame] += value
