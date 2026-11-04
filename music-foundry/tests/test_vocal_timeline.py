@@ -69,6 +69,8 @@ class VocalTimelineContractTests(unittest.TestCase):
                       "MAX_SECONDS*source.sampleRate"):
             self.assertIn(token, self.source)
         self.assertIn("manifest.loop=", self.source)
+        self.assertIn("loop-band", self.source)
+        self.assertIn("LOOP "+ "A", self.source)
         self.assertIn("A/B compare playing", self.source)
         self.assertIn("sourceOffset=0", self.source)
         self.assertIn("offsetMs-previous.time_ms", self.source)
