@@ -237,10 +237,11 @@ function readLoopRegion(which){const a=which==='A'?'loopA':'loopB',start=Number(
 function updateLoopSummary(){try{const a=readLoopRegion('A'),b=readLoopRegion('B'),reps=Math.max(1,Math.min(8,Math.round(Number($('loopRepeats').value)||1))),fade=Math.max(0,Math.min(100,Number($('loopFade').value)||0));$('loopSummary').textContent='A '+a.start.toFixed(3)+'–'+a.end.toFixed(3)+' s · B '+b.start.toFixed(3)+'–'+b.end.toFixed(3)+' s · '+reps+'× · '+fade+' ms crossfade · '+$('loopGrid').value+' grid at '+BPM+' BPM.';}catch(err){$('loopSummary').textContent=err.message;}}
 function setLoopMode(mode){$('loopMode').value=mode;syncManifest();updateLoopSummary();playLoop(mode).catch(err=>status('Loop preview error: '+err.message));}
 function playLoop(mode){return startPreview(mode);}
-function scheduleLoopSegment(ctx,c,buffer,region,at,offset,span,fadeIn,fadeOut,fadeSeconds){
- const src=ctx.createBufferSource(),pan=ctx.createStereoPanner?ctx.createStereoPanner():null,fade=ctx.createGain();src.buffer=buffer;fade.gain.setValueAtTime(1,at);
- if(fadeIn&&fadeSeconds>0){fade.gain.setValueAtTime(0,at);fade.gain.linearRampToValueAtTime(1,at+fadeSeconds);}
- if(fadeOut&&fadeSeconds>0){const outAt=at+span-fadeSeconds;fade.gain.setValueAtTime(1,Math.max(at,outAt));fade.gain.linearRampToValueAtTime(0,at+span);}
+function scheduleLoopSegment(ctx,c,buffer,region,at,offset,span,fadeIn,fadeOut,fadeSeconds,regionAt){
+ const src=ctx.createBufferSource(),pan=ctx.createStereoPanner?ctx.createStereoPanner():null,fade=ctx.createGain(),regionEnd=regionAt+region.end-region.start,fadeInEnd=regionAt+fadeSeconds,fadeOutStart=regionEnd-fadeSeconds;src.buffer=buffer;
+ const initial=fadeIn?Math.max(0,Math.min(1,(at-regionAt)/fadeSeconds)):1;fade.gain.setValueAtTime(initial,at);
+ if(fadeIn&&fadeInEnd>at)fade.gain.linearRampToValueAtTime(1,fadeInEnd);
+ if(fadeOut&&regionEnd>at){const start=Math.max(at,fadeOutStart),level=Math.max(0,Math.min(1,(regionEnd-start)/fadeSeconds));fade.gain.setValueAtTime(level,start);fade.gain.linearRampToValueAtTime(0,regionEnd);}
  if(pan){pan.pan.value=c.pan;connectTakeGraph(ctx,src,c,pan,at,offset);pan.connect(fade);}else connectTakeGraph(ctx,src,c,fade,at,offset);
  fade.connect(ctx.destination);src.start(at,offset,span);playSources.push(src);
 }
@@ -252,7 +253,7 @@ async function startPreview(modeOverride=null){
  const totalLoop=sequence.reduce((n,r)=>n+r.end-r.start,0)-fadeSeconds*Math.max(0,sequence.length-1);if(totalLoop>900)throw Error('Loop preview exceeds the 15-minute safety limit.');
  const ctx=await context(),when=ctx.currentTime+0.12;let cursor=0;
  for(const c of active){const buffer=processedBuffer(ctx,c);if(mode==='off'){const at=when+c.offset_ms/1000,src=ctx.createBufferSource(),pan=ctx.createStereoPanner?ctx.createStereoPanner():null;src.buffer=buffer;if(pan){pan.pan.value=c.pan;connectTakeGraph(ctx,src,c,pan,at);pan.connect(ctx.destination);}else connectTakeGraph(ctx,src,c,ctx.destination,at);src.start(at);playSources.push(src);continue;}
- cursor=0;for(let index=0;index<sequence.length;index++){const region=sequence[index],clipStart=c.offset_ms/1000,clipEnd=clipStart+buffer.duration,from=Math.max(region.start,clipStart),to=Math.min(region.end,clipEnd),regionAt=when+cursor;if(to>from){const at=regionAt+(from-region.start),offset=from-clipStart,span=to-from,fadeIn=index>0&&from<=region.start+fadeSeconds,fadeOut=index<sequence.length-1&&to>=region.end-fadeSeconds;scheduleLoopSegment(ctx,c,buffer,region,at,offset,span,fadeIn,fadeOut,fadeSeconds);}cursor+=region.end-region.start-(index<sequence.length-1?fadeSeconds:0);}
+ cursor=0;for(let index=0;index<sequence.length;index++){const region=sequence[index],clipStart=c.offset_ms/1000,clipEnd=clipStart+buffer.duration,from=Math.max(region.start,clipStart),to=Math.min(region.end,clipEnd),regionAt=when+cursor;if(to>from){const at=regionAt+(from-region.start),offset=from-clipStart,span=to-from,fadeIn=index>0&&from<=region.start+fadeSeconds,fadeOut=index<sequence.length-1&&to>=region.end-fadeSeconds;scheduleLoopSegment(ctx,c,buffer,region,at,offset,span,fadeIn,fadeOut,fadeSeconds,regionAt);}cursor+=region.end-region.start-(index<sequence.length-1?fadeSeconds:0);}
  }
  const total=mode==='off'?duration():totalLoop;playing=true;$('stop').disabled=false;$('play').disabled=true;status(mode==='AB'?'A/B loop comparison playing with '+Math.round(fadeSeconds*1000)+' ms crossfades.':mode==='off'?'Full arrangement preview playing.':'Loop '+mode+' playing · '+repeats+' repeats.');playbackTimer=setTimeout(()=>{if(playing){stopPlayback();status('Preview finished.');}},(total+0.5)*1000);
 }
