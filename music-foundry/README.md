@@ -89,3 +89,49 @@ Default output is 22,050 Hz / 16-bit PCM. The renderer is deterministic and offl
 The `projects/somebodys-gotta-do-it/vocal_timing.json` file maps the existing 56-bar arrangement to section-level spoken-vocal recording landmarks. `vocal-take-plan.md` documents the dry lead, gang, ad-lib, chop, and whisper passes. These are editable recording landmarks, not locked syllable timing and not a vocal renderer. The cue sheet remains the lyric source of truth.
 
 The arranger also writes the MIDI tempo meta-event as binary MIDI bytes; the arrangement test checks for that event so a tempo-bearing MIDI track is not mistaken for a valid file merely because it starts with an `MThd` header.
+
+## Recorded spoken-take assembly
+
+`assemble_spoken_takes.py` places original recorded speech WAVs onto the project timeline and exports stereo vocal stems plus a spoken-vocal mix. It is an offline assembler, **not** a speech synthesizer or singing renderer. It does not alter source takes.
+
+Create a `spoken-takes.json` file beside your recorded WAV files:
+
+```json
+{
+  "schema": "turbo.music-foundry.spoken-takes.v1",
+  "duration_seconds": 105.827,
+  "takes": [
+    {
+      "file": "takes/lead-intro.wav",
+      "layer": "dry_lead",
+      "offset_ms": 0,
+      "gain_db": 0,
+      "pan": 0
+    },
+    {
+      "file": "takes/gang-hook.wav",
+      "layer": "gang_vocals",
+      "offset_ms": 30236,
+      "gain_db": -2,
+      "pan": 0
+    },
+    {
+      "file": "takes/adlib-eventually.wav",
+      "layer": "adlibs",
+      "offset_ms": 11200,
+      "gain_db": -1,
+      "pan": -0.2
+    }
+  ]
+}
+```
+
+Paths are relative to the manifest and must remain inside its project folder. Inputs are uncompressed 16-bit PCM WAV, mono or stereo, 8–96 kHz. Stereo sources are folded to mono before placement; pan is then applied in the output. The output defaults to 48 kHz, 16-bit stereo WAV. Offsets are manual editorial placement values in milliseconds; this version does not perform automatic lyric alignment, time stretching, pitch correction, or effects processing.
+
+Run:
+
+```bash
+python3 music-foundry/assemble_spoken_takes.py --manifest path/to/spoken-takes.json --output music-foundry/output/spoken-vocals
+```
+
+The output contains one WAV per populated layer, `spoken_vocal_mix.wav`, and `spoken_audio_manifest.json`. The manifest records source references and confirms that source takes were not modified. Only use recordings you own or have permission to process. Keep original recordings backed up; the assembler reads but does not overwrite them.
