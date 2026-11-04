@@ -50,7 +50,22 @@ function encodeWav(samples, sampleRate) {
 }
 
 $("delegate").value = navigator.gpu ? "GPU" : "CPU";
-if (!navigator.gpu) setStatus("WebGPU is not detected. CPU mode selected; use a CPU-compatible model bundle.");
+const browserChecks = [
+  "Secure context: " + (window.isSecureContext ? "yes" : "no"),
+  "Web Audio: " + (window.AudioContext || window.webkitAudioContext ? "available" : "unavailable"),
+  "WebGPU API: " + (navigator.gpu ? "present" : "not present"),
+  "Device memory hint: " + (navigator.deviceMemory ? navigator.deviceMemory + " GB" : "not exposed")
+];
+setStatus(browserChecks.join(" · ") + (navigator.gpu ? "" : " · CPU mode selected; choose a CPU-compatible model."));
+if (navigator.gpu) {
+  navigator.gpu.requestAdapter().then((adapter) => {
+    browserChecks.push("WebGPU adapter: " + (adapter ? "available" : "not available"));
+    setStatus(browserChecks.join(" · "));
+  }).catch((error) => {
+    browserChecks.push("WebGPU adapter check failed: " + (error?.message || "unknown error"));
+    setStatus(browserChecks.join(" · "));
+  });
+}
 
 $("load").addEventListener("click", () => {
   const file = $("model").files?.[0];
