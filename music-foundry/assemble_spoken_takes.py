@@ -105,7 +105,11 @@ def _apply_effects(samples, sample_rate, effects):
         wet = delay_wet / 100.0
         ring = [0.0] * delay_frames
         delayed = []
-        for index, value in enumerate(output):
+        # Keep a bounded echo tail (up to eight repeats); project placement
+        # still clips the tail at the declared song duration.
+        tail_frames = delay_frames * 8
+        for index in range(len(output) + tail_frames):
+            value = output[index] if index < len(output) else 0.0
             echo = ring[index % delay_frames]
             delayed.append(value * (1.0 - wet) + echo * wet)
             ring[index % delay_frames] = value + echo * feedback
