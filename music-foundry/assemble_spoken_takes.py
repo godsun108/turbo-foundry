@@ -243,6 +243,8 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
         raise ValueError("every take must be an object")
     if any(not isinstance(take.get("muted", False), bool) or not isinstance(take.get("solo", False), bool) for take in takes):
         raise ValueError("take mute and solo flags must be booleans")
+    if any(take.get("solo", False) and take.get("muted", False) for take in takes):
+        raise ValueError("a take cannot be both muted and soloed")
     solo_active = any(take.get("solo", False) and not take.get("muted", False) for take in takes) or any(state["solo"] for state in normalized_layer_states.values())
     if unknown_layers:
         raise ValueError(f"unsupported vocal layers: {sorted(unknown_layers)}")
