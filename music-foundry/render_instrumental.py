@@ -69,7 +69,7 @@ def _render_part(notes, total_frames, sample_rate, bpm, kind, seed):
     rng = random.Random(seed)
     for pitch, start_tick, duration_tick, velocity in notes:
         start = round(start_tick * sample_rate * 60 / (ARRANGER.PPQ * bpm))
-        duration = max(1, round(duration_tick * sample_rate * 60 / (ARRANGER.PPQ * 127)))
+        duration = max(1, round(duration_tick * sample_rate * 60 / (ARRANGER.PPQ * bpm)))
         _synth_note(pcm, start, duration, pitch, velocity, sample_rate, kind, rng)
     return pcm
 
