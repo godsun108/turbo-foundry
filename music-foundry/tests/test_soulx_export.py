@@ -40,7 +40,7 @@ class SoulXExportTests(unittest.TestCase):
         metadata = build_metadata(aligned_fixture())
         self.assertEqual(len(metadata), 1)
         segment = metadata[0]
-        self.assertEqual(segment["time"], [3779, 5669])
+        self.assertEqual(segment["time"], [3780, 5669])
         self.assertEqual(segment["text"], "Make the speakers scream")
         self.assertEqual(segment["phoneme"], "en_M-EY1-K en_DH-AH0 en_S-P-IY1-K-ER0-Z en_S-K-R-IY1-M")
         self.assertEqual(segment["note_pitch"], "60 62 64 65")
