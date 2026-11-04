@@ -53,6 +53,13 @@ class VocalTimelineContractTests(unittest.TestCase):
         self.assertIn("processedBuffer", self.source)
         self.assertIn("effects_rendered:true", self.source)
 
+    def test_per_take_automation_lanes_are_editable_and_rendered(self):
+        for token in ("autoTime", "autoParam", "autoValue", "addAutomation",
+                      "automationList", "scheduleAutomation", "linearRampToValueAtTime"):
+            self.assertIn(token, self.source)
+        self.assertIn("automation:c.automation||[]", self.source)
+        self.assertIn("MAXIMUM 64 automation points", self.source)
+
     def test_exports_keep_spoken_and_sung_modes_separate(self):
         self.assertIn("speech_synthesized:false", self.source)
         self.assertIn("sung_vocals_rendered:false", self.source)
