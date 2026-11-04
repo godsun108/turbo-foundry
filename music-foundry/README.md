@@ -43,15 +43,21 @@ It creates four editable MIDI files (chords, bass, lead, drums) and a section ma
 Example request construction (validation only; no renderer is dispatched):
 
 ```python
-from music_foundry.vocal_render_contract import make_render_request, validate_render_request
+import importlib.util
+from pathlib import Path
 
-request = make_render_request(
+path = Path("music-foundry/vocal_render_contract.py")
+spec = importlib.util.spec_from_file_location("vocal_render_contract", path)
+contract = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(contract)
+
+request = contract.make_render_request(
     project_id="somebodys-gotta-do-it",
     source_ref="projects/somebodys-gotta-do-it/cue-sheet.md",
     mode="spoken",
     layers=["dry_lead", "gang_responses", "adlibs_and_chops"],
 )
-result = validate_render_request(request)
+result = contract.validate_render_request(request)
 if not result.ok:
     raise ValueError(result.errors)
 ```
