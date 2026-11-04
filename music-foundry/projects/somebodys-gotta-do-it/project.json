@@ -142,6 +142,8 @@
     "sung_audio_rendering": "not implemented",
     "wav_export": "instrumental WAV mix and four stems implemented; vocal WAV export not implemented",
     "vocal_render_contract": "provider-neutral spoken/sung WAV request contract implemented; validation only",
-    "offline_instrumental_wav": "dependency-free procedural renderer implemented; CI generation configured; execution not yet verified"
+    "offline_instrumental_wav": "dependency-free procedural renderer implemented; CI generation configured; execution not yet verified",
+    "spoken_vocal_timing": "section-level recording landmarks and take plan implemented; not a vocal renderer",
+    "midi_tempo_meta_event": "binary MIDI tempo meta-event corrected and regression assertion added; CI execution not yet verified"
   }
 }
