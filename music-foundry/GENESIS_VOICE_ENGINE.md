@@ -62,3 +62,24 @@ Next gates:
 3. Compare voice quality, pronunciation, timing, and CPU performance.
 4. Integrate rendered takes with the existing vocal timeline and effects chain.
 5. Evaluate a separate singing-synthesis engine; do not route sung requests through Piper.
+
+
+## Browser-first neural voice studio (Kokoro)
+
+The track project also includes a browser studio at projects/somebodys-gotta-do-it/genesis-voice-studio.html. It uses Google's MediaPipe Tasks Audio Text-to-Speech web API with a Kokoro-compatible LiteRT-LM model bundle.
+
+- The operator selects a local .litertlm file; the page does not automatically download model weights.
+- Synthesis runs in a Web Worker, with GPU/WebGPU or CPU selection.
+- The worker enumerates available voices and streams synthesis chunks; the studio accumulates the resulting audio and exports 24 kHz mono 16-bit PCM WAV.
+- The WAV can be imported into the existing vocal timeline for arrangement, effects, and stem export.
+- The MediaPipe JavaScript package and WASM runtime are currently loaded from jsDelivr at pinned version 1.2.2. This is a runtime CDN dependency; this first browser prototype is not fully offline until those assets are vendored.
+- The Kokoro GPU bundle documented by Google is approximately 295 MB and is Apache 2.0 licensed. The operator must obtain the model from the linked official model source and review the applicable license before use.
+
+The browser studio is an integration prototype, not yet a verified iPhone/Safari runtime. WebGPU support, CPU fallback, peak memory, audio quality, WAV export, and local-file loading require real-device testing. It does not sing, clone voices, or upload the selected model, text, or generated audio to a project server.
+
+Reference implementation documentation:
+- MediaPipe web TTS: https://developers.google.com/edge/mediapipe/solutions/audio/text_to_speech/web_js
+- MediaPipe model overview and model sizes/licenses: https://developers.google.com/edge/mediapipe/solutions/audio/text_to_speech
+- Kokoro model bundles: https://huggingface.co/litert-community/Kokoro-82M
+
+Piper remains a local command-line fallback for desktop environments with an installed Piper binary and separately supplied ONNX voice model. The browser Kokoro path is the preferred quality and iPhone-oriented candidate.
