@@ -74,8 +74,8 @@ class SoulXExportTests(unittest.TestCase):
     def test_rest_requires_explicit_silence_token(self):
         score = aligned_fixture()
         unit = score["phrases"][1]["lyric_units"][0]
-        unit.update({"text": "<SP>", "phonemes": ["<SP>"], "midi_pitch": 0, "note_type": "rest"})
-        with self.assertRaisesRegex(ValueError, "exactly reproduce"):
+        unit.update({"midi_pitch": 0, "note_type": "rest"})
+        with self.assertRaisesRegex(ValueError, "rest must use text <SP>"):
             build_metadata(score)
 
 
