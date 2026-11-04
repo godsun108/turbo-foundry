@@ -187,3 +187,8 @@ The timeline ruler also displays translucent A and B region bands so the selecte
 ## Loop crossfades and recorded-take A/B audition
 
 Loop Lab supports an adjustable 0–100 ms crossfade (12 ms default) between consecutive loop regions. Crossfade envelopes are scheduled against the region timeline and bounded for short source segments to reduce clicks without extending the project. The take comparison panel lets the user choose two imported takes, audition A or B over loop region A, or compare A followed by B with a short transition. Comparison preserves each take's phrase processing, effects, automation and pan; explicitly muted takes/lanes remain muted. Comparison selection is session UI state, not a change to source recordings.
+
+
+## Genesis local spoken-vocal synthesis
+
+The Genesis Voice Engine now has a local Piper CLI adapter in `music-foundry/genesis_voice_adapter.py`. It requires an operator-supplied Piper executable and local ONNX voice model; it performs no downloads or provider calls, and dispatch is explicitly denied unless authorized. It renders spoken text to normalized 16-bit WAV. Singing remains a separate, unimplemented engine. See [GENESIS_VOICE_ENGINE.md](GENESIS_VOICE_ENGINE.md) for configuration, usage, and verification limits. Automated tests use a fake local renderer; a real Piper/model render has not yet been verified.
