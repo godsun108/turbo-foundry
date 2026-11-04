@@ -44,7 +44,8 @@ self.addEventListener("message", async (event) => {
       let totalSamples = 0;
       let sampleRateHz = 24000;
       let chunkCount = 0;
-      for await (const chunk of engine.synthesizeStream(data.text, { voiceId: data.voiceId })) {
+      const stream = await engine.synthesizeStream(data.text, { voiceId: data.voiceId });
+      for await (const chunk of stream) {
         if (job !== activeJob) return;
         const samples = chunk.samples instanceof Float32Array
           ? new Float32Array(chunk.samples)
