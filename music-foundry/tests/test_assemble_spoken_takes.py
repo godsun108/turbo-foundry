@@ -83,6 +83,24 @@ class SpokenTakeAssemblyTests(unittest.TestCase):
                 self.assertEqual(wav.getframerate(), 8000)
                 self.assertEqual(wav.getnchannels(), 2)
 
+    def test_rejects_invalid_mute_solo_state(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_source(root / "lead.wav", [1000] * 80, 8000)
+            path = root / "spoken-takes.json"
+            base = {"schema": "turbo.music-foundry.spoken-takes.v1",
+                    "duration_seconds": 0.01,
+                    "takes": [{"file": "lead.wav", "layer": "dry_lead"}]}
+            base["takes"][0].update({"muted": True, "solo": True})
+            path.write_text(json.dumps(base))
+            with self.assertRaises(ValueError):
+                assembler.assemble(path, root / "out", 8000)
+            base["takes"][0].update({"muted": False, "solo": False})
+            base["layer_states"] = {"unknown": {"solo": True}}
+            path.write_text(json.dumps(base))
+            with self.assertRaises(ValueError):
+                assembler.assemble(path, root / "out", 8000)
+
     def test_take_mute_and_solo_and_layer_states_control_offline_mix(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
