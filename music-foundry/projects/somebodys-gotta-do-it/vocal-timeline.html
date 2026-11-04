@@ -72,7 +72,7 @@ small{color:var(--muted)}.hint{font-size:12px}.back{color:var(--muted);text-deco
 <div><label for="delay">Delay time (0–500 ms)</label><input id="delay" type="number" min="0" max="500" step="5" value="0"></div>
 <div><label for="feedback">Delay feedback (0–75%)</label><input id="feedback" type="number" min="0" max="75" step="5" value="25"></div>
 <div><label for="wet">Delay wet (0–100%)</label><input id="wet" type="number" min="0" max="100" step="5" value="0"></div>
-<div><label for="stutter">Stutter repeat</label><select id="stutter"><option value="off">Off</option><option value="1/4">1/4 beat</option><option value="1/8">1/8 beat</option><option value="1/16">1/16 beat</option></select></div>
+<div><label for="stutter">Repeat first slice</label><select id="stutter"><option value="off">Off</option><option value="1/4">1/4-beat slice</option><option value="1/8">1/8-beat slice</option><option value="1/16">1/16-beat slice</option></select></div>
 </div>
 <div class="actions"><button id="apply" class="primary" disabled>Apply take edits</button><button id="remove" disabled>Remove take</button></div>
 </section>
@@ -143,9 +143,28 @@ $('loadDemo').addEventListener('click',()=>{manifest={schema:'turbo.music-foundr
 $('clear').addEventListener('click',()=>{stopPlayback();manifest={schema:'turbo.music-foundry.spoken-takes.v1',duration_seconds:105.827,takes:[]};clips=[];selected=-1;$('manifestFile').value='';$('audioFiles').value='';draw();status('Session cleared.');renderStatus('');});
 $('apply').addEventListener('click',()=>{if(selected<0)return;const c=clips[selected],offset=Number($('offset').value),gain=Number($('gain').value),pan=Number($('pan').value);if(!Number.isFinite(offset)||offset<0||offset>180000||!Number.isFinite(gain)||gain<-60||gain>12||!Number.isFinite(pan)||pan<-1||pan>1){status('Check offset, gain and pan limits.');return;}const drive=Number($('drive').value),filter=Number($('filter').value),delay=Number($('delay').value),feedback=Number($('feedback').value),wet=Number($('wet').value);if(!Number.isFinite(drive)||drive<0||drive>24||!Number.isFinite(filter)||filter<500||filter>20000||!Number.isFinite(delay)||delay<0||delay>500||!Number.isFinite(feedback)||feedback<0||feedback>75||!Number.isFinite(wet)||wet<0||wet>100){status('Check effect limits.');return;}c.layer=$('layer').value;c.offset_ms=offset;c.gain_db=gain;c.pan=pan;c.effects={drive_db:drive,lowpass_hz:filter,delay_ms:delay,delay_feedback:feedback,delay_wet:wet,stutter:$('stutter').value};syncManifest();draw();select(selected);status('Take edits applied.');});
 $('remove').addEventListener('click',()=>{if(selected<0)return;clips.splice(selected,1);selected=-1;syncManifest();draw();status('Take removed from this edit session; original downloaded WAV is unchanged.');});
+function processedBuffer(ctx,c){
+ const fx=c.effects||{},source=c.buffer;
+ if(!fx.stutter||fx.stutter==='off')return source;
+ const out=ctx.createBuffer(source.numberOfChannels,source.length,source.sampleRate);
+ const beat=60/BPM,step=beat/(fx.stutter==='1/4'?4:fx.stutter==='1/8'?8:16);
+ const slice=Math.max(1,Math.floor(step*source.sampleRate));
+ for(let ch=0;ch<source.numberOfChannels;ch++){const input=source.getChannelData(ch),target=out.getChannelData(ch);for(let i=0;i<target.length;i++)target[i]=input[i%slice]||0;}
+ return out;
+}
+function connectTakeGraph(ctx,src,c,destination){
+ const fx=c.effects||{},shaper=ctx.createWaveShaper(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();
+ const drive=Number(fx.drive_db)||0,amount=Math.pow(10,drive/20),curve=new Float32Array(2048);
+ for(let i=0;i<curve.length;i++){const x=i*2/(curve.length-1)-1;curve[i]=drive?Math.tanh(x*amount)/Math.tanh(amount):x;}
+ shaper.curve=curve;shaper.oversample='2x';filter.type='lowpass';filter.frequency.value=Number(fx.lowpass_hz)||20000;filter.Q.value=.7;
+ gain.gain.value=Math.pow(10,c.gain_db/20);src.connect(shaper);shaper.connect(filter);filter.connect(gain);
+ const delayMs=Number(fx.delay_ms)||0,wet=(Number(fx.delay_wet)||0)/100,feedback=(Number(fx.delay_feedback)||0)/100;
+ if(delayMs>0&&wet>0){const delay=ctx.createDelay(.6),fb=ctx.createGain(),wetGain=ctx.createGain(),dryGain=ctx.createGain();delay.delayTime.value=delayMs/1000;fb.gain.value=feedback;wetGain.gain.value=wet;dryGain.gain.value=1-wet;gain.connect(dryGain);gain.connect(delay);delay.connect(fb);fb.connect(delay);delay.connect(wetGain);dryGain.connect(destination);wetGain.connect(destination);}
+ else gain.connect(destination);
+}
 function stopPlayback(){playSources.forEach(s=>{try{s.stop();}catch(_){}});playSources=[];playing=false;$('stop').disabled=true;$('play').disabled=!clips.length;}
 $('stop').addEventListener('click',stopPlayback);
-$('play').addEventListener('click',async()=>{try{stopPlayback();const ctx=await context(),when=ctx.currentTime+0.12;for(const c of clips){const src=ctx.createBufferSource(),gain=ctx.createGain(),pan=ctx.createStereoPanner?ctx.createStereoPanner():null;src.buffer=c.buffer;gain.gain.value=Math.pow(10,c.gain_db/20);src.connect(gain);if(pan){pan.pan.value=c.pan;gain.connect(pan);pan.connect(ctx.destination);}else gain.connect(ctx.destination);src.start(when+c.offset_ms/1000);playSources.push(src);}playing=true;$('stop').disabled=false;$('play').disabled=true;status('Preview playing.');const total=duration()*1000+300;setTimeout(()=>{if(playing){stopPlayback();status('Preview finished.');}},total);}catch(err){status('Preview error: '+err.message);}});
+$('play').addEventListener('click',async()=>{try{stopPlayback();const ctx=await context(),when=ctx.currentTime+0.12;for(const c of clips){const src=ctx.createBufferSource(),pan=ctx.createStereoPanner?ctx.createStereoPanner():null;src.buffer=processedBuffer(ctx,c);if(pan){pan.pan.value=c.pan;connectTakeGraph(ctx,src,c,pan);pan.connect(ctx.destination);}else connectTakeGraph(ctx,src,c,ctx.destination);src.start(when+c.offset_ms/1000);playSources.push(src);}playing=true;$('stop').disabled=false;$('play').disabled=true;status('Preview playing with per-take effects.');const total=duration()*1000+900;setTimeout(()=>{if(playing){stopPlayback();status('Preview finished.');}},total);}catch(err){status('Preview error: '+err.message);}});
 $('exportManifest').addEventListener('click',()=>{syncManifest();download(new Blob([JSON.stringify(manifest,null,2)],{type:'application/json'}),'spoken-takes-edited.json');status('Edited manifest downloaded. Keep its WAV filenames and folder layout together.');});
 function wavBlob(buffer){
  const channels=2,frames=buffer.length,rate=buffer.sampleRate,bytes=new ArrayBuffer(44+frames*channels*2),view=new DataView(bytes);
@@ -156,10 +175,10 @@ async function renderLayer(layer){
  const items=clips.filter(c=>!layer||c.layer===layer),total=duration();if(!items.length)return null;
  const Offline=window.OfflineAudioContext||window.webkitOfflineAudioContext;if(!Offline)throw Error('OfflineAudioContext is unavailable in this browser.');
  const frames=Math.ceil(total*OUTPUT_RATE),off=new Offline(2,frames,OUTPUT_RATE);
- for(const c of items){const src=off.createBufferSource(),gain=off.createGain(),pan=off.createStereoPanner?off.createStereoPanner():null;src.buffer=c.buffer;gain.gain.value=Math.pow(10,c.gain_db/20);src.connect(gain);if(pan){pan.pan.value=c.pan;gain.connect(pan);pan.connect(off.destination);}else gain.connect(off.destination);src.start(c.offset_ms/1000);}
+ for(const c of items){const src=off.createBufferSource(),pan=off.createStereoPanner?off.createStereoPanner():null;src.buffer=processedBuffer(off,c);if(pan){pan.pan.value=c.pan;connectTakeGraph(off,src,c,pan);pan.connect(off.destination);}else connectTakeGraph(off,src,c,off.destination);src.start(c.offset_ms/1000);}
  return await off.startRendering();
 }
-$('render').addEventListener('click',async()=>{try{$('render').disabled=true;renderStatus('Rendering stereo 48 kHz WAV mix…');const mix=await renderLayer(null);download(wavBlob(mix),'spoken_vocal_mix.wav');for(const layer of LAYERS){if(!clips.some(c=>c.layer===layer))continue;renderStatus('Rendering '+LABELS[layer]+' stem…');const stem=await renderLayer(layer);download(wavBlob(stem),layer+'.wav');}syncManifest();download(new Blob([JSON.stringify({schema:'turbo.music-foundry.spoken-takes-render.v1',render_type:'browser_offline_recorded_take_assembly',sample_rate:OUTPUT_RATE,channels:2,bit_depth:16,duration_seconds:duration(),take_count:clips.length,stems:LAYERS.filter(l=>clips.some(c=>c.layer===l)).map(l=>l+'.wav'),mix:'spoken_vocal_mix.wav',speech_synthesized:false,sung_vocals_rendered:false},null,2)],{type:'application/json'}),'spoken_audio_manifest.json');renderStatus('Finished. Downloaded the mix, populated layer stems and render manifest.');}catch(err){renderStatus('Render failed: '+err.message);}finally{$('render').disabled=!clips.length;}});
+$('render').addEventListener('click',async()=>{try{$('render').disabled=true;renderStatus('Rendering stereo 48 kHz WAV mix…');const mix=await renderLayer(null);download(wavBlob(mix),'spoken_vocal_mix.wav');for(const layer of LAYERS){if(!clips.some(c=>c.layer===layer))continue;renderStatus('Rendering '+LABELS[layer]+' stem…');const stem=await renderLayer(layer);download(wavBlob(stem),layer+'.wav');}syncManifest();download(new Blob([JSON.stringify({schema:'turbo.music-foundry.spoken-takes-render.v1',render_type:'browser_offline_recorded_take_assembly_with_effects',sample_rate:OUTPUT_RATE,channels:2,bit_depth:16,duration_seconds:duration(),take_count:clips.length,stems:LAYERS.filter(l=>clips.some(c=>c.layer===l)).map(l=>l+'.wav'),mix:'spoken_vocal_mix.wav',speech_synthesized:false,sung_vocals_rendered:false,effects_rendered:true},null,2)],{type:'application/json'}),'spoken_audio_manifest.json');renderStatus('Finished. Downloaded the mix, populated layer stems and render manifest.');}catch(err){renderStatus('Render failed: '+err.message);}finally{$('render').disabled=!clips.length;}});
 draw();
 })();
 </script></body></html>
