@@ -2,6 +2,7 @@ const $ = (id) => document.getElementById(id);
 let score = null;
 let drafts = {};
 let controls = {};
+let reviewFlags = {};
 const phrasesRoot = $("phrases");
 
 function setStatus(message) { $("status").textContent = message; }
@@ -69,9 +70,9 @@ function render() {
       card.append(box);
     });
     const reviewLabel=document.createElement("label");
-    const review=document.createElement("input"); review.type="checkbox"; review.checked=phrase.alignment_status==="reviewed";
+    const review=document.createElement("input"); review.type="checkbox"; review.checked=reviewFlags[phrase.id] ?? (phrase.alignment_status==="reviewed");
     review.style.width="auto"; review.style.marginRight="8px";
-    review.addEventListener("change",()=>{phrase._reviewed=review.checked;});
+    review.addEventListener("change",()=>{reviewFlags[phrase.id]=review.checked;});
     reviewLabel.append(review,document.createTextNode(" I have reviewed every pronunciation, note, and timing value in this phrase."));
     card.append(reviewLabel);
     const anchor=document.createElement("input"); anchor.type="hidden"; anchor.value=phrase.id;
@@ -112,7 +113,7 @@ function collectPhrase(phrase) {
     return {text:u.text,phonemes:phones,onset_beats:onset,duration_beats:duration,midi_pitch:pitch,note_type:u.noteType};
   });
   if(phraseDuration!==null && Math.abs(cursor-phraseDuration)>1e-6) errors.push(phrase.id+": note units must fill the phrase duration exactly");
-  if(!control.reviewInput?.checked && phrase.alignment_status!=="reviewed") errors.push(phrase.id+": human review checkbox required");
+  if(!(control.reviewInput?.checked ?? reviewFlags[phrase.id] ?? (phrase.alignment_status==="reviewed")) ) errors.push(phrase.id+": human review checkbox required");
   return {errors,units,start,phraseDuration};
 }
 function collectAll() {
@@ -140,7 +141,7 @@ $("scoreFile").addEventListener("change",async event=>{
   const file=event.target.files?.[0]; if(!file)return;
   try{
     const data=JSON.parse(await file.text());
-    if(isWorkbench(data)){score=data.score;drafts=data.drafts;}
+    if(isWorkbench(data)){score=data.score;drafts=data.drafts;reviewFlags=data.reviewFlags||{};}
     else if(data && Array.isArray(data.phrases)){score=data;drafts={};}
     else throw new Error("This file is not a supported vocal score or workbench file.");
     for(const p of score.phrases){if((p.delivery==="sung"||p.delivery==="chant")&&!drafts[p.id]) drafts[p.id]=phraseDraft(p);}
@@ -154,7 +155,7 @@ $("saveWork").addEventListener("click",()=>{
     phrase.start_beat=safeNumber(control.startInput?.value ?? phrase.start_beat);
     phrase.duration_beats=safeNumber(control.durationInput?.value ?? phrase.duration_beats);
   }
-  download("vocal-score-workbench.json",{format:"turbo.music-foundry.vocal-score-workbench.v1",score,drafts});
+  download("vocal-score-workbench.json",{format:"turbo.music-foundry.vocal-score-workbench.v1",score,drafts,reviewFlags});
   setStatus("Saved workbench file. This preserves incomplete draft fields without marking the score reviewed.");
 });
 $("exportScore").addEventListener("click",()=>{
