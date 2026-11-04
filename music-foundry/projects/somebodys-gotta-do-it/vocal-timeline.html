@@ -79,7 +79,7 @@ small{color:var(--muted)}.hint{font-size:12px}.back{color:var(--muted);text-deco
 <div class="fx-grid">
 <div><label for="phraseStart">Phrase start (ms)</label><input id="phraseStart" type="number" min="0" max="180000" step="10" value="0"></div>
 <div><label for="phraseEnd">Phrase end (ms)</label><input id="phraseEnd" type="number" min="10" max="180000" step="10" value="500"></div>
-<div><label for="phraseRepeats">Repeat count (1–8)</label><input id="phraseRepeats" type="number" min="1" max="8" step="1" value="1"></div>
+<div><label for="phraseRepeats">Additional repeats (1–8)</label><input id="phraseRepeats" type="number" min="1" max="8" step="1" value="1"></div>
 <div><label for="phraseReverse">Reverse selected phrase</label><select id="phraseReverse"><option value="false">Off</option><option value="true">On</option></select></div>
 <div><label for="dropRepeat">Extra repeat at first drop</label><select id="dropRepeat"><option value="false">Off</option><option value="true">On</option></select></div>
 </div>
@@ -180,8 +180,8 @@ function processedBuffer(ctx,c){
   phraseFrames=phraseEnd-phraseStart;
   if(phraseFrames>0){
    phrase=[];for(let ch=0;ch<source.numberOfChannels;ch++){const segment=source.getChannelData(ch).slice(phraseStart,phraseEnd);if(perf.reverse)segment.reverse();phrase.push(segment);}
-   const repeats=Math.max(1,Number(perf.repeats)||1),extra=(repeats-1)*phraseFrames;
-   if(extra||perf.reverse){const length=Math.min(Math.floor(MAX_SECONDS*source.sampleRate),source.length+extra),out=ctx.createBuffer(source.numberOfChannels,length,source.sampleRate);for(let ch=0;ch<source.numberOfChannels;ch++){const input=source.getChannelData(ch),target=out.getChannelData(ch),segment=phrase[ch];let write=0;for(let i=0;i<phraseStart&&write<length;i++)target[write++]=input[i];for(let r=0;r<repeats&&write<length;r++)for(let j=0;j<phraseFrames&&write<length;j++)target[write++]=segment[j];for(let i=phraseEnd;i<input.length&&write<length;i++)target[write++]=input[i];}base=out;}
+   const repeats=Math.max(1,Number(perf.repeats)||1),copies=repeats+1,extra=repeats*phraseFrames;
+   if(extra||perf.reverse){const length=Math.min(Math.floor(MAX_SECONDS*source.sampleRate),source.length+extra),out=ctx.createBuffer(source.numberOfChannels,length,source.sampleRate);for(let ch=0;ch<source.numberOfChannels;ch++){const input=source.getChannelData(ch),target=out.getChannelData(ch),segment=phrase[ch];let write=0;for(let i=0;i<phraseStart&&write<length;i++)target[write++]=input[i];for(let r=0;r<copies&&write<length;r++)for(let j=0;j<phraseFrames&&write<length;j++)target[write++]=segment[j];for(let i=phraseEnd;i<input.length&&write<length;i++)target[write++]=input[i];}base=out;}
    if(perf.drop_repeat&&c.offset_ms/1000<DROP_SECONDS)dropFrame=Math.max(0,Math.floor((DROP_SECONDS-c.offset_ms/1000)*source.sampleRate));
   }
  }
