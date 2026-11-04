@@ -58,7 +58,7 @@ class VocalTimelineContractTests(unittest.TestCase):
                       "automationList", "scheduleAutomation", "linearRampToValueAtTime"):
             self.assertIn(token, self.source)
         self.assertIn("automation:c.automation||[]", self.source)
-        self.assertIn("MAXIMUM 64 automation points", self.source)
+        self.assertIn("Maximum 64 automation points per take", self.source)
 
     def test_exports_keep_spoken_and_sung_modes_separate(self):
         self.assertIn("speech_synthesized:false", self.source)
