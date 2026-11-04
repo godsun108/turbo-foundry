@@ -160,7 +160,7 @@ class SpokenTakeAssemblyTests(unittest.TestCase):
              "reverse": True, "drop_repeat": False}, 0),
             [1, 4, 3, 2, 4, 3, 2, 4, 3, 2, 5, 6])
         phrase = assembler._apply_phrase_performance(
-            [1, 2, 3, 4], 1,
+            [1, 2, 3, 4], 1000,
             {"start_ms": 0, "end_ms": 2, "repeats": 1,
              "reverse": False, "drop_repeat": True}, 0)
         self.assertEqual(phrase[:2], [1, 2])
