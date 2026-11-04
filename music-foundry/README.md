@@ -151,3 +151,5 @@ The recording booth enforces a 180-second per-take limit and a 128-take session 
 ## Spoken vocal timeline editor
 
 Open `projects/somebodys-gotta-do-it/vocal-timeline.html` from a secure local or HTTPS origin. Import a `turbo.music-foundry.spoken-takes.v1` JSON manifest and the matching WAV files. The browser-local editor displays five vocal lanes, supports horizontal clip dragging and precise offset/layer/gain/pan edits, previews the arrangement, exports an updated manifest, and renders a stereo 48 kHz / 16-bit mix plus populated layer stems through `OfflineAudioContext`. Downloads are separate files; keep them together with the manifest. The editor does not upload audio, persist takes, synthesize speech, or render sung vocals. iPhone/Safari decoding, offline rendering, and multiple-download behavior remain device-test requirements.
+
+The vocal timeline now includes the track's seven arrangement sections mapped to the provisional 127 BPM grid across the full 56-bar / 105.827-second song. The editor preserves that full-song duration when arranging shorter recorded takes, so vocal stems remain aligned to the instrumental arrangement.
