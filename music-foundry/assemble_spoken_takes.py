@@ -228,6 +228,22 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
     total_frames = math.ceil(duration * sample_rate)
     used_layers = {take.get("layer") for take in takes if isinstance(take, dict)}
     unknown_layers = used_layers - set(LAYERS)
+    layer_states = config.get("layer_states", {})
+    if not isinstance(layer_states, dict) or set(layer_states) - set(LAYERS):
+        raise ValueError("layer_states must contain only supported vocal layers")
+    normalized_layer_states = {}
+    for name in LAYERS:
+        state = layer_states.get(name, {})
+        if not isinstance(state, dict) or any(key not in ("muted", "solo") for key in state):
+            raise ValueError(f"invalid layer state for {name}")
+        if any(not isinstance(value, bool) for value in state.values()):
+            raise ValueError(f"layer state flags for {name} must be booleans")
+        normalized_layer_states[name] = {"muted": state.get("muted", False), "solo": state.get("solo", False)}
+    if any(not isinstance(take, dict) for take in takes):
+        raise ValueError("every take must be an object")
+    if any(not isinstance(take.get("muted", False), bool) or not isinstance(take.get("solo", False), bool) for take in takes):
+        raise ValueError("take mute and solo flags must be booleans")
+    solo_active = any(take.get("solo", False) and not take.get("muted", False) for take in takes) or any(state["solo"] for state in normalized_layer_states.values())
     if unknown_layers:
         raise ValueError(f"unsupported vocal layers: {sorted(unknown_layers)}")
     layer_buffers = {
@@ -269,13 +285,15 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
             raise ValueError(f"take {index}: effects must be an object")
         samples = _apply_effects(samples, sample_rate, effects, automation)
         samples = _apply_phrase_performance(samples, sample_rate, performance, offset_ms)
+        take_muted, take_solo = take.get("muted", False), take.get("solo", False)
+        audible = not take_muted and not normalized_layer_states[layer]["muted"] and (not solo_active or take_solo or normalized_layer_states[layer]["solo"])
         start = round(offset_ms * sample_rate / 1000)
         if start >= total_frames:
             raise ValueError(f"take {index}: offset starts after project duration")
         left_pan = math.sqrt((1.0 - pan) / 2.0) * math.sqrt(2.0)
         right_pan = math.sqrt((1.0 + pan) / 2.0) * math.sqrt(2.0)
         left, right = layer_buffers[layer]
-        count = min(len(samples), total_frames - start)
+        count = min(len(samples), total_frames - start) if audible else 0
         for frame in range(count):
             time_ms = frame * 1000.0 / sample_rate
             automated_gain = _automation_value(automation, "gain_db", time_ms, gain_db)
@@ -285,7 +303,7 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
         take_records.append({
             "file": relative_path, "layer": layer, "offset_ms": offset_ms,
             "gain_db": gain_db, "pan": pan, "effects": effects, "automation": automation, "performance": performance, "source_sample_rate": source_rate,
-            "frames_placed": count
+            "frames_placed": count, "muted": take_muted, "solo": take_solo, "audible": audible
         })
     mix_left = array.array("d", [0.0]) * total_frames
     mix_right = array.array("d", [0.0]) * total_frames
@@ -318,6 +336,9 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
         "bit_depth": 16,
         "duration_seconds": duration,
         "take_count": len(take_records),
+        "audible_take_count": sum(record["audible"] for record in take_records),
+        "solo_active": solo_active,
+        "layer_states": normalized_layer_states,
         "stems": rendered,
         "mix": "spoken_vocal_mix.wav",
         "normalization_gain": round(normalization_gain, 8),
