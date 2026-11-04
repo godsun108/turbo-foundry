@@ -36,6 +36,10 @@ jobs:
           PY
           node --check /tmp/recording-booth.js
           node --check /tmp/vocal-timeline.js
+      - name: Syntax-check Genesis Voice Studio modules
+        run: |
+          node --check music-foundry/projects/somebodys-gotta-do-it/genesis-voice-studio.js
+          node --check --input-type=module < music-foundry/projects/somebodys-gotta-do-it/genesis-voice-worker.js
       - name: Generate MIDI
         run: python3 music-foundry/generate.py --output music-foundry/output
       - name: Generate Somebody's Gotta Do It arrangement
