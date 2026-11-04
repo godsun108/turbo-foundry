@@ -238,10 +238,10 @@ function updateLoopSummary(){try{const a=readLoopRegion('A'),b=readLoopRegion('B
 function setLoopMode(mode){$('loopMode').value=mode;syncManifest();updateLoopSummary();playLoop(mode).catch(err=>status('Loop preview error: '+err.message));}
 function playLoop(mode){return startPreview(mode);}
 function scheduleLoopSegment(ctx,c,buffer,region,at,offset,span,fadeIn,fadeOut,fadeSeconds,regionAt){
- const src=ctx.createBufferSource(),pan=ctx.createStereoPanner?ctx.createStereoPanner():null,fade=ctx.createGain(),regionEnd=regionAt+region.end-region.start,fadeInEnd=regionAt+fadeSeconds,fadeOutStart=regionEnd-fadeSeconds;src.buffer=buffer;
- const initial=fadeIn?Math.max(0,Math.min(1,(at-regionAt)/fadeSeconds)):1;fade.gain.setValueAtTime(initial,at);
- if(fadeIn&&fadeInEnd>at)fade.gain.linearRampToValueAtTime(1,fadeInEnd);
- if(fadeOut&&regionEnd>at){const start=Math.max(at,fadeOutStart),level=Math.max(0,Math.min(1,(regionEnd-start)/fadeSeconds));fade.gain.setValueAtTime(level,start);fade.gain.linearRampToValueAtTime(0,regionEnd);}
+ const src=ctx.createBufferSource(),pan=ctx.createStereoPanner?ctx.createStereoPanner():null,fade=ctx.createGain(),regionEnd=regionAt+region.end-region.start,segmentEnd=at+span,localFade=Math.min(fadeSeconds,span/4),fadeInEnd=Math.min(regionAt+localFade,segmentEnd),fadeOutStart=segmentEnd-localFade;src.buffer=buffer;
+ const initial=fadeIn&&localFade>0?Math.max(0,Math.min(1,(at-regionAt)/localFade)):1;fade.gain.setValueAtTime(initial,at);
+ if(fadeIn&&localFade>0&&fadeInEnd>at)fade.gain.linearRampToValueAtTime(1,fadeInEnd);
+ if(fadeOut&&localFade>0&&segmentEnd>at){const start=Math.max(at,fadeOutStart),level=Math.max(0,Math.min(1,(segmentEnd-start)/localFade));fade.gain.setValueAtTime(level,start);fade.gain.linearRampToValueAtTime(0,segmentEnd);}
  if(pan){pan.pan.value=c.pan;connectTakeGraph(ctx,src,c,pan,at,offset);pan.connect(fade);}else connectTakeGraph(ctx,src,c,fade,at,offset);
  fade.connect(ctx.destination);src.start(at,offset,span);playSources.push(src);
 }
@@ -267,7 +267,7 @@ function refreshTakeCompare(){
 async function previewTakeComparison(which){
  stopPlayback();const indexes=which==='A'?[Number($('takeCompareA').value)]:which==='B'?[Number($('takeCompareB').value)]:[Number($('takeCompareA').value),Number($('takeCompareB').value)];
  if(indexes.some(i=>!Number.isInteger(i)||!clips[i]))throw Error('Choose two valid recorded takes for comparison.');
- const chosen=indexes.map(i=>clips[i]);if(chosen.some(c=>c.muted||layerStates[c.layer].muted))throw Error('Unmute the selected takes and their lanes before auditioning.');
+ if(which==='AB'&&indexes[0]===indexes[1])throw Error('Choose two different takes to compare A and B.');const chosen=indexes.map(i=>clips[i]);if(chosen.some(c=>c.muted||layerStates[c.layer].muted))throw Error('Unmute the selected takes and their lanes before auditioning.');
  const region=readLoopRegion('A'),fadeSeconds=which==='AB'?.025:0,ctx=await context(),when=ctx.currentTime+.12;let cursor=0,scheduled=0;
  for(let i=0;i<chosen.length;i++){const c=chosen[i],buffer=processedBuffer(ctx,c),clipStart=c.offset_ms/1000,from=Math.max(region.start,clipStart),to=Math.min(region.end,clipStart+buffer.duration);if(to<=from)throw Error('Take '+c.name+' does not overlap loop region A.');const regionAt=when+cursor,at=regionAt+(from-region.start),offset=from-clipStart,span=to-from;scheduleLoopSegment(ctx,c,buffer,region,at,offset,span,true,true,Math.min(fadeSeconds,span/4),regionAt);cursor+=region.end-region.start-(i<chosen.length-1?fadeSeconds:0);scheduled++;}
  const total=region.end-region.start+(chosen.length-1)*(region.end-region.start-fadeSeconds);playing=true;$('stop').disabled=false;$('play').disabled=true;status(which==='AB'?'Comparing take A then take B with a 25 ms transition.':'Auditioning take '+which+' over loop region A.');playbackTimer=setTimeout(()=>{if(playing){stopPlayback();status('Take comparison finished.');}},(total+.5)*1000);
