@@ -22,6 +22,8 @@ jobs:
         run: python3 music-foundry/generate.py --output music-foundry/output
       - name: Generate Somebody's Gotta Do It arrangement
         run: python3 music-foundry/arrange_project.py --output music-foundry/output/somebodys-gotta-do-it --bpm 127
+      - name: Render offline instrumental WAV preview
+        run: python3 music-foundry/render_instrumental.py --output music-foundry/output/somebodys-gotta-do-it-audio --bpm 127
       - name: Upload MIDI preview files
         uses: actions/upload-artifact@v4
         with:
