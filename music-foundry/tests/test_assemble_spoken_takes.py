@@ -83,6 +83,37 @@ class SpokenTakeAssemblyTests(unittest.TestCase):
                 self.assertEqual(wav.getframerate(), 8000)
                 self.assertEqual(wav.getnchannels(), 2)
 
+    def test_take_mute_and_solo_and_layer_states_control_offline_mix(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_source(root / "lead.wav", [2000] * 400, 8000)
+            write_source(root / "adlib.wav", [5000] * 400, 8000)
+            manifest = {
+                "schema": "turbo.music-foundry.spoken-takes.v1",
+                "duration_seconds": 0.05,
+                "takes": [
+                    {"file": "lead.wav", "layer": "dry_lead", "solo": True},
+                    {"file": "adlib.wav", "layer": "adlibs"}
+                ]
+            }
+            path = root / "spoken-takes.json"
+            path.write_text(json.dumps(manifest))
+            out = assembler.assemble(path, root / "out", 8000)
+            result = json.loads((out / "spoken_audio_manifest.json").read_text())
+            self.assertTrue(result["solo_active"])
+            self.assertEqual(result["audible_take_count"], 1)
+            self.assertTrue(result["takes"][0]["audible"])
+            self.assertFalse(result["takes"][1]["audible"])
+            with wave.open(str(out / "adlibs.wav"), "rb") as wav:
+                self.assertEqual(wav.getnframes(), 0)
+            manifest["takes"][0]["solo"] = False
+            manifest["layer_states"] = {"adlibs": {"muted": True}}
+            path.write_text(json.dumps(manifest))
+            out = assembler.assemble(path, root / "out-muted", 8000)
+            result = json.loads((out / "spoken_audio_manifest.json").read_text())
+            self.assertEqual(result["audible_take_count"], 1)
+            self.assertFalse(result["takes"][1]["audible"])
+
     def test_phrase_performance_repeats_reverses_and_drop_triggers(self):
         self.assertEqual(assembler._apply_phrase_performance(
             [1, 2, 3, 4, 5, 6], 1000,
