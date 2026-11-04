@@ -5,7 +5,10 @@
     "version": 1,
     "status": "arrangement-spec",
     "lyrics_source": "user-original-draft",
-    "genre": ["wonky tech", "free-form bass house"],
+    "genre": [
+      "wonky tech",
+      "free-form bass house"
+    ],
     "target_bpm": 127,
     "bpm_status": "provisional",
     "meter": "4/4",
@@ -17,7 +20,13 @@
     "spoken": {
       "enabled": true,
       "delivery": "confident, mischievous, rhythmic, conversational; increasingly unhinged",
-      "layers": ["dry lead", "gang responses", "whisper doubles", "chopped one-shots", "ad-libs"]
+      "layers": [
+        "dry lead",
+        "gang responses",
+        "whisper doubles",
+        "chopped one-shots",
+        "ad-libs"
+      ]
     },
     "sung": {
       "enabled": true,
@@ -29,25 +38,96 @@
     "bass": "rubbery, syncopated, dirty, heavy, deliberately wonky",
     "drums": "club kick, sharp clap/snare, metallic/glitch percussion, fills and abrupt dropouts",
     "arrangement_rule": "keep the lyric phrasing intelligible; make the production progressively more chaotic",
-    "audio_export_target": ["full_mix.wav", "spoken_lead.wav", "gang_vocals.wav", "adlibs_and_chops.wav", "instrumental.wav"],
-    "midi_export_target": ["chords.mid", "bass.mid", "lead.mid", "drums.mid"],
+    "audio_export_target": [
+      "full_mix.wav",
+      "spoken_lead.wav",
+      "gang_vocals.wav",
+      "adlibs_and_chops.wav",
+      "instrumental.wav"
+    ],
+    "midi_export_target": [
+      "chords.mid",
+      "bass.mid",
+      "lead.mid",
+      "drums.mid"
+    ],
     "rights": "original lyrics; use only original or appropriately licensed sound assets"
   },
   "sections": [
-    {"name":"intro_tag","delivery":"whispered repetitions; final line dry and up-front","lyrics":"Somebody's gotta do it"},
-    {"name":"verse_1","delivery":"fast conversational spoken lead; sparse beat; ad-lib answers","lyrics_source":"cue-sheet.md"},
-    {"name":"pre","delivery":"build urgency; overlapping voices; stop before drop","lyrics_source":"cue-sheet.md"},
-    {"name":"chorus","delivery":"gang-shouted hook; hard rhythmic vocal chops","lyrics_source":"cue-sheet.md"},
-    {"name":"verse_2","delivery":"spoken lead; denser bass and interruptions","lyrics_source":"cue-sheet.md"},
-    {"name":"bridge","delivery":"half-time robotic word-stack; call-and-response repetitions","lyrics_source":"cue-sheet.md"},
-    {"name":"final_chorus_outro","delivery":"maximum layers; abrupt beat cut for final spoken tag","lyrics_source":"cue-sheet.md"}
+    {
+      "name": "intro_tag",
+      "delivery": "whispered repetitions; final line dry and up-front",
+      "lyrics": "Somebody's gotta do it"
+    },
+    {
+      "name": "verse_1",
+      "delivery": "fast conversational spoken lead; sparse beat; ad-lib answers",
+      "lyrics_source": "cue-sheet.md"
+    },
+    {
+      "name": "pre",
+      "delivery": "build urgency; overlapping voices; stop before drop",
+      "lyrics_source": "cue-sheet.md"
+    },
+    {
+      "name": "chorus",
+      "delivery": "gang-shouted hook; hard rhythmic vocal chops",
+      "lyrics_source": "cue-sheet.md"
+    },
+    {
+      "name": "verse_2",
+      "delivery": "spoken lead; denser bass and interruptions",
+      "lyrics_source": "cue-sheet.md"
+    },
+    {
+      "name": "bridge",
+      "delivery": "half-time robotic word-stack; call-and-response repetitions",
+      "lyrics_source": "cue-sheet.md"
+    },
+    {
+      "name": "final_chorus_outro",
+      "delivery": "maximum layers; abrupt beat cut for final spoken tag",
+      "lyrics_source": "cue-sheet.md"
+    }
   ],
   "vocal_fx_cues": [
-    {"cue":"intro repetitions","fx":["whisper double","short room reverb","progressive filter opening"]},
-    {"cue":"somebody's gotta do it hook","fx":["tight rhythmic gate/chop","short delay throws at phrase ends"]},
-    {"cue":"verse ad-libs","fx":["alternating dry and distorted response voices","brief pitch/formant variation where available"]},
-    {"cue":"bridge","fx":["half-time stutter edits","telephone-band filtering","short glitch repeats"]},
-    {"cue":"final line","fx":["hard instrumental cut","dry spoken delivery"]}
+    {
+      "cue": "intro repetitions",
+      "fx": [
+        "whisper double",
+        "short room reverb",
+        "progressive filter opening"
+      ]
+    },
+    {
+      "cue": "somebody's gotta do it hook",
+      "fx": [
+        "tight rhythmic gate/chop",
+        "short delay throws at phrase ends"
+      ]
+    },
+    {
+      "cue": "verse ad-libs",
+      "fx": [
+        "alternating dry and distorted response voices",
+        "brief pitch/formant variation where available"
+      ]
+    },
+    {
+      "cue": "bridge",
+      "fx": [
+        "half-time stutter edits",
+        "telephone-band filtering",
+        "short glitch repeats"
+      ]
+    },
+    {
+      "cue": "final line",
+      "fx": [
+        "hard instrumental cut",
+        "dry spoken delivery"
+      ]
+    }
   ],
   "safety_and_privacy": {
     "provider_credentials_in_browser": false,
@@ -57,9 +137,10 @@
   },
   "implementation_status": {
     "lyrics_and_arrangement_spec": "documented",
-    "midi_generation": "existing basic generator; not yet track-specific",
+    "midi_generation": "track-specific 56-bar MIDI arrangement implemented; CI execution not yet verified",
     "spoken_audio_rendering": "not implemented",
     "sung_audio_rendering": "not implemented",
-    "wav_export": "not implemented"
+    "wav_export": "not implemented",
+    "vocal_render_contract": "provider-neutral spoken/sung WAV request contract implemented; validation only"
   }
 }
