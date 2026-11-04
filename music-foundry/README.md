@@ -69,3 +69,17 @@ Run the contract tests with:
 ```bash
 python3 -m unittest discover -s music-foundry/tests -v
 ```
+
+
+## Offline instrumental WAV preview
+
+The track-specific renderer uses only the Python standard library to create a synthesized instrumental preview and four mono WAV stems (chords, bass, lead, drums):
+
+```bash
+python3 music-foundry/render_instrumental.py --output music-foundry/output/somebodys-gotta-do-it-audio --bpm 127
+python3 -m unittest discover -s music-foundry/tests -v
+```
+
+Default output is 22,050 Hz / 16-bit PCM. The renderer is deterministic and offline; it makes no provider calls and requires no credentials. It creates `instrumental_mix.wav`, individual instrument stems, and `audio_manifest.json`. CI generates this preview as part of the existing Music Foundry artifact.
+
+**Important:** this is a basic procedural instrumental sound preview, not a polished commercial mix. It does not render spoken or sung vocals; those remain separate future renderer work.
