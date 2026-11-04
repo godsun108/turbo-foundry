@@ -83,6 +83,47 @@ class SpokenTakeAssemblyTests(unittest.TestCase):
                 self.assertEqual(wav.getframerate(), 8000)
                 self.assertEqual(wav.getnchannels(), 2)
 
+    def test_automation_keyframes_ramp_and_are_exported(self):
+        self.assertEqual(assembler._automation_value(
+            [{"time_ms": 1000, "param": "gain_db", "value": -12}],
+            "gain_db", 500, 0), -6)
+        self.assertEqual(assembler._automation_value(
+            [{"time_ms": 0, "param": "gain_db", "value": -12}],
+            "gain_db", 0, 0), -12)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_source(root / "lead.wav", [1000] * 800, 8000)
+            path = root / "spoken-takes.json"
+            path.write_text(json.dumps({
+                "schema": "turbo.music-foundry.spoken-takes.v1",
+                "duration_seconds": 1,
+                "takes": [{
+                    "file": "lead.wav", "layer": "dry_lead", "gain_db": 0,
+                    "automation": [
+                        {"time_ms": 0, "param": "gain_db", "value": -12},
+                        {"time_ms": 500, "param": "gain_db", "value": 0}
+                    ]
+                }]
+            }))
+            out = assembler.assemble(path, root / "out", 8000)
+            result = json.loads((out / "spoken_audio_manifest.json").read_text())
+            self.assertEqual(len(result["takes"][0]["automation"]), 2)
+
+    def test_rejects_unsafe_automation_points(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_source(root / "lead.wav", [1000] * 80, 8000)
+            path = root / "spoken-takes.json"
+            path.write_text(json.dumps({
+                "schema": "turbo.music-foundry.spoken-takes.v1",
+                "duration_seconds": 1,
+                "takes": [{"file": "lead.wav", "layer": "dry_lead",
+                           "automation": [{"time_ms": 0, "param": "gain_db",
+                                           "value": 40}]}]
+            }))
+            with self.assertRaises(ValueError):
+                assembler.assemble(path, root / "out", 8000)
+
     def test_delay_effect_preserves_a_bounded_echo_tail(self):
         rendered = assembler._apply_effects(
             [1000.0] * 100, 8000,
