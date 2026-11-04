@@ -53,6 +53,13 @@ class VocalTimelineContractTests(unittest.TestCase):
         self.assertIn("processedBuffer", self.source)
         self.assertIn("effects_rendered:true", self.source)
 
+    def test_phrase_chop_reverse_and_drop_trigger_controls(self):
+        for token in ("phraseStart", "phraseEnd", "phraseRepeats", "phraseReverse",
+                      "dropRepeat", "applyPhrase", "clearPhrase", "processedBuffer"):
+            self.assertIn(token, self.source)
+        self.assertIn("DROP_SECONDS=16*4*60/127", self.source)
+        self.assertIn("performance:c.performance||null", self.source)
+
     def test_per_take_automation_lanes_are_editable_and_rendered(self):
         for token in ("autoTime", "autoParam", "autoValue", "addAutomation",
                       "automationList", "scheduleAutomation", "linearRampToValueAtTime"):
