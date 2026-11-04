@@ -59,6 +59,12 @@ class SoulXExportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "note_type"):
             build_metadata(score)
 
+    def test_phoneme_must_exist_in_official_english_phone_set(self):
+        score = aligned_fixture()
+        score["phrases"][1]["lyric_units"][0]["phonemes"] = ["NOT_A_PHONE"]
+        with self.assertRaisesRegex(ValueError, "explicit ARPABET"):
+            build_metadata(score)
+
     def test_implicit_timing_gap_rejected(self):
         score = aligned_fixture()
         score["phrases"][1]["lyric_units"][1]["onset_beats"] = 1.25
