@@ -1,6 +1,7 @@
 const $ = (id) => document.getElementById(id);
 let score = null;
 let drafts = {};
+let controls = {};
 const phrasesRoot = $("phrases");
 
 function setStatus(message) { $("status").textContent = message; }
@@ -32,6 +33,7 @@ function phraseDraft(phrase) {
 }
 function render() {
   phrasesRoot.replaceChildren();
+  controls = {};
   if (!score) return;
   $("tempo").value = score.tempo_bpm ?? 127;
   $("tempoLock").value = score.tempo_status || "provisional";
@@ -73,7 +75,7 @@ function render() {
     reviewLabel.append(review,document.createTextNode(" I have reviewed every pronunciation, note, and timing value in this phrase."));
     card.append(reviewLabel);
     const anchor=document.createElement("input"); anchor.type="hidden"; anchor.value=phrase.id;
-    phrase._startInput=start.input; phrase._durationInput=duration.input; phrase._reviewInput=review;
+    controls[phrase.id]={startInput:start.input,durationInput:duration.input,reviewInput:review};
     phrasesRoot.append(card);
   }
   $("saveWork").disabled=false;
@@ -89,8 +91,9 @@ function makeField(label,value,type,kind) {
 }
 function collectPhrase(phrase) {
   const rows=drafts[phrase.id] || [];
-  const start=safeNumber(phrase._startInput?.value ?? phrase.start_beat);
-  const phraseDuration=safeNumber(phrase._durationInput?.value ?? phrase.duration_beats);
+  const control=controls[phrase.id] || {};
+  const start=safeNumber(control.startInput?.value ?? phrase.start_beat);
+  const phraseDuration=safeNumber(control.durationInput?.value ?? phrase.duration_beats);
   const errors=[];
   if(start===null || start<0) errors.push(phrase.id+": invalid phrase start beat");
   if(phraseDuration===null || phraseDuration<=0) errors.push(phrase.id+": invalid phrase duration");
@@ -109,11 +112,11 @@ function collectPhrase(phrase) {
     return {text:u.text,phonemes:phones,onset_beats:onset,duration_beats:duration,midi_pitch:pitch,note_type:u.noteType};
   });
   if(phraseDuration!==null && Math.abs(cursor-phraseDuration)>1e-6) errors.push(phrase.id+": note units must fill the phrase duration exactly");
-  if(!phrase._reviewInput?.checked && phrase.alignment_status!=="reviewed") errors.push(phrase.id+": human review checkbox required");
+  if(!control.reviewInput?.checked && phrase.alignment_status!=="reviewed") errors.push(phrase.id+": human review checkbox required");
   return {errors,units,start,phraseDuration};
 }
 function collectAll() {
-  const output=structuredClone(score);
+  const output=JSON.parse(JSON.stringify(score));
   const errors=[];
   output.tempo_bpm=safeNumber($("tempo").value);
   output.tempo_status=$("tempoLock").value;
@@ -147,9 +150,9 @@ $("scoreFile").addEventListener("change",async event=>{
 $("saveWork").addEventListener("click",()=>{
   if(!score)return;
   for(const phrase of score.phrases.filter(p=>p.delivery==="sung"||p.delivery==="chant")){
-    phrase.start_beat=safeNumber(phrase._startInput?.value ?? phrase.start_beat);
-    phrase.duration_beats=safeNumber(phrase._durationInput?.value ?? phrase.duration_beats);
-    delete phrase._startInput; delete phrase._durationInput; delete phrase._reviewInput;
+    const control=controls[phrase.id] || {};
+    phrase.start_beat=safeNumber(control.startInput?.value ?? phrase.start_beat);
+    phrase.duration_beats=safeNumber(control.durationInput?.value ?? phrase.duration_beats);
   }
   download("vocal-score-workbench.json",{format:"turbo.music-foundry.vocal-score-workbench.v1",score,drafts});
   setStatus("Saved workbench file. This preserves incomplete draft fields without marking the score reviewed.");
