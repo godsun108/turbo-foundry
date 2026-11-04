@@ -174,7 +174,7 @@ function processedBuffer(ctx,c){
  const repeats=perf&&repeatFrames?Math.max(1,Number(perf.repeats)||1):1,extra=(repeats-1)*repeatFrames,dropExtra=dropFrame>=0?repeatFrames:0;
  const edited=!!(perf&&repeatFrames&&(extra||dropExtra||perf.reverse));
  let base=source;
- if(edited){const length=Math.min(Math.floor(MAX_SECONDS*source.sampleRate),source.length+extra+dropExtra),out=ctx.createBuffer(source.numberOfChannels,length,source.sampleRate);
+ if(edited){const requiredLength=Math.max(source.length+extra,dropFrame>=0?dropFrame+repeatFrames:0),length=Math.min(Math.floor(MAX_SECONDS*source.sampleRate),requiredLength),out=ctx.createBuffer(source.numberOfChannels,length,source.sampleRate);
  for(let ch=0;ch<source.numberOfChannels;ch++){const input=source.getChannelData(ch),target=out.getChannelData(ch),segment=phrase[ch];let write=0;for(let i=0;i<phraseStart&&write<length;i++)target[write++]=input[i];for(let r=0;r<repeats&&write<length;r++)for(let j=0;j<repeatFrames&&write<length;j++)target[write++]=segment[j];for(let i=phraseEnd;i<input.length&&write<length;i++){if(dropFrame>=0&&write===dropFrame){for(let j=0;j<repeatFrames&&write<length;j++)target[write++]=segment[j];}if(write<length)target[write++]=input[i];}if(dropFrame>=input.length){while(write<dropFrame&&write<length)target[write++]=0;for(let j=0;j<repeatFrames&&write<length;j++)target[write++]=segment[j];}}
  base=out;}
  if(!fx.stutter||fx.stutter==='off')return base;
