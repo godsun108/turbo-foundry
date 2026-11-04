@@ -47,7 +47,7 @@ small{color:var(--muted)}.hint{font-size:12px}.back{color:var(--muted);text-deco
 <div><label for="audioFiles">Matching WAV takes (select all)</label><input id="audioFiles" type="file" accept=".wav,audio/wav" multiple></div>
 </div>
 <p class="hint">Start with spoken-takes.example.json or a manifest exported by the recording booth. Select the corresponding WAV files too. Matching uses each file's name; no uploads occur.</p>
-<div class="actions"><button id="loadDemo">Load project example</button><button id="clear" type="button">Clear session</button></div>
+<div class="actions"><button id="loadDemo">Load 127 BPM project grid</button><button id="clear" type="button">Clear session</button></div>
 <div class="status" id="status" aria-live="polite">Waiting for a manifest and WAV takes.</div>
 </section>
 <section class="panel">
@@ -118,11 +118,11 @@ async function loadAudioFiles(files){
  if(!manifest.takes.length)throw Error('Load a take manifest first.');if(files.length>MAX_TAKES)throw Error('Select no more than 128 WAV files.');
  const ctx=await context(),byName=new Map(Array.from(files).map(f=>[f.name.toLowerCase(),f]));const next=[];
  for(let i=0;i<manifest.takes.length;i++){const t=manifest.takes[i],file=byName.get(basename(t.file));if(!file)continue;const buffer=await ctx.decodeAudioData(await file.arrayBuffer());const offset=Number(t.offset_ms)||0;if(offset/1000+buffer.duration>MAX_SECONDS)throw Error(file.name+' extends beyond the 180-second project limit.');
-  next.push({file,buffer,name:file.name,layer:t.layer,offset_ms:offset,gain_db:Number(t.gain_db)||0,pan:Number(t.pan)||0,duration:buffer.duration,manifestIndex:i});
+  next.push({file,buffer,name:file.name,filePath:t.file,layer:t.layer,offset_ms:offset,gain_db:Number(t.gain_db)||0,pan:Number(t.pan)||0,duration:buffer.duration});
  }
- if(!next.length)throw Error('No WAV filenames matched the manifest file paths.');clips=next;selected=0;syncManifest();select(0);status('Loaded '+clips.length+' of '+manifest.takes.length+' takes. Missing source files remain listed in the manifest but cannot be previewed.');draw();
+ if(!next.length)throw Error('No WAV filenames matched the manifest file paths.');clips=next;selected=0;syncManifest();select(0);status('Loaded '+clips.length+' matching takes. Only matched WAV files are included in this editing session.');draw();
 }
-function syncManifest(){manifest.takes=clips.map(c=>({file:manifest.takes[c.manifestIndex]?.file||('takes/'+c.name),layer:c.layer,offset_ms:c.offset_ms,gain_db:c.gain_db,pan:c.pan}));manifest.duration_seconds=Number(Math.max(0.1,...clips.map(c=>c.offset_ms/1000+c.duration)).toFixed(3));}
+function syncManifest(){manifest.takes=clips.map(c=>({file:c.filePath||('takes/'+c.name),layer:c.layer,offset_ms:c.offset_ms,gain_db:c.gain_db,pan:c.pan}));manifest.duration_seconds=Number(Math.max(0.1,...clips.map(c=>c.offset_ms/1000+c.duration)).toFixed(3));}
 $('manifestFile').addEventListener('change',async e=>{try{if(e.target.files[0])await loadManifestFile(e.target.files[0]);}catch(err){status(err.message);}});
 $('audioFiles').addEventListener('change',async e=>{try{if(e.target.files.length)await loadAudioFiles(Array.from(e.target.files));}catch(err){status(err.message);}});
 $('loadDemo').addEventListener('click',()=>{manifest={schema:'turbo.music-foundry.spoken-takes.v1',duration_seconds:105.827,takes:[]};clips=[];selected=-1;draw();status('Example project grid loaded. Import a manifest and matching WAV takes to populate the timeline.');});
