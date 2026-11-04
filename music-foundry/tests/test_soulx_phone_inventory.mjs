@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { SOULX_ENGLISH_PHONES, validateSoulXPhones } from "../projects/somebodys-gotta-do-it/soulx-phone-inventory.js";
+import { SOULX_ENGLISH_PHONES, validateSoulXPhones } from "../projects/somebodys-gotta-do-it/soulx-phone-inventory.mjs";
 
 test("accepts documented SoulX English phones", () => {
   assert.deepEqual(validateSoulXPhones(["M","EY1","K"]), []);
