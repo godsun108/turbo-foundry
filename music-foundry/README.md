@@ -94,6 +94,8 @@ The arranger also writes the MIDI tempo meta-event as binary MIDI bytes; the arr
 
 `assemble_spoken_takes.py` places original recorded speech WAVs onto the project timeline and exports stereo vocal stems plus a spoken-vocal mix. It is an offline assembler, **not** a speech synthesizer or singing renderer. It does not alter source takes.
 
+Start from `music-foundry/projects/somebodys-gotta-do-it/spoken-takes.example.json` and place your own recorded WAV files under that project folder. The example uses relative paths such as `takes/lead-intro.wav`; edit the offsets and layer assignments to match your takes. The project duration is approximately 105.827 seconds at 127 BPM.
+
 Create a `spoken-takes.json` file beside your recorded WAV files:
 
 ```json
