@@ -170,3 +170,8 @@ The timeline draws each take's automation keyframes directly on its clip as smal
 ## Phrase performance editing
 
 The spoken vocal timeline supports a bounded phrase edit per take: select a start/end range, insert up to eight repeats, reverse the selected phrase, and optionally fire one extra phrase repeat at the track's first chorus drop (bar 17, 30.236 seconds). Edits are non-destructive and stored as a `performance` object in the spoken-takes manifest. Browser preview and OfflineAudioContext WAV exports render the edits; the Python offline assembler applies the same phrase repeat/reverse/drop behavior. Phrase edits are capped by the 180-second project limit.
+
+
+## Mute, solo and phrase audition
+
+The browser timeline supports per-take mute/solo and per-layer mute/solo. Layer state is stored in the manifest alongside take flags; the offline Python assembler honors the same precedence (muted tracks remain silent, and active solo flags exclude non-solo tracks). The mix renderer skips empty muted stems. A selected source phrase can be auditioned in isolation with its take effects, and clip start positions can be nudged by 10 ms or 100 ms using touch-friendly buttons. These audition and nudge controls are local to the editor; no network audio transport is used.
