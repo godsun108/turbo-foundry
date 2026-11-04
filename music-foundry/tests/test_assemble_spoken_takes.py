@@ -56,6 +56,17 @@ class SpokenTakeAssemblyTests(unittest.TestCase):
             self.assertFalse(result["source_takes_modified"])
             self.assertEqual(result["take_count"], 1)
 
+    def test_output_must_not_overwrite_source_folder(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            path = root / "spoken-takes.json"
+            path.write_text(json.dumps({
+                "schema": "turbo.music-foundry.spoken-takes.v1",
+                "duration_seconds": 1, "takes": []
+            }))
+            with self.assertRaises(ValueError):
+                assembler.assemble(path, root, 8000)
+
     def test_rejects_path_escape(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
