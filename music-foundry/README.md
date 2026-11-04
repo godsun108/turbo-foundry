@@ -182,3 +182,8 @@ The browser timeline supports per-take mute/solo and per-layer mute/solo. Layer 
 The vocal timeline includes two configurable global loop regions (A and B), with selectable 127 BPM grid snapping at quarter-note, eighth-note, sixteenth-note, or one-bar intervals. Preview modes include the full arrangement, A, B, or sequential A/B comparison. Repetition count (1–8) repeats each selected region; A/B comparison plays A then B for each cycle. Playback schedules only the portions of takes intersecting each region, while retaining take effects, automation, phrase edits, pan, mute and solo. Loop settings are persisted in the session manifest and included in the render metadata. Preview is capped at 15 minutes; source takes remain unchanged.
 
 The timeline ruler also displays translucent A and B region bands so the selected loop boundaries remain visible while arranging clips. Changing or snapping loop boundaries refreshes the visual markers.
+
+
+## Loop crossfades and recorded-take A/B audition
+
+Loop Lab supports an adjustable 0–100 ms crossfade (12 ms default) between consecutive loop regions. Crossfade envelopes are scheduled against the region timeline and bounded for short source segments to reduce clicks without extending the project. The take comparison panel lets the user choose two imported takes, audition A or B over loop region A, or compare A followed by B with a short transition. Comparison preserves each take's phrase processing, effects, automation and pan; explicitly muted takes/lanes remain muted. Comparison selection is session UI state, not a change to source recordings.
