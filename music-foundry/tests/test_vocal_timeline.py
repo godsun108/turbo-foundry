@@ -45,6 +45,14 @@ class VocalTimelineContractTests(unittest.TestCase):
         self.assertIn("audio/wav", self.source)
         self.assertIn("view.setUint16(34,16,true)", self.source)
 
+    def test_per_take_effects_are_validated_and_rendered(self):
+        for token in ("drive_db", "lowpass_hz", "delay_ms", "delay_feedback",
+                      "delay_wet", "stutter"):
+            self.assertIn(token, self.source)
+        self.assertIn("connectTakeGraph", self.source)
+        self.assertIn("processedBuffer", self.source)
+        self.assertIn("effects_rendered:true", self.source)
+
     def test_exports_keep_spoken_and_sung_modes_separate(self):
         self.assertIn("speech_synthesized:false", self.source)
         self.assertIn("sung_vocals_rendered:false", self.source)
