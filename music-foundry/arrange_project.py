@@ -78,7 +78,7 @@ def make(output, bpm=127):
     output.mkdir(parents=True, exist_ok=True)
     parts, starts, bars = build_notes()
     tempo = round(60000000 / bpm)
-    meta = GEN.chunk(b"MTrk", b"\\x00\\xff\\x51\\x03" + tempo.to_bytes(3, "big") + b"\\x00\\xff\\x2f\\x00")
+    meta = GEN.chunk(b"MTrk", b"\x00\xff\x51\x03" + tempo.to_bytes(3, "big") + b"\x00\xff\x2f\x00")
     header = GEN.chunk(b"MThd", struct.pack(">HHH", 1, 2, PPQ))
     for name, (notes, channel, program) in parts.items():
         (output / f"{name}.mid").write_bytes(header + meta + GEN.track(notes, channel, program))
