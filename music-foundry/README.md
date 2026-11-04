@@ -163,3 +163,5 @@ The spoken-take manifest supports optional per-take `effects`: `drive_db` (0–2
 ## Vocal automation lanes
 
 Each spoken take can carry up to 64 take-relative automation keyframes in the shared spoken-takes manifest. Supported parameters are `gain_db` (-60 to +12 dB), `lowpass_hz` (500–20000 Hz), `delay_wet` (0–100%), and `delay_feedback` (0–75%). The browser editor adds/replaces keyframes at millisecond positions, displays and removes them, and ramps Web Audio parameters during live preview and offline WAV rendering. The Python assembler applies the same linear interpolation to gain, low-pass cutoff, delay wet and feedback, and preserves automation in its render manifest. Keyframes are bounded and source takes remain read-only. These are take-relative automation lanes; global/master automation and pitch automation are not implemented yet.
+
+The timeline draws each take's automation keyframes directly on its clip as small markers, while the selected take's automation list remains editable below its effect controls.
