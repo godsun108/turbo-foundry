@@ -158,7 +158,7 @@ class SpokenTakeAssemblyTests(unittest.TestCase):
             [1, 2, 3, 4, 5, 6], 1000,
             {"start_ms": 1, "end_ms": 4, "repeats": 2,
              "reverse": True, "drop_repeat": False}, 0),
-            [1, 4, 3, 2, 4, 5, 6])
+            [1, 4, 3, 2, 4, 3, 2, 4, 3, 2, 5, 6])
         phrase = assembler._apply_phrase_performance(
             [1, 2, 3, 4], 1,
             {"start_ms": 0, "end_ms": 2, "repeats": 1,
