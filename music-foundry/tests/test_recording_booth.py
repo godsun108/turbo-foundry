@@ -45,8 +45,8 @@ class RecordingBoothContractTests(unittest.TestCase):
         self.assertNotIn("WebSocket", self.source)
 
     def test_source_is_not_persisted_as_hidden_recording_storage(self):
-        self.assertIn("Download each WAV before leaving", self.source)
-        self.assertIn("page memory", self.source)
+        self.assertIn("Download each WAV take", self.source)
+        self.assertIn("Closing or refreshing this page clears session recordings", self.source)
 
 
 if __name__ == "__main__":
