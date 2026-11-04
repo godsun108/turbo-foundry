@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111318">
+<title>Somebody's Gotta Do It — Vocal Timeline</title>
+<style>
+:root{color-scheme:dark;--bg:#101218;--panel:#1b202a;--line:#343c4b;--ink:#f5f6fa;--muted:#aab2c0;--accent:#c8ff4d;--hot:#ff9b62}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:1100px;margin:auto;padding:calc(20px + env(safe-area-inset-top)) 14px calc(40px + env(safe-area-inset-bottom))}
+h1{font-size:clamp(27px,6vw,42px);line-height:1;margin:8px 0}h2{font-size:17px;margin:0 0 10px}
+p,.muted{color:var(--muted)}.eyebrow{color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px;margin:14px 0}
+label{display:block;color:var(--muted);font-size:12px;margin:9px 0 5px}
+input,select,button{font:inherit}input[type=file],input[type=number],select{width:100%;min-height:43px;background:#11151c;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px}
+button{min-height:43px;border:1px solid var(--line);border-radius:10px;padding:9px 13px;background:#2a303c;color:var(--ink);font-weight:700}
+button.primary{background:var(--accent);border-color:var(--accent);color:#11170a}button:disabled{opacity:.4}
+.grid{display:grid;grid-template-columns:1fr;gap:10px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions button{flex:1}
+.status{min-height:22px;color:var(--accent);font-size:13px;margin-top:9px}
+.timeline-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#10141b;overscroll-behavior-x:contain}
+.ruler{height:30px;position:relative;border-bottom:1px solid var(--line);background:repeating-linear-gradient(90deg,transparent 0,transparent 49px,#29313d 50px)}
+.ruler span{position:absolute;top:5px;font-size:10px;color:var(--muted);transform:translateX(4px)}
+.lane{height:86px;position:relative;border-bottom:1px solid #29313d;background:repeating-linear-gradient(90deg,transparent 0,transparent 49px,#222a35 50px)}
+.lane:last-child{border:0}.lane-name{position:sticky;left:0;z-index:3;display:inline-block;background:#171c25d9;border-right:1px solid var(--line);padding:5px 8px;font-size:10px;color:var(--muted);min-width:88px}
+.clip{position:absolute;top:28px;height:48px;min-width:18px;border:1px solid #d6ff82;background:linear-gradient(135deg,#526c27,#283b20);border-radius:7px;padding:4px 6px;overflow:hidden;touch-action:none;user-select:none;cursor:grab}
+.clip:active{cursor:grabbing}.clip strong{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.clip small{font-size:9px;color:#e4f4c5}
+.clip[data-layer="gang_vocals"]{background:linear-gradient(135deg,#654a91,#33254d);border-color:#c5a7ff}
+.clip[data-layer="adlibs"]{background:linear-gradient(135deg,#8a4c35,#4b291f);border-color:#ffbd92}
+.clip[data-layer="chops"]{background:linear-gradient(135deg,#32677a,#1b3b4b);border-color:#9ce8ff}
+.clip[data-layer="whisper_double"]{background:linear-gradient(135deg,#59616e,#303744);border-color:#d2d9e4}
+.clip.selected{outline:2px solid white;outline-offset:2px}
+.editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+small{color:var(--muted)}.hint{font-size:12px}.back{color:var(--muted);text-decoration:none}
+@media(min-width:760px){main{padding-left:24px;padding-right:24px}.grid{grid-template-columns:1fr 1fr}.panel{padding:18px}}
+</style>
+</head>
+<body><main>
+<a class="back" href="./index.html">← MUSIC FOUNDRY</a>
+<div class="eyebrow">TURBO MUSIC FOUNDRY · EDITOR PREVIEW</div>
+<h1>VOCAL TIMELINE</h1>
+<p>Arrange recorded spoken takes against the 127 BPM project grid. Everything stays in this browser session.</p>
+<section class="panel">
+<h2>1 · Load your session</h2>
+<div class="grid">
+<div><label for="manifestFile">Take manifest JSON</label><input id="manifestFile" type="file" accept=".json,application/json"></div>
+<div><label for="audioFiles">Matching WAV takes (select all)</label><input id="audioFiles" type="file" accept=".wav,audio/wav" multiple></div>
+</div>
+<p class="hint">Start with spoken-takes.example.json or a manifest exported by the recording booth. Select the corresponding WAV files too. Matching uses each file's name; no uploads occur.</p>
+<div class="actions"><button id="loadDemo">Load project example</button><button id="clear" type="button">Clear session</button></div>
+<div class="status" id="status" aria-live="polite">Waiting for a manifest and WAV takes.</div>
+</section>
+<section class="panel">
+<h2>2 · Arrange the takes</h2>
+<p class="hint">Drag a clip horizontally to change its start time. Tap a clip to edit its layer, offset, gain and pan below. Timeline scale: 50 pixels per second.</p>
+<div class="timeline-wrap" id="timelineWrap"><div id="timeline" style="min-width:900px">
+<div class="ruler" id="ruler"></div><div id="lanes"></div>
+</div></div>
+<div class="editor-grid" style="margin-top:14px">
+<div><label for="layer">Selected take · layer</label><select id="layer"><option value="dry_lead">Dry lead</option><option value="gang_vocals">Gang vocals</option><option value="adlibs">Ad-libs</option><option value="chops">Chops</option><option value="whisper_double">Whisper double</option></select></div>
+<div><label for="offset">Start offset (milliseconds)</label><input id="offset" type="number" min="0" max="180000" step="10" value="0"></div>
+<div><label for="gain">Gain (dB, -60 to +12)</label><input id="gain" type="number" min="-60" max="12" step="0.5" value="0"></div>
+<div><label for="pan">Pan (-1 left to +1 right)</label><input id="pan" type="number" min="-1" max="1" step="0.05" value="0"></div>
+</div>
+<div class="actions"><button id="apply" class="primary" disabled>Apply take edits</button><button id="remove" disabled>Remove take</button></div>
+</section>
+<section class="panel">
+<h2>3 · Preview and export</h2>
+<p class="hint">Render uses browser OfflineAudioContext. Exports a stereo 48 kHz / 16-bit WAV mix and one WAV stem per populated layer, plus the edited JSON manifest. Exported files are separate downloads.</p>
+<div class="actions"><button id="play" disabled>▶ Preview arrangement</button><button id="stop" disabled>■ Stop</button></div>
+<div class="actions"><button id="exportManifest" disabled>Export edited manifest</button><button id="render" class="primary" disabled>Render mix + stems</button></div>
+<div class="status" id="renderStatus" aria-live="polite"></div>
+</section>
+<p class="hint">Spoken-take editor only. This does not synthesize speech or singing. The separate sung-vocal workflow remains a future renderer. Download your exports before leaving; this prototype does not persist session data.</p>
+</main>
+<script>
+(() => {
+'use strict';
+const LAYERS=['dry_lead','gang_vocals','adlibs','chops','whisper_double'];
+const LABELS={dry_lead:'DRY LEAD',gang_vocals:'GANG VOCALS',adlibs:'AD-LIBS',chops:'CHOPS',whisper_double:'WHISPER DOUBLE'};
+const MAX_SECONDS=180,MAX_TAKES=128,PIXELS_PER_SECOND=50,OUTPUT_RATE=48000;
+const $=id=>document.getElementById(id);
+let manifest={schema:'turbo.music-foundry.spoken-takes.v1',duration_seconds:105.827,takes:[]};
+let clips=[],selected=-1,decodedContext=null,playSources=[],playing=false;
+const status=m=>$('status').textContent=m;
+const renderStatus=m=>$('renderStatus').textContent=m;
+function safeName(s){return String(s||'take').split(/[\\/]/).pop();}
+function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}
+function basename(p){return safeName(p).toLowerCase();}
+function duration(){return Math.max(1,Math.min(MAX_SECONDS,Number(manifest.duration_seconds)||105.827));}
+function validateManifest(m){
+ if(!m||m.schema!=='turbo.music-foundry.spoken-takes.v1'||!Array.isArray(m.takes)||m.takes.length>MAX_TAKES)throw Error('Unsupported manifest or more than 128 takes.');
+ if(!(Number(m.duration_seconds)>0&&Number(m.duration_seconds)<=MAX_SECONDS))throw Error('Project duration must be between 0 and 180 seconds.');
+ for(const t of m.takes){if(!t||!LAYERS.includes(t.layer)||typeof t.file!=='string'||!t.file||!Number.isFinite(Number(t.offset_ms))||Number(t.offset_ms)<0||Number(t.offset_ms)>180000||!Number.isFinite(Number(t.gain_db??0))||Number(t.gain_db??0)<-60||Number(t.gain_db??0)>12||!Number.isFinite(Number(t.pan??0))||Number(t.pan??0)<-1||Number(t.pan??0)>1)throw Error('A take has invalid layer, file, offset, gain or pan data.');}
+}
+async function context(){const C=window.AudioContext||window.webkitAudioContext;if(!C)throw Error('Web Audio is unavailable in this browser.');if(!decodedContext)decodedContext=new C();if(decodedContext.state==='suspended')await decodedContext.resume();return decodedContext;}
+function draw(){
+ const total=duration(),width=Math.max(900,total*PIXELS_PER_SECOND),ruler=$('ruler'),lanes=$('lanes');
+ $('timeline').style.width=width+'px';ruler.style.width=width+'px';ruler.innerHTML='';
+ for(let sec=0;sec<=Math.ceil(total);sec+=5){const tick=document.createElement('span');tick.style.left=(sec*PIXELS_PER_SECOND)+'px';tick.textContent=sec+'s';ruler.append(tick);}
+ lanes.innerHTML='';
+ for(const layer of LAYERS){const lane=document.createElement('div');lane.className='lane';lane.dataset.layer=layer;lane.style.width=width+'px';const label=document.createElement('span');label.className='lane-name';label.textContent=LABELS[layer];lane.append(label);
+  clips.forEach((clip,i)=>{if(clip.layer!==layer)return;const el=document.createElement('div');el.className='clip'+(i===selected?' selected':'');el.dataset.layer=layer;el.style.left=(Number(clip.offset_ms)/1000*PIXELS_PER_SECOND+90)+'px';el.style.width=Math.max(24,clip.duration*PIXELS_PER_SECOND)+'px';const strong=document.createElement('strong');strong.textContent=clip.name;const small=document.createElement('small');small.textContent=(Number(clip.offset_ms)/1000).toFixed(2)+'s · '+clip.duration.toFixed(1)+'s';el.append(strong,small);el.addEventListener('click',()=>select(i));el.addEventListener('pointerdown',e=>beginDrag(e,i,el));lane.append(el);});
+  lanes.append(lane);
+ }
+ $('apply').disabled=selected<0;$('remove').disabled=selected<0;
+ $('play').disabled=!clips.length;$('exportManifest').disabled=!clips.length;$('render').disabled=!clips.length;
+}
+function select(i){selected=i;const c=clips[i];if(!c)return;$('layer').value=c.layer;$('offset').value=c.offset_ms;$('gain').value=c.gain_db;$('pan').value=c.pan;draw();}
+function beginDrag(e,i,el){
+ if(e.target.closest('button'))return;e.preventDefault();select(i);const startX=e.clientX,startOffset=Number(clips[i].offset_ms);el.setPointerCapture?.(e.pointerId);
+ const move=ev=>{const delta=Math.round((ev.clientX-startX)/PIXELS_PER_SECOND*1000/10)*10;const next=Math.max(0,Math.min(180000,startOffset+delta));clips[i].offset_ms=next;manifest.takes[i].offset_ms=next;el.style.left=(next/1000*PIXELS_PER_SECOND+90)+'px';const small=el.querySelector('small');if(small)small.textContent=(next/1000).toFixed(2)+'s · '+clips[i].duration.toFixed(1)+'s';$('offset').value=next;};
+ const end=()=>{el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',end);el.removeEventListener('pointercancel',end);draw();};
+ el.addEventListener('pointermove',move);el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
+}
+async function loadManifestFile(file){const m=JSON.parse(await file.text());validateManifest(m);manifest=JSON.parse(JSON.stringify(m));clips=[];selected=-1;draw();status('Manifest loaded. Now select its matching WAV files.');}
+async function loadAudioFiles(files){
+ if(!manifest.takes.length)throw Error('Load a take manifest first.');if(files.length>MAX_TAKES)throw Error('Select no more than 128 WAV files.');
+ const ctx=await context(),byName=new Map(Array.from(files).map(f=>[f.name.toLowerCase(),f]));const next=[];
+ for(let i=0;i<manifest.takes.length;i++){const t=manifest.takes[i],file=byName.get(basename(t.file));if(!file)continue;const buffer=await ctx.decodeAudioData(await file.arrayBuffer());const offset=Number(t.offset_ms)||0;if(offset/1000+buffer.duration>MAX_SECONDS)throw Error(file.name+' extends beyond the 180-second project limit.');
+  next.push({file,buffer,name:file.name,layer:t.layer,offset_ms:offset,gain_db:Number(t.gain_db)||0,pan:Number(t.pan)||0,duration:buffer.duration,manifestIndex:i});
+ }
+ if(!next.length)throw Error('No WAV filenames matched the manifest file paths.');clips=next;selected=0;syncManifest();select(0);status('Loaded '+clips.length+' of '+manifest.takes.length+' takes. Missing source files remain listed in the manifest but cannot be previewed.');draw();
+}
+function syncManifest(){manifest.takes=clips.map(c=>({file:manifest.takes[c.manifestIndex]?.file||('takes/'+c.name),layer:c.layer,offset_ms:c.offset_ms,gain_db:c.gain_db,pan:c.pan}));manifest.duration_seconds=Number(Math.max(0.1,...clips.map(c=>c.offset_ms/1000+c.duration)).toFixed(3));}
+$('manifestFile').addEventListener('change',async e=>{try{if(e.target.files[0])await loadManifestFile(e.target.files[0]);}catch(err){status(err.message);}});
+$('audioFiles').addEventListener('change',async e=>{try{if(e.target.files.length)await loadAudioFiles(Array.from(e.target.files));}catch(err){status(err.message);}});
+$('loadDemo').addEventListener('click',()=>{manifest={schema:'turbo.music-foundry.spoken-takes.v1',duration_seconds:105.827,takes:[]};clips=[];selected=-1;draw();status('Example project grid loaded. Import a manifest and matching WAV takes to populate the timeline.');});
+$('clear').addEventListener('click',()=>{stopPlayback();manifest={schema:'turbo.music-foundry.spoken-takes.v1',duration_seconds:105.827,takes:[]};clips=[];selected=-1;$('manifestFile').value='';$('audioFiles').value='';draw();status('Session cleared.');renderStatus('');});
+$('apply').addEventListener('click',()=>{if(selected<0)return;const c=clips[selected],offset=Number($('offset').value),gain=Number($('gain').value),pan=Number($('pan').value);if(!Number.isFinite(offset)||offset<0||offset>180000||!Number.isFinite(gain)||gain<-60||gain>12||!Number.isFinite(pan)||pan<-1||pan>1){status('Check offset, gain and pan limits.');return;}c.layer=$('layer').value;c.offset_ms=offset;c.gain_db=gain;c.pan=pan;syncManifest();draw();select(selected);status('Take edits applied.');});
+$('remove').addEventListener('click',()=>{if(selected<0)return;clips.splice(selected,1);selected=-1;syncManifest();draw();status('Take removed from this edit session; original downloaded WAV is unchanged.');});
+function stopPlayback(){playSources.forEach(s=>{try{s.stop();}catch(_){}});playSources=[];playing=false;$('stop').disabled=true;$('play').disabled=!clips.length;}
+$('stop').addEventListener('click',stopPlayback);
+$('play').addEventListener('click',async()=>{try{stopPlayback();const ctx=await context(),when=ctx.currentTime+0.12;for(const c of clips){const src=ctx.createBufferSource(),gain=ctx.createGain(),pan=ctx.createStereoPanner?ctx.createStereoPanner():null;src.buffer=c.buffer;gain.gain.value=Math.pow(10,c.gain_db/20);src.connect(gain);if(pan){pan.pan.value=c.pan;gain.connect(pan);pan.connect(ctx.destination);}else gain.connect(ctx.destination);src.start(when+c.offset_ms/1000);playSources.push(src);}playing=true;$('stop').disabled=false;$('play').disabled=true;status('Preview playing.');const total=duration()*1000+300;setTimeout(()=>{if(playing){stopPlayback();status('Preview finished.');}},total);}catch(err){status('Preview error: '+err.message);}});
+$('exportManifest').addEventListener('click',()=>{syncManifest();download(new Blob([JSON.stringify(manifest,null,2)],{type:'application/json'}),'spoken-takes-edited.json');status('Edited manifest downloaded. Keep its WAV filenames and folder layout together.');});
+function wavBlob(buffer){
+ const channels=2,frames=buffer.length,rate=buffer.sampleRate,bytes=new ArrayBuffer(44+frames*channels*2),view=new DataView(bytes);
+ const write=(o,s)=>{for(let i=0;i<s.length;i++)view.setUint8(o+i,s.charCodeAt(i));};write(0,'RIFF');view.setUint32(4,36+frames*channels*2,true);write(8,'WAVE');write(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,channels,true);view.setUint32(24,rate,true);view.setUint32(28,rate*channels*2,true);view.setUint16(32,channels*2,true);view.setUint16(34,16,true);write(36,'data');view.setUint32(40,frames*channels*2,true);
+ const left=buffer.getChannelData(0),right=buffer.numberOfChannels>1?buffer.getChannelData(1):left;let o=44;for(let i=0;i<frames;i++){for(const sample of [left[i],right[i]]){const v=Math.max(-1,Math.min(1,sample));view.setInt16(o,v<0?v*32768:v*32767,true);o+=2;}}return new Blob([bytes],{type:'audio/wav'});
+}
+async function renderLayer(layer){
+ const items=clips.filter(c=>!layer||c.layer===layer),total=duration();if(!items.length)return null;
+ const Offline=window.OfflineAudioContext||window.webkitOfflineAudioContext;if(!Offline)throw Error('OfflineAudioContext is unavailable in this browser.');
+ const frames=Math.ceil(total*OUTPUT_RATE),off=new Offline(2,frames,OUTPUT_RATE);
+ for(const c of items){const src=off.createBufferSource(),gain=off.createGain(),pan=off.createStereoPanner?off.createStereoPanner():null;src.buffer=c.buffer;gain.gain.value=Math.pow(10,c.gain_db/20);src.connect(gain);if(pan){pan.pan.value=c.pan;gain.connect(pan);pan.connect(off.destination);}else gain.connect(off.destination);src.start(c.offset_ms/1000);}
+ return await off.startRendering();
+}
+$('render').addEventListener('click',async()=>{try{$('render').disabled=true;renderStatus('Rendering stereo 48 kHz WAV mix…');const mix=await renderLayer(null);download(wavBlob(mix),'spoken_vocal_mix.wav');for(const layer of LAYERS){if(!clips.some(c=>c.layer===layer))continue;renderStatus('Rendering '+LABELS[layer]+' stem…');const stem=await renderLayer(layer);download(wavBlob(stem),layer+'.wav');}syncManifest();download(new Blob([JSON.stringify({schema:'turbo.music-foundry.spoken-takes-render.v1',render_type:'browser_offline_recorded_take_assembly',sample_rate:OUTPUT_RATE,channels:2,bit_depth:16,duration_seconds:duration(),take_count:clips.length,stems:LAYERS.filter(l=>clips.some(c=>c.layer===l)).map(l=>l+'.wav'),mix:'spoken_vocal_mix.wav',speech_synthesized:false,sung_vocals_rendered:false},null,2)],{type:'application/json'}),'spoken_audio_manifest.json');renderStatus('Finished. Downloaded the mix, populated layer stems and render manifest.');}catch(err){renderStatus('Render failed: '+err.message);}finally{$('render').disabled=!clips.length;}});
+draw();
+})();
+</script></body></html>
