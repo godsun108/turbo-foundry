@@ -1,6 +1,6 @@
 # Somebody's Gotta Do It — spoken-vocal take plan
 
-**Working tempo:** 127 BPM (provisional) · **Meter:** 4/4 · **Length:** 56 bars / approximately 1:46.3  
+**Working tempo:** 127 BPM (provisional) · **Meter:** 4/4 · **Length:** 56 bars / approximately 1:45.8  
 **Primary mode:** spoken. The sung mode remains a separate capability for future projects and optional pitched textures; it is not a substitute for this track's spoken lead.
 
 ## Recording approach
