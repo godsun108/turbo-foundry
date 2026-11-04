@@ -158,3 +158,8 @@ The vocal timeline now includes the track's seven arrangement sections mapped to
 ## Vocal effects
 
 The spoken-take manifest supports optional per-take `effects`: `drive_db` (0–24), `lowpass_hz` (500–20000), `delay_ms` (0–500), `delay_feedback` (0–75), `delay_wet` (0–100), and `stutter` (`off`, `1/4`, `1/8`, `1/16`). The browser timeline previews and renders saturation, low-pass filtering, feedback delay and a tempo-locked repeat of the take's first beat subdivision. The offline Python assembler applies the same bounded effect settings while leaving source WAV files untouched. These are creative production effects, not mastering or a substitute for listening tests; effects default to neutral when omitted. The stutter repeats the opening slice across the take, so use it selectively for deliberate glitch/chop moments.
+
+
+## Vocal automation lanes
+
+Each spoken take can carry up to 64 take-relative automation keyframes in the shared spoken-takes manifest. Supported parameters are `gain_db` (-60 to +12 dB), `lowpass_hz` (500–20000 Hz), `delay_wet` (0–100%), and `delay_feedback` (0–75%). The browser editor adds/replaces keyframes at millisecond positions, displays and removes them, and ramps Web Audio parameters during live preview and offline WAV rendering. The Python assembler applies the same linear interpolation to gain, low-pass cutoff, delay wet and feedback, and preserves automation in its render manifest. Keyframes are bounded and source takes remain read-only. These are take-relative automation lanes; global/master automation and pitch automation are not implemented yet.
