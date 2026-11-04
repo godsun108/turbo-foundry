@@ -83,6 +83,24 @@ class SpokenTakeAssemblyTests(unittest.TestCase):
                 self.assertEqual(wav.getframerate(), 8000)
                 self.assertEqual(wav.getnchannels(), 2)
 
+    def test_phrase_performance_repeats_reverses_and_drop_triggers(self):
+        self.assertEqual(assembler._apply_phrase_performance(
+            [1, 2, 3, 4, 5, 6], 1000,
+            {"start_ms": 1, "end_ms": 4, "repeats": 2,
+             "reverse": True, "drop_repeat": False}, 0),
+            [1, 4, 3, 2, 4, 5, 6])
+        phrase = assembler._apply_phrase_performance(
+            [1, 2, 3, 4], 1,
+            {"start_ms": 0, "end_ms": 2, "repeats": 1,
+             "reverse": False, "drop_repeat": True}, 0)
+        self.assertEqual(phrase[:2], [1, 2])
+        self.assertEqual(phrase[-2:], [1, 2])
+        with self.assertRaises(ValueError):
+            assembler._apply_phrase_performance(
+                [1, 2], 1000,
+                {"start_ms": 0, "end_ms": 3, "repeats": 9,
+                 "reverse": False, "drop_repeat": False}, 0)
+
     def test_automation_keyframes_ramp_and_are_exported(self):
         self.assertEqual(assembler._automation_value(
             [{"time_ms": 1000, "param": "gain_db", "value": -12}],
