@@ -101,6 +101,28 @@ class SpokenTakeAssemblyTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 assembler.assemble(path, root / "out", 8000)
 
+    def test_muted_solo_lane_does_not_exclude_other_audible_lanes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_source(root / "lead.wav", [2000] * 400, 8000)
+            write_source(root / "adlib.wav", [5000] * 400, 8000)
+            path = root / "spoken-takes.json"
+            path.write_text(json.dumps({
+                "schema": "turbo.music-foundry.spoken-takes.v1",
+                "duration_seconds": 0.05,
+                "takes": [
+                    {"file": "lead.wav", "layer": "dry_lead"},
+                    {"file": "adlib.wav", "layer": "adlibs"}
+                ],
+                "layer_states": {"adlibs": {"solo": True, "muted": True}}
+            }))
+            out = assembler.assemble(path, root / "out", 8000)
+            result = json.loads((out / "spoken_audio_manifest.json").read_text())
+            self.assertFalse(result["solo_active"])
+            self.assertEqual(result["audible_take_count"], 1)
+            self.assertTrue(result["takes"][0]["audible"])
+            self.assertFalse(result["takes"][1]["audible"])
+
     def test_take_mute_and_solo_and_layer_states_control_offline_mix(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
