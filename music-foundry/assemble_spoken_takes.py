@@ -59,9 +59,54 @@ def _resample(samples, source_rate, target_rate):
     return result
 
 
-def _apply_effects(samples, sample_rate, effects):
+def _automation_value(points, parameter, time_ms, base):
+    lane = sorted(
+        (point for point in points if point["param"] == parameter),
+        key=lambda point: point["time_ms"],
+    )
+    if not lane:
+        return float(base)
+    if time_ms <= lane[0]["time_ms"]:
+        return float(base)
+    previous_time, previous_value = 0.0, float(base)
+    for point in lane:
+        point_time = float(point["time_ms"])
+        point_value = float(point["value"])
+        if time_ms <= point_time:
+            span = point_time - previous_time
+            if span <= 0:
+                return point_value
+            ratio = (time_ms - previous_time) / span
+            return previous_value + (point_value - previous_value) * ratio
+        previous_time, previous_value = point_time, point_value
+    return previous_value
+
+
+def _validate_automation(points):
+    if not isinstance(points, list) or len(points) > 64:
+        raise ValueError("automation must be a list with no more than 64 points")
+    ranges = {
+        "gain_db": (-60, 12),
+        "lowpass_hz": (500, 20000),
+        "delay_wet": (0, 100),
+        "delay_feedback": (0, 75),
+    }
+    for point in points:
+        if not isinstance(point, dict) or point.get("param") not in ranges:
+            raise ValueError("automation point has an unsupported parameter")
+        time_ms, value = point.get("time_ms"), point.get("value")
+        low, high = ranges[point["param"]]
+        if not isinstance(time_ms, (int, float)) or not 0 <= time_ms <= 180000:
+            raise ValueError("automation time_ms must be between 0 and 180000")
+        if not isinstance(value, (int, float)) or not low <= value <= high:
+            raise ValueError(f"automation {point['param']} value is out of range")
+    return sorted(points, key=lambda point: point["time_ms"])
+
+
+def _apply_effects(samples, sample_rate, effects, automation=None):
     """Apply bounded offline vocal effects without modifying source samples."""
     effects = effects or {}
+    automation = _validate_automation(automation or [])
     drive_db = effects.get("drive_db", 0)
     lowpass_hz = effects.get("lowpass_hz", 20000)
     delay_ms = effects.get("delay_ms", 0)
@@ -91,26 +136,29 @@ def _apply_effects(samples, sample_rate, effects):
         normalizer = math.tanh(amount)
         output = [math.tanh((value / 32768.0) * amount) / normalizer * 32768.0
                   for value in output]
-    if lowpass_hz < 19999 and output:
-        alpha = 1.0 - math.exp(-2.0 * math.pi * lowpass_hz / sample_rate)
+    if output and (lowpass_hz < 19999 or any(p["param"] == "lowpass_hz" for p in automation)):
         previous = 0.0
         filtered = []
-        for value in output:
+        for index, value in enumerate(output):
+            time_ms = index * 1000.0 / sample_rate
+            cutoff = _automation_value(automation, "lowpass_hz", time_ms, lowpass_hz)
+            alpha = 1.0 - math.exp(-2.0 * math.pi * cutoff / sample_rate)
             previous += alpha * (value - previous)
             filtered.append(previous)
         output = filtered
-    if delay_ms and delay_wet and output:
+    if delay_ms and (delay_wet or any(p["param"] == "delay_wet" for p in automation)) and output:
         delay_frames = max(1, round(delay_ms * sample_rate / 1000.0))
-        feedback = delay_feedback / 100.0
-        wet = delay_wet / 100.0
         ring = [0.0] * delay_frames
         delayed = []
         # Keep a bounded echo tail (up to eight repeats); project placement
         # still clips the tail at the declared song duration.
         tail_frames = delay_frames * 8
         for index in range(len(output) + tail_frames):
+            time_ms = index * 1000.0 / sample_rate
             value = output[index] if index < len(output) else 0.0
             echo = ring[index % delay_frames]
+            wet = _automation_value(automation, "delay_wet", time_ms, delay_wet) / 100.0
+            feedback = _automation_value(automation, "delay_feedback", time_ms, delay_feedback) / 100.0
             delayed.append(value * (1.0 - wet) + echo * wet)
             ring[index % delay_frames] = value + echo * feedback
         output = delayed
@@ -180,24 +228,26 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
         samples, source_rate = _read_pcm16(source_path)
         samples = _resample(samples, source_rate, sample_rate)
         effects = take.get("effects", {})
+        automation = _validate_automation(take.get("automation", []))
         if not isinstance(effects, dict):
             raise ValueError(f"take {index}: effects must be an object")
-        samples = _apply_effects(samples, sample_rate, effects)
+        samples = _apply_effects(samples, sample_rate, effects, automation)
         start = round(offset_ms * sample_rate / 1000)
         if start >= total_frames:
             raise ValueError(f"take {index}: offset starts after project duration")
-        gain = 10.0 ** (gain_db / 20.0)
         left_pan = math.sqrt((1.0 - pan) / 2.0) * math.sqrt(2.0)
         right_pan = math.sqrt((1.0 + pan) / 2.0) * math.sqrt(2.0)
         left, right = layer_buffers[layer]
         count = min(len(samples), total_frames - start)
         for frame in range(count):
-            value = samples[frame] * gain
+            time_ms = frame * 1000.0 / sample_rate
+            automated_gain = _automation_value(automation, "gain_db", time_ms, gain_db)
+            value = samples[frame] * (10.0 ** (automated_gain / 20.0))
             left[start + frame] += value * left_pan
             right[start + frame] += value * right_pan
         take_records.append({
             "file": relative_path, "layer": layer, "offset_ms": offset_ms,
-            "gain_db": gain_db, "pan": pan, "effects": effects, "source_sample_rate": source_rate,
+            "gain_db": gain_db, "pan": pan, "effects": effects, "automation": automation, "source_sample_rate": source_rate,
             "frames_placed": count
         })
     mix_left = array.array("d", [0.0]) * total_frames
