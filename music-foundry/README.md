@@ -192,3 +192,8 @@ Loop Lab supports an adjustable 0–100 ms crossfade (12 ms default) between con
 ## Genesis local spoken-vocal synthesis
 
 The Genesis Voice Engine now has a local Piper CLI adapter in `music-foundry/genesis_voice_adapter.py`. It requires an operator-supplied Piper executable and local ONNX voice model; it performs no downloads or provider calls, and dispatch is explicitly denied unless authorized. It renders spoken text to normalized 16-bit WAV. Singing remains a separate, unimplemented engine. See [GENESIS_VOICE_ENGINE.md](GENESIS_VOICE_ENGINE.md) for configuration, usage, and verification limits. Automated tests use a fake local renderer; a real Piper/model render has not yet been verified.
+
+
+## Browser-first neural voice studio
+
+The Somebody's Gotta Do It project now includes a browser-local Kokoro/MediaPipe TTS prototype at `projects/somebodys-gotta-do-it/genesis-voice-studio.html`. It loads a locally selected LiteRT-LM model, synthesizes speech in a Web Worker, and exports 24 kHz mono WAV for import into the vocal timeline. The MediaPipe JS/WASM runtime is currently loaded from a pinned CDN version; model weights are never auto-downloaded. iPhone/Safari and real-model audio tests remain pending. See [GENESIS_VOICE_ENGINE.md](GENESIS_VOICE_ENGINE.md).
