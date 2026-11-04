@@ -1,3 +1,4 @@
+import { validateSoulXPhones } from "./soulx-phone-inventory.js";
 const $ = (id) => document.getElementById(id);
 let score = null;
 let drafts = {};
@@ -105,6 +106,7 @@ function collectPhrase(phrase) {
     const onset=safeNumber(u.onset), duration=safeNumber(u.duration), pitch=safeNumber(u.pitch);
     const phones=u.phonemes.trim().split(/\s+/).filter(Boolean);
     if(!phones.length) errors.push(phrase.id+" word "+(index+1)+": reviewed phonemes required");
+    for(const phoneError of validateSoulXPhones(phones)) errors.push(phrase.id+" word "+(index+1)+": "+phoneError);
     if(onset===null || Math.abs(onset-cursor)>1e-6) errors.push(phrase.id+" word "+(index+1)+": onset must continue exactly from prior unit (starting at 0)");
     if(duration===null || duration<=0) errors.push(phrase.id+" word "+(index+1)+": positive duration required");
     if(pitch===null || !Number.isInteger(pitch) || pitch<1 || pitch>127) errors.push(phrase.id+" word "+(index+1)+": MIDI pitch must be an integer from 1 to 127");
