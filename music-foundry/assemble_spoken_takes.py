@@ -66,8 +66,6 @@ def _automation_value(points, parameter, time_ms, base):
     )
     if not lane:
         return float(base)
-    if time_ms <= lane[0]["time_ms"]:
-        return float(base)
     previous_time, previous_value = 0.0, float(base)
     for point in lane:
         point_time = float(point["time_ms"])
