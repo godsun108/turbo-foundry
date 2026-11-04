@@ -1,6 +1,9 @@
 import json
+import sys
 import unittest
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parents[1]))
 from build_vocal_score_worksheet import build_worksheet
 
 SCORE_PATH = Path(__file__).parents[1] / "projects" / "somebodys-gotta-do-it" / "vocal_score.json"
