@@ -83,3 +83,9 @@ python3 -m unittest discover -s music-foundry/tests -v
 Default output is 22,050 Hz / 16-bit PCM. The renderer is deterministic and offline; it makes no provider calls and requires no credentials. It creates `instrumental_mix.wav`, individual instrument stems, and `audio_manifest.json`. CI generates this preview as part of the existing Music Foundry artifact.
 
 **Important:** this is a basic procedural instrumental sound preview, not a polished commercial mix. It does not render spoken or sung vocals; those remain separate future renderer work.
+
+## Spoken-vocal timing plan
+
+The `projects/somebodys-gotta-do-it/vocal_timing.json` file maps the existing 56-bar arrangement to section-level spoken-vocal recording landmarks. `vocal-take-plan.md` documents the dry lead, gang, ad-lib, chop, and whisper passes. These are editable recording landmarks, not locked syllable timing and not a vocal renderer. The cue sheet remains the lyric source of truth.
+
+The arranger also writes the MIDI tempo meta-event as binary MIDI bytes; the arrangement test checks for that event so a tempo-bearing MIDI track is not mistaken for a valid file merely because it starts with an `MThd` header.
