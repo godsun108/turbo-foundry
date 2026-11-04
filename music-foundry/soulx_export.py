@@ -14,7 +14,8 @@ from pathlib import Path
 from typing import Any
 
 SOULX_NOTE_TYPES = {"rest": 1, "normal": 2, "tie": 3}
-ARPABET = re.compile(r"^[A-Z]+[0-2]?$")
+SOULX_ENGLISH_PHONES = ["AA0","AA1","AA2","AE0","AE1","AE2","AH0","AH1","AH2","AO0","AO1","AO2","AW0","AW1","AW2","AY0","AY1","AY2","B","CH","D","DH","EH0","EH1","EH2","ER0","ER1","ER2","EY0","EY1","EY2","F","G","HH","IH0","IH1","IH2","IY0","IY1","IY2","JH","K","L","M","N","NG","OW0","OW1","OW2","OY0","OY1","OY2","P","R","S","SH","T","TH","UH0","UH1","UH2","UW","UW0","UW1","UW2","V","W","Y","Z","ZH"]
+ARPABET = set(SOULX_ENGLISH_PHONES)
 
 
 def _finite_number(value: Any) -> bool:
@@ -95,7 +96,7 @@ def build_metadata(score: Any) -> list[dict[str, Any]]:
                 if text != "<SP>" or phones != ["<SP>"] or pitch != 0:
                     errors.append(f"{label}: rest must use text <SP>, phonemes [<SP>], and pitch 0")
             else:
-                if text == "<SP>" or any(not ARPABET.fullmatch(p) for p in phones):
+                if text == "<SP>" or any(p not in ARPABET for p in phones):
                     errors.append(f"{label}: English word units require explicit ARPABET phoneme tokens")
             words.append(text)
             if kind == "rest":
