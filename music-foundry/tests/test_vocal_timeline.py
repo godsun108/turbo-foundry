@@ -74,6 +74,8 @@ class VocalTimelineContractTests(unittest.TestCase):
                       "dropRepeat", "applyPhrase", "clearPhrase", "processedBuffer"):
             self.assertIn(token, self.source)
         self.assertIn("DROP_SECONDS=16*4*60/127", self.source)
+        self.assertIn("Phrase repeats exceed the 180-second take limit", self.source)
+        self.assertIn("Drop-triggered phrase repeat exceeds the 180-second take limit", self.source)
         self.assertIn("performance:c.performance||null", self.source)
 
     def test_per_take_automation_lanes_are_editable_and_rendered(self):
