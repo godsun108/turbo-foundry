@@ -165,3 +165,8 @@ The spoken-take manifest supports optional per-take `effects`: `drive_db` (0–2
 Each spoken take can carry up to 64 take-relative automation keyframes in the shared spoken-takes manifest. Supported parameters are `gain_db` (-60 to +12 dB), `lowpass_hz` (500–20000 Hz), `delay_wet` (0–100%), and `delay_feedback` (0–75%). The browser editor adds/replaces keyframes at millisecond positions, displays and removes them, and ramps Web Audio parameters during live preview and offline WAV rendering. The Python assembler applies the same linear interpolation to gain, low-pass cutoff, delay wet and feedback, and preserves automation in its render manifest. Keyframes are bounded and source takes remain read-only. These are take-relative automation lanes; global/master automation and pitch automation are not implemented yet.
 
 The timeline draws each take's automation keyframes directly on its clip as small markers, while the selected take's automation list remains editable below its effect controls.
+
+
+## Phrase performance editing
+
+The spoken vocal timeline supports a bounded phrase edit per take: select a start/end range, insert up to eight repeats, reverse the selected phrase, and optionally fire one extra phrase repeat at the track's first chorus drop (bar 17, 30.236 seconds). Edits are non-destructive and stored as a `performance` object in the spoken-takes manifest. Browser preview and OfflineAudioContext WAV exports render the edits; the Python offline assembler applies the same phrase repeat/reverse/drop behavior. Phrase edits are capped by the 180-second project limit.
