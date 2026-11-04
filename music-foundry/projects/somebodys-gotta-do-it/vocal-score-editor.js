@@ -6,7 +6,7 @@ let reviewFlags = {};
 const phrasesRoot = $("phrases");
 
 function setStatus(message) { $("status").textContent = message; }
-function safeNumber(value) { const n = Number(value); return Number.isFinite(n) ? n : null; }
+function safeNumber(value) { if(value===null || value===undefined || String(value).trim()==="") return null; const n = Number(value); return Number.isFinite(n) ? n : null; }
 function download(name, data) {
   const blob = new Blob([JSON.stringify(data, null, 2) + "\n"], {type:"application/json"});
   const url = URL.createObjectURL(blob);
