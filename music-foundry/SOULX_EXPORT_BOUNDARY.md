@@ -55,3 +55,14 @@ The canonical chorus scaffold has no reviewed `lyric_units`, no locked tempo,
 and no authored melody. It must fail export until a human completes and reviews
 those fields. Tests use synthetic fixtures only; no model weights, dependencies,
 prompt recordings, or audio were downloaded or synthesized.
+
+## Browser score editor
+
+The track-local `vocal-score-editor.html` is linked from the existing vocal
+timeline. It imports the canonical score or a saved workbench file, preserves
+incomplete drafts separately, and exports a reviewed score only after explicit
+tempo locking and per-phrase human review. Its browser-side ARPABET allowlist
+is maintained in `projects/somebodys-gotta-do-it/soulx-phone-inventory.mjs`
+and is tested by `tests/test_soulx_phone_inventory.mjs`. The Python exporter
+remains the authoritative final validation gate; browser validation does not
+replace it.
