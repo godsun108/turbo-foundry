@@ -29,10 +29,10 @@ jobs:
           ]
           for source in files:
               html = source.read_text(encoding="utf-8")
-              scripts = re.findall(r"<script(?:\\s[^>]*)?>(.*?)</script>", html, re.S)
+              scripts = re.findall(r'<script>(.*?)</script>', html, re.S)
               if not scripts:
                   raise SystemExit(f"No inline script found in {source}")
-              Path(f"/tmp/{source.stem}.js").write_text("\\n".join(scripts), encoding="utf-8")
+              Path(f"/tmp/{source.stem}.js").write_text("\n".join(scripts), encoding="utf-8")
           PY
           node --check /tmp/recording-booth.js
           node --check /tmp/vocal-timeline.js
