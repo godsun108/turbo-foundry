@@ -143,3 +143,6 @@ The output contains one WAV per populated layer, `spoken_vocal_mix.wav`, and `sp
 Open `projects/somebodys-gotta-do-it/recording-booth.html` from a secure HTTPS origin in current Safari. The page requests microphone permission only after Record is tapped. It captures one take at a time, lets you choose a vocal layer and manual timeline offset, optionally previews a local instrumental file, converts the recorded audio to mono 48 kHz / 16-bit PCM WAV in the browser, and lets you download each take plus a JSON manifest.
 
 This is a local browser prototype: recordings remain in page memory and are cleared when the page is closed or refreshed. Download each WAV before leaving. No audio is uploaded, no server endpoint is configured, and no provider is called. Microphone access generally requires HTTPS (or localhost); opening the HTML as an ordinary local file may not grant microphone access. Browser/device support for MediaRecorder and audio decoding varies, so verify a short test take before recording the full song.
+
+
+The recording booth enforces a 180-second per-take limit and a 128-take session limit, uses unique downloaded WAV filenames, and calculates the take-manifest duration from the recorded offsets and durations. These are browser-side guardrails; test microphone permissions and actual WAV decoding on the target iPhone before a full session.
