@@ -1,7 +1,6 @@
 """Provider-neutral vocal render contract. This validates plans; it does not render audio."""
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
 SCHEMA = "turbo.music-foundry.vocal-render.v1"
@@ -17,10 +16,10 @@ FORBIDDEN_SECRET_KEYS = {
 }
 
 
-@dataclass(frozen=True)
 class Validation:
-    ok: bool
-    errors: tuple[str, ...]
+    def __init__(self, ok: bool, errors: tuple[str, ...]):
+        self.ok = ok
+        self.errors = errors
 
 
 def _secret_paths(value: Any, prefix: str = "") -> list[str]:
