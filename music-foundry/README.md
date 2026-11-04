@@ -34,3 +34,32 @@ python3 -m unittest discover -s music-foundry/tests -v
 ```
 
 It creates four editable MIDI files (chords, bass, lead, drums) and a section map for a 56-bar spoken-led wonky bass-house arrangement. Tempo is provisional. The MIDI is an instrumental sketch: it does not synthesize spoken or sung vocals and does not render WAV audio.
+
+
+## Vocal rendering contract
+
+`vocal_render_contract.py` defines a provider-neutral request/renderer contract for **both spoken and sung** vocals. It validates WAV format, sample rate, bit depth, channel count, named vocal layers, renderer mode support, and credential-field boundaries.
+
+Example request construction (validation only; no renderer is dispatched):
+
+```python
+from music_foundry.vocal_render_contract import make_render_request, validate_render_request
+
+request = make_render_request(
+    project_id="somebodys-gotta-do-it",
+    source_ref="projects/somebodys-gotta-do-it/cue-sheet.md",
+    mode="spoken",
+    layers=["dry_lead", "gang_responses", "adlibs_and_chops"],
+)
+result = validate_render_request(request)
+if not result.ok:
+    raise ValueError(result.errors)
+```
+
+This is deliberately **not an audio engine**. No provider is configured, no credentials are accepted in browser-facing descriptors, and request dispatch remains unauthorized until a local renderer is implemented and explicitly enabled. The shared contract keeps future sung output compatible with the same workflow without implying that singing or WAV rendering exists today.
+
+Run the contract tests with:
+
+```bash
+python3 -m unittest discover -s music-foundry/tests -v
+```
