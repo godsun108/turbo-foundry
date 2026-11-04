@@ -77,6 +77,13 @@ class VocalTimelineContractTests(unittest.TestCase):
         self.assertIn("snappedEnd<=snappedStart", self.source)
         self.assertIn("Loop preview exceeds the 15-minute safety limit", self.source)
         self.assertIn("Math.round(Number(value)/step)*step", self.source)
+        for token in ("loopFade", "crossfade_ms", "function scheduleLoopSegment",
+                      "linearRampToValueAtTime(0,segmentEnd)",
+                      "function previewTakeComparison", "takeCompareA",
+                      "takeCompareB", "auditionTakeA", "auditionTakeB",
+                      "compareTakes", "Choose two different takes to compare A and B"):
+            self.assertIn(token, self.source)
+
 
     def test_mute_solo_phrase_audition_and_fine_nudging_controls(self):
         for token in ("muteTake", "soloTake", "auditionPhrase", "nudgeBack",
