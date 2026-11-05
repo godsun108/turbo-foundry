@@ -37,6 +37,30 @@ jobs:
           test -s music-foundry/output/warehouse-rave-v2/bass.wav
           test -s music-foundry/output/warehouse-rave-v2/synth.wav
           test -s music-foundry/output/warehouse-rave-v2/fx.wav
+      - name: Render non-destructive texture A pass
+        run: |
+          python3 music-foundry/process_instrument_stems.py --config music-foundry/warehouse_rave_v2_texture_a.example.json --output music-foundry/output/warehouse-rave-texture-a
+          test -s music-foundry/output/warehouse-rave-texture-a/instrumental_mix.wav
+          test -s music-foundry/output/warehouse-rave-texture-a/drums.wav
+          test -s music-foundry/output/warehouse-rave-texture-a/bass.wav
+          test -s music-foundry/output/warehouse-rave-texture-a/synth.wav
+          test -s music-foundry/output/warehouse-rave-texture-a/fx.wav
+      - name: Publish Warehouse Rave texture A audition
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: warehouse-rave-texture-a
+          target_commitish: ${{ github.sha }}
+          name: Somebody's Gotta Do It — Warehouse Rave Texture A
+          prerelease: true
+          make_latest: false
+          overwrite_files: true
+          fail_on_unmatched_files: true
+          files: |
+            music-foundry/output/warehouse-rave-texture-a/instrumental_mix.wav
+            music-foundry/output/warehouse-rave-texture-a/drums.wav
+            music-foundry/output/warehouse-rave-texture-a/bass.wav
+            music-foundry/output/warehouse-rave-texture-a/synth.wav
+            music-foundry/output/warehouse-rave-texture-a/fx.wav
       - name: Publish Warehouse Rave V2 audition
         uses: softprops/action-gh-release@v2
         with:
