@@ -114,13 +114,13 @@ def build_notes():
             # Hook appears in fragments, then full statement, then a changed final answer.
             if section == "intro" and local == 3:
                 for i, pitch in enumerate(HOOK[:2]):
-                    tracks["lead"].append((pitch, base + (2 + i * 0.5) * BEAT, int(BEAT * 0.28), 60))
+                    tracks["lead"].append((pitch, base + int((2 + i * 0.5) * BEAT), int(BEAT * 0.28), 60))
             elif section == "verse_1" and local in (3, 7):
                 for i, pitch in enumerate(HOOK[:2]):
-                    tracks["lead"].append((pitch, base + (3 + i * 0.5) * BEAT, int(BEAT * 0.2), 54))
+                    tracks["lead"].append((pitch, base + int((3 + i * 0.5) * BEAT), int(BEAT * 0.2), 54))
             elif is_build:
                 for i, pitch in enumerate((81, 84, 86, 88)):
-                    tracks["lead"].append((pitch, base + (2.0 + i * 0.5) * BEAT,
+                    tracks["lead"].append((pitch, base + int((2.0 + i * 0.5) * BEAT),
                                            int(BEAT * 0.18), 58 + i * 5))
             elif is_drop:
                 phrase = HOOK if local % 4 < 2 else ANSWER[:4]
@@ -131,11 +131,11 @@ def build_notes():
                                            84 if is_final else 76))
             elif is_bridge and local in (2, 6):
                 for i, pitch in enumerate((76, 79, 81, 84)):
-                    tracks["lead"].append((pitch, base + (1.5 + i * 0.5) * BEAT,
+                    tracks["lead"].append((pitch, base + int((1.5 + i * 0.5) * BEAT),
                                            int(BEAT * 0.32), 62))
             elif section == "verse_2" and local in (3, 7):
                 for i, pitch in enumerate(ANSWER[:3]):
-                    tracks["lead"].append((pitch - 12, base + (2.5 + i * 0.5) * BEAT,
+                    tracks["lead"].append((pitch - 12, base + int((2.5 + i * 0.5) * BEAT),
                                            int(BEAT * 0.2), 58))
 
             # Drums use distinct verse/build/drop/bridge pockets and phrase-ending fills.
