@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - music/somebodys-gotta-do-it
+      - music/somebodys-gotta-do-it-v3-composition
     paths:
       - 'music-foundry/**'
       - '.github/workflows/music-preview-publish.yml'
@@ -37,6 +38,15 @@ jobs:
           test -s music-foundry/output/warehouse-rave-v2/bass.wav
           test -s music-foundry/output/warehouse-rave-v2/synth.wav
           test -s music-foundry/output/warehouse-rave-v2/fx.wav
+      - name: Render Warehouse Rave V3 composition
+        run: |
+          python3 music-foundry/warehouse_rave_v3.py --output music-foundry/output/warehouse-rave-v3 --bpm 127
+          test -s music-foundry/output/warehouse-rave-v3/instrumental_mix.wav
+          test -s music-foundry/output/warehouse-rave-v3/drums.wav
+          test -s music-foundry/output/warehouse-rave-v3/bass.wav
+          test -s music-foundry/output/warehouse-rave-v3/synth.wav
+          test -s music-foundry/output/warehouse-rave-v3/lead.wav
+          test -s music-foundry/output/warehouse-rave-v3/fx.wav
       - name: Render non-destructive texture A pass
         run: |
           python3 music-foundry/process_instrument_stems.py --config music-foundry/warehouse_rave_v2_texture_a.example.json --output music-foundry/output/warehouse-rave-texture-a
@@ -77,7 +87,23 @@ jobs:
             music-foundry/output/warehouse-rave-v2/bass.wav
             music-foundry/output/warehouse-rave-v2/synth.wav
             music-foundry/output/warehouse-rave-v2/fx.wav
-
+      - name: Publish Warehouse Rave V3 composition audition
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: warehouse-rave-v3-composition
+          target_commitish: ${{ github.sha }}
+          name: Somebody's Gotta Do It — Warehouse Rave V3 Composition
+          prerelease: true
+          make_latest: false
+          overwrite_files: true
+          fail_on_unmatched_files: true
+          files: |
+            music-foundry/output/warehouse-rave-v3/instrumental_mix.wav
+            music-foundry/output/warehouse-rave-v3/drums.wav
+            music-foundry/output/warehouse-rave-v3/bass.wav
+            music-foundry/output/warehouse-rave-v3/synth.wav
+            music-foundry/output/warehouse-rave-v3/lead.wav
+            music-foundry/output/warehouse-rave-v3/fx.wav
       - name: Diagnose public Warehouse Rave V2 asset delivery
         run: |
           curl -sS -L -D /tmp/warehouse-headers.txt -o /dev/null "https://github.com/godsun108/turbo-foundry/releases/download/warehouse-rave-v2/instrumental_mix.wav"
