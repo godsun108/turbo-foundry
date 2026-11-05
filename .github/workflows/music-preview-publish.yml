@@ -1,0 +1,46 @@
+name: Publish Somebody's Gotta Do It audio preview
+on:
+  push:
+    branches:
+      - music/somebodys-gotta-do-it
+    paths:
+      - 'music-foundry/**'
+      - '.github/workflows/music-preview-publish.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  render-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run Music Foundry tests
+        run: python3 -m unittest discover -s music-foundry/tests -v
+      - name: Render canonical song and stems
+        run: |
+          python3 music-foundry/arrange_project.py --output music-foundry/output/somebodys-gotta-do-it --bpm 127
+          python3 music-foundry/render_instrumental.py --output music-foundry/output/somebodys-gotta-do-it-audio --bpm 127
+          test -s music-foundry/output/somebodys-gotta-do-it-audio/instrumental_mix.wav
+          test -s music-foundry/output/somebodys-gotta-do-it-audio/lead.wav
+          test -s music-foundry/output/somebodys-gotta-do-it-audio/chords.wav
+          test -s music-foundry/output/somebodys-gotta-do-it-audio/bass.wav
+          test -s music-foundry/output/somebodys-gotta-do-it-audio/drums.wav
+      - name: Publish public read-only audio assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: music-preview-latest
+          target_commitish: ${{ github.sha }}
+          name: Somebody's Gotta Do It — Audio Preview
+          prerelease: true
+          make_latest: false
+          overwrite_files: true
+          fail_on_unmatched_files: true
+          files: |
+            music-foundry/output/somebodys-gotta-do-it-audio/instrumental_mix.wav
+            music-foundry/output/somebodys-gotta-do-it-audio/lead.wav
+            music-foundry/output/somebodys-gotta-do-it-audio/chords.wav
+            music-foundry/output/somebodys-gotta-do-it-audio/bass.wav
+            music-foundry/output/somebodys-gotta-do-it-audio/drums.wav
