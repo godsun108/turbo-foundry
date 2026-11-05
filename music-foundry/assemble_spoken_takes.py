@@ -122,7 +122,9 @@ def _apply_phrase_performance(samples, sample_rate, performance, offset_ms):
     return result
 
 
-def _apply_effects(samples, sample_rate, effects, automation=None):
+def _apply_effects(samples, sample_rate, effects, automation=None, tempo_bpm=127):
+    if not isinstance(tempo_bpm, (int, float)) or not 40 <= tempo_bpm <= 240:
+        raise ValueError("tempo_bpm must be between 40 and 240")
     effects = effects or {}
     automation = _validate_automation(automation or [])
     drive_db, lowpass_hz = effects.get("drive_db", 0), effects.get("lowpass_hz", 20000)
@@ -143,7 +145,7 @@ def _apply_effects(samples, sample_rate, effects, automation=None):
     output = [float(value) for value in samples]
     if stutter != "off" and output:
         divisor = {"1/4": 4, "1/8": 8, "1/16": 16}[stutter]
-        slice_frames = max(1, round((60.0 / 127.0 / divisor) * sample_rate))
+        slice_frames = max(1, round((60.0 / tempo_bpm / divisor) * sample_rate))
         first_slice = output[:slice_frames]
         output = [first_slice[index % len(first_slice)] for index in range(len(output))]
     if drive_db:
