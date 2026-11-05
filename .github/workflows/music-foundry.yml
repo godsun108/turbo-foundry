@@ -56,6 +56,8 @@ jobs:
         run: |
           python3 music-foundry/projects/somebodys-gotta-do-it/build_lyric_events.py --output music-foundry/output/somebodys-gotta-do-it/lyric-events.json
           test -s music-foundry/output/somebodys-gotta-do-it/lyric-events.json
+      - name: Verify all canonical song performance cues
+        run: node --test music-foundry/tests/test_lyric_performance_bridge_integration.mjs
       - name: Generate MIDI
         run: python3 music-foundry/generate.py --output music-foundry/output
       - name: Generate Somebody's Gotta Do It arrangement
