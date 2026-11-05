@@ -18,7 +18,7 @@ authorized reference singer.
 
 ## Canonical lyric units
 
-A reviewed sung/chant phrase may carry `lyric_units`. Each unit represents one
+A reviewed sung, chant, or gang-shout phrase may carry `lyric_units`. Each unit represents one
 SoulX note-aligned English word or explicit silence:
 - `text`: exact word from the source lyric, or `<SP>` for silence.
 - `phonemes`: explicitly reviewed ARPAbet phones, without the SoulX `en_`
@@ -46,7 +46,7 @@ prompt recording or prompt metadata.
 
 Segment `time` is derived from locked global beat position and BPM in
 milliseconds. Per-unit `duration` is derived from beat duration and BPM in
-seconds. Each phrase is one segment; overlapping sung phrases are rejected.
+seconds. Each phrase is one segment; overlapping synthesized vocal phrases are rejected.
 All conversions are deterministic.
 
 ## Current status
