@@ -44,7 +44,24 @@ small{color:var(--muted)}.hint{font-size:12px}.back{color:var(--muted);text-deco
 <h1>VOCAL TIMELINE</h1>
 <p><a class="back" href="./genesis-voice-studio.html">Open Genesis Kokoro Voice Studio → Generate a spoken WAV take</a></p>
 <p><a class="back" href="./vocal-score-editor.html">Open Sung Hook Score Editor → Author and review sung notes</a></p>
+<p><a class="back" href="./lyric-event-review.html">Open Source-Linked Lyric Review → Inspect canonical lines</a></p>
 <p>Arrange recorded spoken takes against the 127 BPM project grid. Everything stays in this browser session.</p>
+<section class="panel" id="verifiedLyricsPanel">
+<h2>Source-verified lyric performance cues</h2>
+<p class="hint">Load the canonical cue sheet and generated lyric-events.json. The bridge verifies SHA-256 and every lyric event before making a performance cue sheet. It never assigns vocal timing or changes your words.</p>
+<div class="grid">
+<div><label for="lyricSourceFile">Canonical cue-sheet.md</label><input id="lyricSourceFile" type="file" accept=".md,text/markdown,text/plain"></div>
+<div><label for="lyricManifestFile">Generated lyric-events.json</label><input id="lyricManifestFile" type="file" accept=".json,application/json"></div>
+</div>
+<div class="grid">
+<div><label for="lyricSectionFilter">Section</label><select id="lyricSectionFilter" disabled><option value="">All sections</option></select></div>
+<div><label>Verified event count</label><div id="lyricEventCount" class="status">Not verified</div></div>
+</div>
+<div id="lyricBridgeStatus" class="status" aria-live="polite">Waiting for both source files.</div>
+<div id="lyricEventList" class="automation-list"></div>
+<div class="actions"><button id="exportPerformanceCues" class="primary" disabled>Export verified performance cue sheet</button></div>
+<p class="hint">The exported cue sheet is a source-linked recording reference, not a timed vocal take or generated audio. Assign timing only after a real performance is recorded or rendered.</p>
+</section>
 <section class="panel">
 <h2>1 · Load your session</h2>
 <div class="grid">
@@ -127,6 +144,7 @@ small{color:var(--muted)}.hint{font-size:12px}.back{color:var(--muted);text-deco
 </section>
 <p class="hint">Spoken-take editor only. This does not synthesize speech or singing. The separate sung-vocal workflow remains a future renderer. Download your exports before leaving; this prototype does not persist session data.</p>
 </main>
+<script type="module" src="./lyric-performance-bridge.js"></script>
 <script>
 (() => {
 'use strict';
