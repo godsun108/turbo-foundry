@@ -56,7 +56,9 @@ class SingingRenderImportTests(unittest.TestCase):
         self.assertEqual(render_manifest["take_count"], 1)
         self.assertEqual(render_manifest["audible_take_count"], 1)
         self.assertEqual(render_manifest["takes"][0]["layer"], "gang_vocals")
-        self.assertFalse(render_manifest["sung_vocals_rendered"])
+        self.assertTrue(render_manifest["sung_vocals_rendered"])
+        self.assertEqual(render_manifest["render_type"], "vocal_take_assembly")
+        self.assertEqual(render_manifest["takes"][0]["vocal_type"], "sung")
 
     def test_rejects_tampered_audio_hash(self):
         self.audio.write_bytes(self.audio.read_bytes() + b"x")
