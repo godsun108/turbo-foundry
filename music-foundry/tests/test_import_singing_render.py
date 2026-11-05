@@ -1,6 +1,11 @@
-import hashlib, json, tempfile, unittest, wave
+import hashlib, importlib.util, json, tempfile, unittest, wave
 from pathlib import Path
 from import_singing_render import import_render
+
+ASSEMBLER_PATH = Path(__file__).resolve().parents[1] / "assemble_spoken_takes.py"
+spec = importlib.util.spec_from_file_location("spoken_take_assembler", ASSEMBLER_PATH)
+assembler = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(assembler)
 
 class SingingRenderImportTests(unittest.TestCase):
     def setUp(self):
@@ -35,6 +40,25 @@ class SingingRenderImportTests(unittest.TestCase):
         self.assertTrue(take["source"]["imported_unchanged"])
         self.assertEqual(copied.read_bytes(), original)
         self.assertEqual(self.audio.read_bytes(), original)
+
+    def test_imported_take_runs_through_existing_assembler_end_to_end(self):
+        import_render(render_manifest_path=self.render_manifest, output_manifest_path=self.output,
+            offset_ms=30000, project_duration_seconds=105.827, layer="gang_vocals")
+        rendered = assembler.assemble(self.output, self.root / "final-vocals")
+        mix = rendered / "spoken_vocal_mix.wav"
+        stem = rendered / "gang_vocals.wav"
+        self.assertTrue(mix.is_file())
+        self.assertTrue(stem.is_file())
+        with wave.open(str(mix), "rb") as wav:
+            self.assertEqual(wav.getnchannels(), 2)
+            self.assertEqual(wav.getsampwidth(), 2)
+            self.assertEqual(wav.getframerate(), 48000)
+            self.assertEqual(wav.getnframes(), 105.827 * 48000 if False else 5079696)
+        render_manifest = json.loads((rendered / "spoken_audio_manifest.json").read_text())
+        self.assertEqual(render_manifest["take_count"], 1)
+        self.assertEqual(render_manifest["audible_take_count"], 1)
+        self.assertEqual(render_manifest["takes"][0]["layer"], "gang_vocals")
+        self.assertFalse(render_manifest["sung_vocals_rendered"])
 
     def test_rejects_tampered_audio_hash(self):
         self.audio.write_bytes(self.audio.read_bytes() + b"x")
