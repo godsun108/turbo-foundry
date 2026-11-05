@@ -1,4 +1,4 @@
-"""Assemble consented recorded spoken takes into aligned WAV vocal stems.
+"""Assemble consented recorded vocal takes into aligned WAV vocal stems.
 
 This is an editor/assembler, not a speech synthesizer or sung-vocal renderer.
 Source WAV files are read only and never modified.
@@ -35,10 +35,8 @@ def _read_pcm16(path):
     if len(values) != frames * channels:
         raise ValueError(f"{path}: truncated WAV data")
     if channels == 1:
-        mono = [int(v) for v in values]
-        return mono, rate
-    mono = [(int(values[i]) + int(values[i + 1])) // 2 for i in range(0, len(values), 2)]
-    return mono, rate
+        return [int(v) for v in values], rate
+    return [(int(values[i]) + int(values[i + 1])) // 2 for i in range(0, len(values), 2)], rate
 
 
 def _resample(samples, source_rate, target_rate):
@@ -60,16 +58,12 @@ def _resample(samples, source_rate, target_rate):
 
 
 def _automation_value(points, parameter, time_ms, base):
-    lane = sorted(
-        (point for point in points if point["param"] == parameter),
-        key=lambda point: point["time_ms"],
-    )
+    lane = sorted((point for point in points if point["param"] == parameter), key=lambda point: point["time_ms"])
     if not lane:
         return float(base)
     previous_time, previous_value = 0.0, float(base)
     for point in lane:
-        point_time = float(point["time_ms"])
-        point_value = float(point["value"])
+        point_time, point_value = float(point["time_ms"]), float(point["value"])
         if time_ms <= point_time:
             span = point_time - previous_time
             if span <= 0:
@@ -83,12 +77,7 @@ def _automation_value(points, parameter, time_ms, base):
 def _validate_automation(points):
     if not isinstance(points, list) or len(points) > 64:
         raise ValueError("automation must be a list with no more than 64 points")
-    ranges = {
-        "gain_db": (-60, 12),
-        "lowpass_hz": (500, 20000),
-        "delay_wet": (0, 100),
-        "delay_feedback": (0, 75),
-    }
+    ranges = {"gain_db": (-60, 12), "lowpass_hz": (500, 20000), "delay_wet": (0, 100), "delay_feedback": (0, 75)}
     for point in points:
         if not isinstance(point, dict) or point.get("param") not in ranges:
             raise ValueError("automation point has an unsupported parameter")
@@ -102,29 +91,24 @@ def _validate_automation(points):
 
 
 def _apply_phrase_performance(samples, sample_rate, performance, offset_ms):
-    """Apply a bounded phrase repeat/reverse and optional first-drop repeat."""
     if performance is None:
         return samples
     if not isinstance(performance, dict):
         raise ValueError("performance must be an object")
     start_ms, end_ms = performance.get("start_ms"), performance.get("end_ms")
-    repeats = performance.get("repeats", 1)
-    reverse = performance.get("reverse", False)
-    drop_repeat = performance.get("drop_repeat", False)
+    repeats, reverse, drop_repeat = performance.get("repeats", 1), performance.get("reverse", False), performance.get("drop_repeat", False)
     if (not isinstance(start_ms, (int, float)) or not isinstance(end_ms, (int, float))
             or start_ms < 0 or end_ms <= start_ms or end_ms > 180000
             or not isinstance(repeats, int) or not 1 <= repeats <= 8
             or not isinstance(reverse, bool) or not isinstance(drop_repeat, bool)):
         raise ValueError("performance phrase edit is outside allowed bounds")
-    start = min(len(samples), round(start_ms * sample_rate / 1000))
-    end = min(len(samples), round(end_ms * sample_rate / 1000))
+    start, end = min(len(samples), round(start_ms * sample_rate / 1000)), min(len(samples), round(end_ms * sample_rate / 1000))
     if end <= start:
         raise ValueError("performance phrase range does not overlap the take")
     phrase = samples[start:end]
     if reverse:
         phrase = list(reversed(phrase))
-    prefix, suffix = samples[:start], samples[end:]
-    result = prefix + phrase * (repeats + 1) + suffix
+    result = samples[:start] + phrase * (repeats + 1) + samples[end:]
     if drop_repeat:
         drop_seconds = 16 * 4 * 60 / 127
         relative_seconds = drop_seconds - offset_ms / 1000
@@ -139,14 +123,10 @@ def _apply_phrase_performance(samples, sample_rate, performance, offset_ms):
 
 
 def _apply_effects(samples, sample_rate, effects, automation=None):
-    """Apply bounded offline vocal effects without modifying source samples."""
     effects = effects or {}
     automation = _validate_automation(automation or [])
-    drive_db = effects.get("drive_db", 0)
-    lowpass_hz = effects.get("lowpass_hz", 20000)
-    delay_ms = effects.get("delay_ms", 0)
-    delay_feedback = effects.get("delay_feedback", 25)
-    delay_wet = effects.get("delay_wet", 0)
+    drive_db, lowpass_hz = effects.get("drive_db", 0), effects.get("lowpass_hz", 20000)
+    delay_ms, delay_feedback, delay_wet = effects.get("delay_ms", 0), effects.get("delay_feedback", 25), effects.get("delay_wet", 0)
     stutter = effects.get("stutter", "off")
     if not isinstance(drive_db, (int, float)) or not 0 <= drive_db <= 24:
         raise ValueError("effects.drive_db must be between 0 and 24")
@@ -169,11 +149,9 @@ def _apply_effects(samples, sample_rate, effects, automation=None):
     if drive_db:
         amount = 10.0 ** (drive_db / 20.0)
         normalizer = math.tanh(amount)
-        output = [math.tanh((value / 32768.0) * amount) / normalizer * 32768.0
-                  for value in output]
+        output = [math.tanh((value / 32768.0) * amount) / normalizer * 32768.0 for value in output]
     if output and (lowpass_hz < 19999 or any(p["param"] == "lowpass_hz" for p in automation)):
-        previous = 0.0
-        filtered = []
+        previous, filtered = 0.0, []
         for index, value in enumerate(output):
             time_ms = index * 1000.0 / sample_rate
             cutoff = _automation_value(automation, "lowpass_hz", time_ms, lowpass_hz)
@@ -183,12 +161,8 @@ def _apply_effects(samples, sample_rate, effects, automation=None):
         output = filtered
     if delay_ms and (delay_wet or any(p["param"] == "delay_wet" for p in automation)) and output:
         delay_frames = max(1, round(delay_ms * sample_rate / 1000.0))
-        ring = [0.0] * delay_frames
-        delayed = []
-        # Keep a bounded echo tail (up to eight repeats); project placement
-        # still clips the tail at the declared song duration.
-        tail_frames = delay_frames * 8
-        for index in range(len(output) + tail_frames):
+        ring, delayed = [0.0] * delay_frames, []
+        for index in range(len(output) + delay_frames * 8):
             time_ms = index * 1000.0 / sample_rate
             value = output[index] if index < len(output) else 0.0
             echo = ring[index % delay_frames]
@@ -248,11 +222,7 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
     if unknown_layers:
         raise ValueError(f"unsupported vocal layers: {sorted(unknown_layers)}")
     solo_active = any(take.get("solo", False) and not take.get("muted", False) and not normalized_layer_states[take["layer"]]["muted"] for take in takes) or any(state["solo"] and not state["muted"] for state in normalized_layer_states.values())
-    layer_buffers = {
-        name: (array.array("d", [0.0]) * total_frames,
-               array.array("d", [0.0]) * total_frames)
-        for name in used_layers
-    }
+    layer_buffers = {name: (array.array("d", [0.0]) * total_frames, array.array("d", [0.0]) * total_frames) for name in used_layers}
     source_root = manifest_path.parent
     take_records = []
     for index, take in enumerate(takes):
@@ -267,9 +237,7 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
         source_path = (source_root / relative_path).resolve()
         if source_root not in source_path.parents:
             raise ValueError(f"take {index}: source file must remain inside the project folder")
-        offset_ms = take.get("offset_ms", 0)
-        gain_db = take.get("gain_db", 0)
-        pan = take.get("pan", 0)
+        offset_ms, gain_db, pan = take.get("offset_ms", 0), take.get("gain_db", 0), take.get("pan", 0)
         if not isinstance(offset_ms, (int, float)) or offset_ms < 0:
             raise ValueError(f"take {index}: offset_ms must be non-negative")
         if not isinstance(gain_db, (int, float)) or not -60 <= gain_db <= 12:
@@ -278,11 +246,15 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
             raise ValueError(f"take {index}: pan must be between -1 and 1")
         if not source_path.is_file():
             raise ValueError(f"take {index}: source WAV not found: {relative_path}")
+        source_metadata = take.get("source", {})
+        if not isinstance(source_metadata, dict):
+            raise ValueError(f"take {index}: source metadata must be an object")
+        vocal_type = source_metadata.get("vocal_type", "spoken")
+        if vocal_type not in ("spoken", "sung", "chant", "gang_shout"):
+            raise ValueError(f"take {index}: unsupported source vocal_type")
         samples, source_rate = _read_pcm16(source_path)
         samples = _resample(samples, source_rate, sample_rate)
-        effects = take.get("effects", {})
-        automation = _validate_automation(take.get("automation", []))
-        performance = take.get("performance")
+        effects, automation, performance = take.get("effects", {}), _validate_automation(take.get("automation", [])), take.get("performance")
         if not isinstance(effects, dict):
             raise ValueError(f"take {index}: effects must be an object")
         samples = _apply_effects(samples, sample_rate, effects, automation)
@@ -292,8 +264,7 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
         start = round(offset_ms * sample_rate / 1000)
         if start >= total_frames:
             raise ValueError(f"take {index}: offset starts after project duration")
-        left_pan = math.sqrt((1.0 - pan) / 2.0) * math.sqrt(2.0)
-        right_pan = math.sqrt((1.0 + pan) / 2.0) * math.sqrt(2.0)
+        left_pan, right_pan = math.sqrt((1.0 - pan) / 2.0) * math.sqrt(2.0), math.sqrt((1.0 + pan) / 2.0) * math.sqrt(2.0)
         left, right = layer_buffers[layer]
         count = min(len(samples), total_frames - start) if audible else 0
         for frame in range(count):
@@ -304,19 +275,17 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
             right[start + frame] += value * right_pan
         take_records.append({
             "file": relative_path, "layer": layer, "offset_ms": offset_ms,
-            "gain_db": gain_db, "pan": pan, "effects": effects, "automation": automation, "performance": performance, "source_sample_rate": source_rate,
+            "gain_db": gain_db, "pan": pan, "effects": effects, "automation": automation,
+            "performance": performance, "source_sample_rate": source_rate,
+            "source": source_metadata, "vocal_type": vocal_type,
             "frames_placed": count, "muted": take_muted, "solo": take_solo, "audible": audible
         })
-    mix_left = array.array("d", [0.0]) * total_frames
-    mix_right = array.array("d", [0.0]) * total_frames
+    mix_left, mix_right = array.array("d", [0.0]) * total_frames, array.array("d", [0.0]) * total_frames
     for left, right in layer_buffers.values():
         for frame in range(total_frames):
             mix_left[frame] += left[frame]
             mix_right[frame] += right[frame]
-    peak = max(
-        max((abs(v) for v in mix_left), default=0.0),
-        max((abs(v) for v in mix_right), default=0.0)
-    )
+    peak = max(max((abs(v) for v in mix_left), default=0.0), max((abs(v) for v in mix_right), default=0.0))
     normalization_gain = min(1.0, 29490.0 / peak) if peak else 1.0
     output = Path(output).resolve()
     if output == source_root:
@@ -328,25 +297,18 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
             filename = f"{name}.wav"
             _write_stereo(output / filename, left, right, sample_rate, normalization_gain)
             rendered.append(filename)
-    _write_stereo(output / "spoken_vocal_mix.wav", mix_left, mix_right,
-                  sample_rate, normalization_gain)
+    _write_stereo(output / "spoken_vocal_mix.wav", mix_left, mix_right, sample_rate, normalization_gain)
+    sung_vocals_rendered = any(record["vocal_type"] in ("sung", "chant") and record["audible"] for record in take_records)
+    render_type = "vocal_take_assembly" if sung_vocals_rendered else "recorded_spoken_take_assembly"
     result = {
         "schema": "turbo.music-foundry.spoken-takes-render.v1",
-        "render_type": "recorded_spoken_take_assembly",
-        "sample_rate": sample_rate,
-        "channels": 2,
-        "bit_depth": 16,
-        "duration_seconds": duration,
-        "take_count": len(take_records),
-        "audible_take_count": sum(record["audible"] for record in take_records),
-        "solo_active": solo_active,
-        "layer_states": normalized_layer_states,
-        "stems": rendered,
-        "mix": "spoken_vocal_mix.wav",
-        "normalization_gain": round(normalization_gain, 8),
-        "source_takes_modified": False,
-        "speech_synthesized": False,
-        "sung_vocals_rendered": False,
+        "render_type": render_type,
+        "sample_rate": sample_rate, "channels": 2, "bit_depth": 16, "duration_seconds": duration,
+        "take_count": len(take_records), "audible_take_count": sum(record["audible"] for record in take_records),
+        "solo_active": solo_active, "layer_states": normalized_layer_states,
+        "stems": rendered, "mix": "spoken_vocal_mix.wav",
+        "normalization_gain": round(normalization_gain, 8), "source_takes_modified": False,
+        "speech_synthesized": False, "sung_vocals_rendered": sung_vocals_rendered,
         "takes": take_records
     }
     (output / "spoken_audio_manifest.json").write_text(json.dumps(result, indent=2))
