@@ -48,6 +48,16 @@ jobs:
         run: python3 music-foundry/generate.py --output music-foundry/output
       - name: Generate Somebody's Gotta Do It arrangement
         run: python3 music-foundry/arrange_project.py --output music-foundry/output/somebodys-gotta-do-it --bpm 127
+      - name: Generate Warehouse Rave V3 composition MIDI
+        run: python3 music-foundry/warehouse_rave_v3.py --output music-foundry/output/warehouse-rave-v3 --bpm 127
+      - name: Verify Warehouse Rave V3 MIDI exports
+        run: |
+          test -s music-foundry/output/warehouse-rave-v3/manifest.json
+          test -s music-foundry/output/warehouse-rave-v3/chords.mid
+          test -s music-foundry/output/warehouse-rave-v3/bass.mid
+          test -s music-foundry/output/warehouse-rave-v3/lead.mid
+          test -s music-foundry/output/warehouse-rave-v3/drums.mid
+          test -s music-foundry/output/warehouse-rave-v3/texture.mid
       - name: Generate provisional chorus melody audition MIDI
         run: |
           python3 music-foundry/build_chorus_melody_preview.py --output music-foundry/output/somebodys-gotta-do-it/chorus_melody_concept_a.mid
