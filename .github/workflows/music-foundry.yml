@@ -42,8 +42,12 @@ jobs:
         run: node --test music-foundry/tests/test_soulx_phone_inventory.mjs
       - name: Test source-linked lyric event review
         run: node --test music-foundry/tests/test_lyric_event_review.mjs
-      - name: Syntax-check lyric event review UI
-        run: node --check --input-type=module < music-foundry/projects/somebodys-gotta-do-it/lyric-event-review.js
+      - name: Syntax-check lyric event review and performance bridge modules
+        run: |
+          node --check --input-type=module < music-foundry/projects/somebodys-gotta-do-it/lyric-event-review.js
+          node --check --input-type=module < music-foundry/projects/somebodys-gotta-do-it/lyric-performance-bridge.js
+          node --check --input-type=module < music-foundry/projects/somebodys-gotta-do-it/lyric-performance-bridge-core.mjs
+          node --test music-foundry/tests/test_lyric_performance_bridge.mjs
       - name: Syntax-check Genesis Voice Studio modules
         run: |
           node --check music-foundry/projects/somebodys-gotta-do-it/genesis-voice-studio.js
