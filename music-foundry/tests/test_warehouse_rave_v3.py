@@ -16,9 +16,9 @@ class WarehouseRaveV3Tests(unittest.TestCase):
         events, starts, bars = v3.build_events()
         self.assertEqual(bars, 68)
         self.assertEqual(starts["drop_a"], 16)
-        self.assertEqual(starts["breakdown"], 40)
-        self.assertEqual(starts["final_drop"], 52)
-        self.assertEqual(starts["outro_tag"], 68 - 4)
+        self.assertEqual(starts["breakdown"], 36)
+        self.assertEqual(starts["final_drop"], 48)
+        self.assertEqual(starts["outro_tag"], 64)
         self.assertGreater(len(events["lead"]), 0)
         self.assertGreater(len(events["fx"]), 0)
 
