@@ -59,8 +59,11 @@ def _validate_wav(path: Path) -> dict[str, int]:
             "SoulX output contract mismatch: expected mono 24000 Hz WAV; "
             f"received {info['channels']} channel(s) at {info['sample_rate']} Hz."
         )
-    if info["sample_width_bytes"] not in {2, 3, 4} or info["frames"] <= 0:
-        raise ValueError("SoulX output WAV must contain non-empty 16-, 24-, or 32-bit PCM audio.")
+    if info["sample_width_bytes"] != 2 or info["frames"] <= 0:
+        raise ValueError(
+            "SoulX output must be non-empty 16-bit PCM WAV because the existing "
+            "Music Foundry vocal assembler consumes 16-bit PCM without changing source takes."
+        )
     return info
 
 
