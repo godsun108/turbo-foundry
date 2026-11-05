@@ -44,6 +44,10 @@ jobs:
         run: |
           node --check music-foundry/projects/somebodys-gotta-do-it/genesis-voice-studio.js
           node --check --input-type=module < music-foundry/projects/somebodys-gotta-do-it/genesis-voice-worker.js
+      - name: Build source-linked lyric event manifest
+        run: |
+          python3 music-foundry/projects/somebodys-gotta-do-it/build_lyric_events.py --output music-foundry/output/somebodys-gotta-do-it/lyric-events.json
+          test -s music-foundry/output/somebodys-gotta-do-it/lyric-events.json
       - name: Generate MIDI
         run: python3 music-foundry/generate.py --output music-foundry/output
       - name: Generate Somebody's Gotta Do It arrangement
@@ -73,6 +77,11 @@ jobs:
           test -s music-foundry/output/somebodys-gotta-do-it/chorus_melody_concept_a.mid
       - name: Render offline instrumental WAV preview
         run: python3 music-foundry/render_instrumental.py --output music-foundry/output/somebodys-gotta-do-it-audio --bpm 127
+      - name: Upload lyric event manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: somebodys-gotta-do-it-lyric-events
+          path: music-foundry/output/somebodys-gotta-do-it/lyric-events.json
       - name: Upload Warehouse Rave V3 audition
         uses: actions/upload-artifact@v4
         with:
