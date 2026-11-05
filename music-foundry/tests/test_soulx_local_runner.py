@@ -120,6 +120,23 @@ class SoulXLocalRunnerTests(unittest.TestCase):
                 output_dir=self.root / "blocked",
             )
 
+    def test_rejects_unsupported_sample_width_before_timeline_import(self):
+        output = self.root / "wide-render"
+        def fake_run(command, **kwargs):
+            with wave.open(str(output / "generated.wav"), "wb") as audio:
+                audio.setnchannels(1)
+                audio.setsampwidth(4)
+                audio.setframerate(24000)
+                audio.writeframes(b"\x00\x00\x00\x00" * 240)
+            class Result:
+                returncode = 0
+                stdout = ""
+                stderr = ""
+            return Result()
+        with patch("soulx_local_runner.subprocess.run", side_effect=fake_run):
+            with self.assertRaisesRegex(ValueError, "16-bit PCM WAV"):
+                run_render(score_path=self.score, engine_root=self.engine, prompt_wav=self.prompt,
+                           prompt_metadata=self.prompt_meta, output_dir=output)
     def test_rejects_wrong_output_sample_rate(self):
         output = self.root / "bad-render"
         def fake_run(command, **kwargs):
