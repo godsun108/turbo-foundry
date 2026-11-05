@@ -13,7 +13,7 @@ from typing import Any
 DELIVERIES = {"spoken", "chant", "sung", "gang_shout", "whisper", "adlib"}
 ALIGNMENTS = {"unaligned", "phrase_aligned", "syllable_aligned", "reviewed"}
 NOTE_TYPES = {"normal", "tie", "rest", "slur"}
-SUNG_DELIVERIES = {"sung", "chant"}
+SUNG_DELIVERIES = {"sung", "chant", "gang_shout"}
 
 
 def _number(value: Any) -> bool:
@@ -86,8 +86,10 @@ def validate_score(score: Any, require_singing_ready: bool = False) -> list[str]
             errors.append(f"{label}.duration_beats must be null or a positive finite number")
         if alignment in {"phrase_aligned", "syllable_aligned", "reviewed"} and (start is None or duration is None):
             errors.append(f"{label} claims phrase alignment but lacks start_beat or duration_beats")
-        if alignment in {"syllable_aligned", "reviewed"} and not syllables:
+        if alignment == "syllable_aligned" and not syllables:
             errors.append(f"{label} claims syllable alignment but has no syllable entries")
+        if alignment == "reviewed" and not syllables and not phrase.get("lyric_units"):
+            errors.append(f"{label} claims reviewed alignment but has no canonical lyric_units")
 
         for si, syllable in enumerate(syllables):
             slabel = f"{label}.syllables[{si}]"
@@ -137,8 +139,8 @@ def validate_score(score: Any, require_singing_ready: bool = False) -> list[str]
         if require_singing_ready and phrase.get("delivery") in SUNG_DELIVERIES:
             if alignment != "reviewed":
                 errors.append(f"{label} is not human-reviewed for singing export")
-            if not syllables:
-                errors.append(f"{label} has no syllable map for singing export")
+            if not phrase.get("lyric_units"):
+                errors.append(f"{label} has no canonical lyric_units for singing export")
 
     if require_singing_ready:
         if score.get("score_status") != "reviewed":
@@ -146,7 +148,12 @@ def validate_score(score: Any, require_singing_ready: bool = False) -> list[str]
         if score.get("tempo_status") != "locked":
             errors.append("tempo_status must be locked for singing export")
         if not any(p.get("delivery") in SUNG_DELIVERIES for p in phrases if isinstance(p, dict)):
-            errors.append("score contains no sung or chant phrases")
+            errors.append("score contains no sung, chant, or gang_shout phrases")
+        try:
+            from soulx_export import build_metadata
+            build_metadata(score)
+        except ValueError as exc:
+            errors.append("SoulX export validation failed: " + str(exc))
     return errors
 
 
