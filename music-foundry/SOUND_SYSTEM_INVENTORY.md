@@ -64,9 +64,21 @@ Branch: `main`
 6. Use Portal spatial audio only for game/world positional cues, and keep Portal Radio/ambience separate from the song mix.
 7. Keep VHE/Eidolon responsible for approved performer visuals and media composition, not music synthesis.
 
-## Immediate next engineering step
+## Implemented since the audit
 
-Before changing the sound, build a small, reversible instrument-stem processing experiment inside the existing Music Foundry pipeline by reusing the already-tested vocal DSP concepts. Render A/B outputs from the same stems, preserve dry stems, and compare on the Portal player. First inspect and test the existing DSP edge cases and current output levels; do not add a new sampler, DAW, or standalone audio service.
+A non-destructive instrument-stem processing pass now reuses the existing vocal assembler DSP in `music-foundry/process_instrument_stems.py`. It accepts the existing render manifest plus per-stem effect/automation settings, writes separate stereo processed stems and a mix, records SHA-256 source checksums, and never changes dry source files. The existing DSP's stutter timing now accepts the project's BPM rather than assuming 127 BPM.
+
+- Example preset: `music-foundry/warehouse_rave_v2_texture_a.example.json`.
+- CLI usage and boundaries: documented in `music-foundry/README.md`.
+- Tests: source immutability, stereo PCM format, safe paths, and tempo-aware stutter.
+- Verification: Music Foundry test workflow passed after these changes; the full Foundry CI also passed.
+- Texture A assets were rendered and uploaded as a separate prerelease tag, `warehouse-rave-texture-a`, preserving the original and Warehouse Rave V2 assets.
+
+The Portal player now has separate Texture A mix and stem modes. Its mirror workflow copies the five processed WAV assets into the same-origin Pages audio tree. The first mirror attempt hit a concurrent-push race; the workflow was made rebase-safe and a subsequent mirror run succeeded. Pages deployment and final public-asset verification are being checked separately.
+
+## Next engineering step
+
+Listen to Texture A against the dry V2 mix on the Portal player, then tune the per-stem preset from actual feedback. Keep the arrangement and dry stems unchanged during this sound-design pass; do not add a new sampler, DAW, or standalone audio service.
 
 ## Verification boundaries
 
