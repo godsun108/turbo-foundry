@@ -48,13 +48,22 @@ jobs:
         run: python3 music-foundry/generate.py --output music-foundry/output
       - name: Generate Somebody's Gotta Do It arrangement
         run: python3 music-foundry/arrange_project.py --output music-foundry/output/somebodys-gotta-do-it --bpm 127
+      - name: Generate Warehouse Rave V3 composition preview
+        run: python3 music-foundry/warehouse_rave_v3.py --output music-foundry/output/warehouse-rave-v3 --bpm 127
+      - name: Verify Warehouse Rave V3 mix and stems
+        run: |
+          test -s music-foundry/output/warehouse-rave-v3/instrumental_mix.wav
+          test -s music-foundry/output/warehouse-rave-v3/audio_manifest.json
+          for stem in drums bass synth lead fx; do
+            test -s "music-foundry/output/warehouse-rave-v3/$stem.wav"
+          done
       - name: Generate provisional chorus melody audition MIDI
         run: |
           python3 music-foundry/build_chorus_melody_preview.py --output music-foundry/output/somebodys-gotta-do-it/chorus_melody_concept_a.mid
           test -s music-foundry/output/somebodys-gotta-do-it/chorus_melody_concept_a.mid
       - name: Render offline instrumental WAV preview
         run: python3 music-foundry/render_instrumental.py --output music-foundry/output/somebodys-gotta-do-it-audio --bpm 127
-      - name: Upload MIDI preview files
+      - name: Upload MIDI and audio preview files
         uses: actions/upload-artifact@v4
         with:
           name: music-foundry-midi-demo
