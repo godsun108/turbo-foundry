@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
+REPO_ROOT = PROJECT_ROOT.parents[2]
 DEFAULT_CUE = PROJECT_ROOT / "cue-sheet.md"
 DEFAULT_TIMING = PROJECT_ROOT / "vocal_timing.json"
 DEFAULT_OUTPUT = PROJECT_ROOT / "lyric-events.json"
@@ -36,7 +37,6 @@ def extract_lyric_lines(cue_text: str) -> list[dict]:
         stripped = raw.strip()
         if stripped.startswith(("#", "**", "- ", "|", "```")):
             continue
-        # Preserve the complete lyric line, including punctuation and parentheticals.
         events.append({
             "event_id": f"{section}:L{line_number:03d}",
             "section_id": section,
@@ -79,9 +79,13 @@ def main() -> None:
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args()
 
-    cue_text = args.cue.read_text(encoding="utf-8")
+    cue_path = args.cue.resolve()
+    cue_text = cue_path.read_text(encoding="utf-8")
     timing = json.loads(args.timing.read_text(encoding="utf-8"))
-    source_ref = args.cue.name if args.cue == DEFAULT_CUE else str(args.cue)
+    try:
+        source_ref = cue_path.relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        source_ref = str(cue_path)
     manifest = build_manifest(cue_text, timing, source_ref)
     args.output.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
