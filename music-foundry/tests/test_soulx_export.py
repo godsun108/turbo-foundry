@@ -47,7 +47,14 @@ class SoulXExportTests(unittest.TestCase):
         self.assertEqual(segment["note_type"], "2 2 3 2")
         self.assertNotIn("f0", segment)
 
-    def test_gang_shout_phrase_can_be_rendered_as_score_control_vocal(self):\n        score = aligned_fixture()\n        score["phrases"][1]["delivery"] = "gang_shout"\n        metadata = build_metadata(score)\n        self.assertEqual(len(metadata), 1)\n        self.assertEqual(metadata[0]["text"], "Make the speakers scream")\n\n    def test_missing_word_grouping_rejected(self):
+    def test_gang_shout_phrase_can_be_rendered_as_score_control_vocal(self):
+        score = aligned_fixture()
+        score["phrases"][1]["delivery"] = "gang_shout"
+        metadata = build_metadata(score)
+        self.assertEqual(len(metadata), 1)
+        self.assertEqual(metadata[0]["text"], "Make the speakers scream")
+
+    def test_missing_word_grouping_rejected(self):
         score = aligned_fixture()
         del score["phrases"][1]["lyric_units"]
         with self.assertRaisesRegex(ValueError, "lyric_units"):
