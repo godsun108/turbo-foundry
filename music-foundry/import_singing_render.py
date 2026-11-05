@@ -94,6 +94,7 @@ def import_render(*, render_manifest_path: Path, output_manifest_path: Path,
             "gain_db": float(gain_db), "pan": float(pan),
             "source": {
                 "engine": render.get("engine", "unknown"),
+                "vocal_type": "sung",
                 "render_manifest_sha256": sha256_file(render_manifest_path),
                 "audio_sha256": render["audio_sha256"],
                 "score_sha256": render.get("source_score_sha256"),
