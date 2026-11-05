@@ -1,0 +1,91 @@
+{
+  "schema": "turbo.music-foundry.instrument-stem-processing.v1",
+  "source_manifest": "output/warehouse-rave-v2/audio_manifest.json",
+  "stems": {
+    "drums.wav": {
+      "effects": {
+        "drive_db": 1.5,
+        "lowpass_hz": 16000
+      },
+      "gain_db": -1,
+      "pan": 0
+    },
+    "bass.wav": {
+      "effects": {
+        "drive_db": 4.5,
+        "lowpass_hz": 1250
+      },
+      "gain_db": -1,
+      "pan": 0
+    },
+    "synth.wav": {
+      "effects": {
+        "drive_db": 3,
+        "lowpass_hz": 9000,
+        "delay_ms": 114,
+        "delay_feedback": 26,
+        "delay_wet": 18
+      },
+      "automation": [
+        {
+          "param": "lowpass_hz",
+          "time_ms": 0,
+          "value": 4800
+        },
+        {
+          "param": "lowpass_hz",
+          "time_ms": 45000,
+          "value": 9000
+        },
+        {
+          "param": "lowpass_hz",
+          "time_ms": 90000,
+          "value": 6500
+        },
+        {
+          "param": "delay_wet",
+          "time_ms": 0,
+          "value": 10
+        },
+        {
+          "param": "delay_wet",
+          "time_ms": 45000,
+          "value": 24
+        },
+        {
+          "param": "delay_wet",
+          "time_ms": 90000,
+          "value": 16
+        },
+        {
+          "param": "delay_feedback",
+          "time_ms": 0,
+          "value": 18
+        },
+        {
+          "param": "delay_feedback",
+          "time_ms": 45000,
+          "value": 30
+        },
+        {
+          "param": "delay_feedback",
+          "time_ms": 90000,
+          "value": 22
+        }
+      ],
+      "gain_db": -2,
+      "pan": -0.22
+    },
+    "fx.wav": {
+      "effects": {
+        "drive_db": 1,
+        "lowpass_hz": 14000,
+        "delay_ms": 227,
+        "delay_feedback": 30,
+        "delay_wet": 28
+      },
+      "gain_db": -3,
+      "pan": 0.22
+    }
+  }
+}
