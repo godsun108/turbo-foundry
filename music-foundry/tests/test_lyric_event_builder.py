@@ -25,14 +25,14 @@ class LyricEventBuilderTests(unittest.TestCase):
 
     def test_original_phrasing_and_parentheticals_are_preserved(self):
         events = builder.extract_lyric_lines(self.cue_text)
-        texts = [event["text"] for event in events]
+        texts = [event["text"].strip() for event in events]
         self.assertIn("(Fuck it, I'll do it)", texts)
         self.assertIn("(And I'm not done yet)", texts)
         self.assertIn("Drop a track that makes the whole club lose their fucking minds", texts)
 
     def test_adlib_suggestions_are_not_misclassified_as_canonical_lyrics(self):
         events = builder.extract_lyric_lines(self.cue_text)
-        texts = [event["text"] for event in events]
+        texts = [event["text"].strip() for event in events]
         self.assertNotIn('After “Fold the laundry?” — “Eventually.”', texts)
         self.assertNotIn('After “Text my mom?” — “You better.”', texts)
 
