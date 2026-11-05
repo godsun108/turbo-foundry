@@ -37,6 +37,14 @@ def _secret_paths(value: Any, prefix: str = "") -> list[str]:
 
 
 def validate_renderer_descriptor(descriptor: dict) -> Validation:
+    """Validate declared modes separately from independently tested capabilities.
+
+    A renderer claiming it can sing is not sufficient. A sung request is accepted
+    only when the descriptor also carries a passed verification record for sung
+    mode and a reference to the test evidence. Evidence still requires review by
+    the authorized integration/release process; this function is not an attestation
+    authority and does not dispatch a renderer.
+    """
     errors = []
     if descriptor.get("schema") != RENDERER_SCHEMA:
         errors.append(f"schema must be {RENDERER_SCHEMA}")
@@ -44,9 +52,32 @@ def validate_renderer_descriptor(descriptor: dict) -> Validation:
         errors.append("id must be a non-empty string")
     if descriptor.get("execution") not in {"local", "remote"}:
         errors.append("execution must be local or remote")
+
     modes = descriptor.get("modes")
-    if not isinstance(modes, list) or not modes or not set(modes) <= SUPPORTED_MODES:
+    if (not isinstance(modes, list) or not modes
+            or any(not isinstance(mode, str) for mode in modes)
+            or not set(modes) <= SUPPORTED_MODES):
         errors.append("modes must be a non-empty list containing only spoken and/or sung")
+
+    verification = descriptor.get("verification")
+    if not isinstance(verification, dict):
+        errors.append("verification must record tested capabilities")
+        verification = {}
+    verified_modes = verification.get("verified_modes", [])
+    if (not isinstance(verified_modes, list)
+            or any(not isinstance(mode, str) for mode in verified_modes)
+            or not set(verified_modes) <= SUPPORTED_MODES):
+        errors.append("verification.verified_modes must contain only spoken and/or sung")
+        verified_modes = []
+    if isinstance(modes, list) and any(mode not in modes for mode in verified_modes):
+        errors.append("verified modes must also be declared in modes")
+    if verified_modes:
+        if verification.get("status") != "passed":
+            errors.append("verified modes require verification.status=passed")
+        evidence_ref = verification.get("evidence_ref")
+        if not isinstance(evidence_ref, str) or not evidence_ref.strip():
+            errors.append("verified modes require a non-empty verification.evidence_ref")
+
     formats = descriptor.get("formats")
     if not isinstance(formats, list) or "wav" not in formats:
         errors.append("formats must include wav")
@@ -86,8 +117,10 @@ def validate_render_request(request: dict, renderer: dict | None = None) -> Vali
     if renderer is not None:
         result = validate_renderer_descriptor(renderer)
         errors.extend(result.errors)
-        if mode in SUPPORTED_MODES and mode not in renderer.get("modes", []):
-            errors.append(f"renderer does not support {mode} mode")
+        verification = renderer.get("verification", {})
+        verified_modes = verification.get("verified_modes", []) if isinstance(verification, dict) else []
+        if mode in SUPPORTED_MODES and mode not in verified_modes:
+            errors.append(f"renderer has no verified {mode} capability")
         if request.get("format") not in renderer.get("formats", []):
             errors.append("renderer does not support the requested format")
     return Validation(not errors, tuple(errors))
