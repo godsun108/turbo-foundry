@@ -30,7 +30,7 @@ class SoulXExportPreflightTests(unittest.TestCase):
         score["score_status"] = "reviewed"
         for phrase in score["phrases"]:
             phrase["delivery"] = "spoken"
-        with self.assertRaisesRegex(ValueError, "no sung or chant"):
+        with self.assertRaisesRegex(ValueError, "no sung, chant, or gang_shout"):
             build_metadata(score)
 
 
