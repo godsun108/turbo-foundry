@@ -38,6 +38,21 @@ Make Genesis capable of helping create original, high-quality music while preser
 
 ### Singing model boundary
 
+### Singing model candidate: SoulX-Singer (research candidate, not integrated)
+
+Repository and model-card inspection confirms that SoulX-Singer is more than an empty adapter placeholder:
+
+- Upstream publishes inference code and pretrained SVS weights under Apache-2.0; review the license for every separately downloaded preprocessing asset before use.
+- The model card describes zero-shot singing voice synthesis with both F0/melody conditioning and score/MIDI-note conditioning. It supports English, Mandarin, and Cantonese.
+- The upstream example requires a prompt vocal WAV, prompt metadata, target lyric/note metadata, and a phone-set file. The README warns that automatic lyric/note alignment can be imperfect and recommends manual correction in its MIDI editor.
+- The published example invokes inference with `--device cuda` and `--fp16`; its documented environment uses Python 3.10 and a pinned PyTorch / torchaudio stack. Do not assume iPhone, CPU-only, or offline portability until tested.
+- The repository's README describes a 42,000+ hour aligned training corpus and zero-shot synthesis, so the first experiment should be inference with released weights, not training a new singer model.
+- The current Music Foundry adapter is not yet wired to this inference CLI; no weights have been downloaded and no local inference has been run.
+
+**Recommended role:** test SoulX-Singer for optional pitched hook/chant textures or a sung layer, not as a replacement for the track's predominantly spoken lead. First prove a short English phrase with manually checked score/lyric alignment, then measure quality, latency, VRAM, and deployment constraints. Keep spoken lead recording/TTS on its separate path.
+
+Sources inspected: `https://github.com/Soul-AILab/SoulX-Singer` and `https://huggingface.co/Soul-AILab/SoulX-Singer`.
+
 - The SoulX-Singer integration is an adapter/prototype boundary only. Model weights and an end-to-end singing inference run have not been verified in this project.
 - No training run, fine-tune, validated music dataset, model registry, or quality-based promotion pipeline is established by the evidence inspected for this plan.
 - Do not claim Genesis can currently sing or train a singing model.
@@ -120,11 +135,11 @@ Keep Music Foundry as the canonical project, arrangement, vocal timeline, stems,
 
 ## Immediate next engineering tasks
 
-1. Add a vocal event schema that binds each event to cue-sheet section and exact lyric text, without duplicating or changing the canonical lyric source.
-2. Add an explicit renderer capability registry distinguishing `spoken`, `singing`, and `instrumental`; fail closed when a requested mode is unsupported.
+1. Wire the generated source-linked lyric event manifest into the vocal timeline / recording workflow while keeping cue-sheet.md canonical.
+2. Build a local SoulX-Singer inference spike in an isolated, reproducible environment; verify weights, preprocessing assets, GPU requirements, alignment, and English phrase quality before integrating it.
 3. Add an end-to-end spoken-vocal smoke test using a supplied compatible local model or a recorded WAV fixture. The test must not pretend that the renderer has generated a sung take.
 4. Add an audio audition checklist and objective render checks to the Music Foundry workflow.
-5. In parallel, benchmark a licensed instrument backend and a real singing model candidate before choosing any dependency or starting training.
+5. Benchmark a licensed instrument backend and capture a user-auditioned vocal/instrument mix before choosing any fine-tuning or training path.
 
 ## Non-goals
 
