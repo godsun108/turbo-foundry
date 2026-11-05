@@ -1,0 +1,35 @@
+name: CPU vocal lab audition (no publishing)
+on:
+  push:
+    branches:
+      - music/vocal-cpu-lab
+    paths:
+      - 'music-foundry/vocal-lab/**'
+      - '.github/workflows/vocal-cpu-lab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install free CPU audio tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y espeak-ng rubberband-cli ffmpeg
+      - name: Render synthetic chorus WAV
+        run: |
+          python3 music-foundry/vocal-lab/render_cpu_chorus.py --out music-foundry/vocal-lab/output/somebodys-gotta-do-it-chorus-robotic-demo.wav
+          test -s music-foundry/vocal-lab/output/somebodys-gotta-do-it-chorus-robotic-demo.wav
+          test -s music-foundry/vocal-lab/output/somebodys-gotta-do-it-chorus-robotic-demo.manifest.json
+      - name: Upload audition WAV and manifest (private to workflow run)
+        uses: actions/upload-artifact@v4
+        with:
+          name: somebodys-gotta-do-it-robotic-chorus-audition
+          path: |
+            music-foundry/vocal-lab/output/*.wav
+            music-foundry/vocal-lab/output/*.manifest.json
+          if-no-files-found: error
+          retention-days: 7
