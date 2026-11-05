@@ -28,6 +28,32 @@ jobs:
           test -s music-foundry/output/somebodys-gotta-do-it-audio/chords.wav
           test -s music-foundry/output/somebodys-gotta-do-it-audio/bass.wav
           test -s music-foundry/output/somebodys-gotta-do-it-audio/drums.wav
+
+      - name: Render Warehouse Rave V2
+        run: |
+          python3 music-foundry/warehouse_rave_v2.py --output music-foundry/output/warehouse-rave-v2 --bpm 132
+          test -s music-foundry/output/warehouse-rave-v2/instrumental_mix.wav
+          test -s music-foundry/output/warehouse-rave-v2/drums.wav
+          test -s music-foundry/output/warehouse-rave-v2/bass.wav
+          test -s music-foundry/output/warehouse-rave-v2/synth.wav
+          test -s music-foundry/output/warehouse-rave-v2/fx.wav
+      - name: Publish Warehouse Rave V2 audition
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: warehouse-rave-v2
+          target_commitish: ${{ github.sha }}
+          name: Somebody's Gotta Do It — Warehouse Rave V2
+          prerelease: true
+          make_latest: false
+          overwrite_files: true
+          fail_on_unmatched_files: true
+          files: |
+            music-foundry/output/warehouse-rave-v2/instrumental_mix.wav
+            music-foundry/output/warehouse-rave-v2/drums.wav
+            music-foundry/output/warehouse-rave-v2/bass.wav
+            music-foundry/output/warehouse-rave-v2/synth.wav
+            music-foundry/output/warehouse-rave-v2/fx.wav
+
       - name: Publish public read-only audio assets
         uses: softprops/action-gh-release@v2
         with:
