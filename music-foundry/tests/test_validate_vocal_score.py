@@ -64,9 +64,16 @@ class VocalScoreValidatorTests(unittest.TestCase):
                 other["delivery"] = "spoken"
         phrase = score["phrases"][1]
         phrase.update({"alignment_status": "reviewed", "start_beat": 0, "duration_beats": 1,
-                       "lyric_units": [{"text": "Make", "phonemes": ["M", "EY1", "K"],
-                                        "onset_beats": 0, "duration_beats": 1,
-                                        "midi_pitch": 60, "note_type": "normal"}]})
+                       "lyric_units": [
+                           {"text": "Make", "phonemes": ["M", "EY1", "K"], "onset_beats": 0,
+                            "duration_beats": 0.25, "midi_pitch": 60, "note_type": "normal"},
+                           {"text": "the", "phonemes": ["DH", "AH0"], "onset_beats": 0.25,
+                            "duration_beats": 0.25, "midi_pitch": 62, "note_type": "normal"},
+                           {"text": "speakers", "phonemes": ["S", "P", "IY1", "K", "ER0", "Z"], "onset_beats": 0.5,
+                            "duration_beats": 0.25, "midi_pitch": 64, "note_type": "normal"},
+                           {"text": "scream", "phonemes": ["S", "K", "R", "IY1", "M"], "onset_beats": 0.75,
+                            "duration_beats": 0.25, "midi_pitch": 67, "note_type": "normal"}
+                       ]})
         self.assertEqual(validate_score(score, require_singing_ready=True), [])
 
 
