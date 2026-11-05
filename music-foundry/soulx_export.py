@@ -42,7 +42,7 @@ def build_metadata(score: Any) -> list[dict[str, Any]]:
 
     records: list[tuple[float, float, dict[str, Any]]] = []
     for phrase in phrases:
-        if not isinstance(phrase, dict) or phrase.get("delivery") not in {"sung", "chant"}:
+        if not isinstance(phrase, dict) or phrase.get("delivery") not in {"sung", "chant", "gang_shout"}:
             continue
         pid = phrase.get("id", "<unknown>")
         if phrase.get("alignment_status") != "reviewed":
@@ -135,8 +135,8 @@ def build_metadata(score: Any) -> list[dict[str, Any]]:
         }
         records.append((float(start), float(start) + float(span), record))
 
-    if not any(isinstance(p, dict) and p.get("delivery") in {"sung", "chant"} for p in phrases):
-        errors.append("score contains no sung or chant phrases")
+    if not any(isinstance(p, dict) and p.get("delivery") in {"sung", "chant", "gang_shout"} for p in phrases):
+        errors.append("score contains no sung, chant, or gang_shout phrases")
     records.sort(key=lambda item: item[0])
     for previous, current in zip(records, records[1:]):
         if current[0] < previous[1] - 1e-7:
