@@ -15,8 +15,8 @@ async function fixture() {
     source_sha256:await digest(source),
     lyric_authority:"source_ref",
     timing_policy:"editorial_grid_not_performance_locked",
-    events:[1,2].map((line,index)=>({
-      event_id:"intro_tag:L00"+(line+0),section_id:"intro_tag",source_line:line+0,
+    events:[2,3].map((line,index)=>({
+      event_id:"intro_tag:L"+String(line).padStart(3,"0"),section_id:"intro_tag",source_line:line,
       text:index===0?"First exact line":"Second exact line",
       timing:{status:"unplaced",bar:null,beat:null,marker_ref:null}
     }))
@@ -29,7 +29,8 @@ test("exports exact source-linked performance cues without inventing timing",asy
   assert.ok(cues.events.every(event=>event.timing.status==="unplaced"&&event.timing.bar===null&&event.timing.beat===null));
 });
 test("rejects changed source text before exporting cues",async()=>{
-  await assert.rejects(()=>buildVerifiedPerformanceCueSheet(await fixture(),source.replace("First","Changed")),/SHA-256/);
+  const manifest=await fixture();
+  await assert.rejects(()=>buildVerifiedPerformanceCueSheet(manifest,source.replace("First","Changed")),/SHA-256/);
 });
 test("rejects altered lyric event text",async()=>{
   const manifest=await fixture();manifest.events[0].text="rewritten lyric";
