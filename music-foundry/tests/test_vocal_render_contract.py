@@ -15,30 +15,54 @@ class VocalRenderContractTests(unittest.TestCase):
             "id": "local-test-renderer",
             "execution": "local",
             "modes": ["spoken", "sung"],
+            "verification": {
+                "status": "passed",
+                "verified_modes": ["spoken"],
+                "evidence_ref": "tests/fixtures/spoken-renderer-smoke-test.json",
+            },
             "formats": ["wav"],
             "credential_handling": "server_or_local_only",
         }
         self.request = contract.make_render_request(
             project_id="somebodys-gotta-do-it",
-            source_ref="cue-sheet.md",
+            source_ref="projects/somebodys-gotta-do-it/cue-sheet.md",
             mode="spoken",
             layers=["dry_lead", "gang_responses", "adlibs_and_chops"],
         )
 
-    def test_valid_spoken_request_and_dual_mode_renderer(self):
+    def test_verified_spoken_request_is_accepted(self):
         self.assertTrue(contract.validate_renderer_descriptor(self.renderer).ok)
         self.assertTrue(contract.validate_render_request(self.request, self.renderer).ok)
 
-    def test_sung_mode_is_a_first_class_supported_mode(self):
-        self.request["mode"] = "sung"
-        self.assertTrue(contract.validate_render_request(self.request, self.renderer).ok)
-
-    def test_renderer_missing_sung_capability_is_rejected(self):
-        self.renderer["modes"] = ["spoken"]
+    def test_declaring_sung_is_not_enough_to_claim_singing_capability(self):
         self.request["mode"] = "sung"
         result = contract.validate_render_request(self.request, self.renderer)
         self.assertFalse(result.ok)
-        self.assertTrue(any("does not support sung" in error for error in result.errors))
+        self.assertTrue(any("no verified sung capability" in error for error in result.errors))
+
+    def test_sung_mode_requires_a_passed_evidence_record(self):
+        self.renderer["verification"]["verified_modes"].append("sung")
+        self.renderer["verification"]["evidence_ref"] = "tests/fixtures/sung-renderer-smoke-test.json"
+        self.request["mode"] = "sung"
+        self.assertTrue(contract.validate_render_request(self.request, self.renderer).ok)
+
+    def test_verified_mode_without_passed_status_is_rejected(self):
+        self.renderer["verification"]["status"] = "pending"
+        result = contract.validate_renderer_descriptor(self.renderer)
+        self.assertFalse(result.ok)
+        self.assertTrue(any("status=passed" in error for error in result.errors))
+
+    def test_verified_mode_without_evidence_reference_is_rejected(self):
+        self.renderer["verification"]["evidence_ref"] = ""
+        result = contract.validate_renderer_descriptor(self.renderer)
+        self.assertFalse(result.ok)
+        self.assertTrue(any("evidence_ref" in error for error in result.errors))
+
+    def test_renderer_missing_spoken_capability_is_rejected(self):
+        self.renderer["modes"] = ["sung"]
+        self.request["mode"] = "spoken"
+        result = contract.validate_render_request(self.request, self.renderer)
+        self.assertFalse(result.ok)
 
     def test_bad_audio_spec_is_rejected(self):
         self.request["sample_rate"] = 22050
