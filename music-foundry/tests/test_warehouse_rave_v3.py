@@ -42,6 +42,21 @@ class WarehouseRaveV3Tests(unittest.TestCase):
             self.assertEqual(manifest["bpm"], 127)
             self.assertEqual(manifest["schema"], "turbo.music-foundry.composition.v3")
 
+    def test_existing_renderer_creates_v3_mix_and_stems(self):
+        import wave
+        with tempfile.TemporaryDirectory() as tmp:
+            out = render_v3.render(tmp, 127, 8000)
+            for filename in ("instrumental_mix.wav", "chords.wav", "bass.wav", "lead.wav", "drums.wav", "texture.wav"):
+                with wave.open(str(out / filename), "rb") as wav:
+                    self.assertEqual(wav.getnchannels(), 1)
+                    self.assertEqual(wav.getsampwidth(), 2)
+                    self.assertEqual(wav.getframerate(), 8000)
+                    self.assertGreater(wav.getnframes(), 0)
+            manifest = json.loads((out / "audio_manifest.json").read_text())
+            self.assertEqual(manifest["bars"], 56)
+            self.assertFalse(manifest["vocals_rendered"])
+            self.assertIn("existing_procedural_synth", manifest["render_type"])
+
     def test_rejects_invalid_tempo(self):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(ValueError):
