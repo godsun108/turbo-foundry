@@ -9,6 +9,11 @@ SPEC = importlib.util.spec_from_file_location("warehouse_rave_v3", SCRIPT)
 v3 = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(v3)
 
+RENDER_SCRIPT = Path(__file__).resolve().parents[1] / "render_warehouse_rave_v3.py"
+RENDER_SPEC = importlib.util.spec_from_file_location("render_warehouse_rave_v3", RENDER_SCRIPT)
+render_v3 = importlib.util.module_from_spec(RENDER_SPEC)
+RENDER_SPEC.loader.exec_module(render_v3)
+
 
 class WarehouseRaveV3Tests(unittest.TestCase):
     def test_composition_has_56_bars_and_distinct_sections(self):
