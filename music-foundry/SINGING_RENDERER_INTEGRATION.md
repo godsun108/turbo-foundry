@@ -6,6 +6,19 @@ Status: adapter scaffold committed; no model, dependency, reference recording, o
 
 Music Foundry remains canonical for lyrics, arrangement, reviewed vocal score, takes, stems, and mix. SoulX-Singer is an optional local render worker behind a narrow adapter. The browser remains the iPhone-first authoring and review surface; the large singing model runs on an operator-controlled desktop/GPU or other explicitly provisioned local host.
 
+## Prepare a reference singing prompt
+
+The first-time prompt preparation wrapper stages a copy of an authorized English singing recording inside a new output folder, then invokes the official SoulX preprocessing pipeline with English lyric/note transcription. It does not touch the original recording or overwrite an existing output folder.
+
+```bash
+python3 music-foundry/soulx_prepare_prompt.py \
+  --source-audio /absolute/path/to/authorized-reference.wav \
+  --engine-root /absolute/path/to/SoulX-Singer \
+  --output-dir music-foundry/output/somebodys-gotta-do-it/reference-prompt
+```
+
+On success, use `reference-prompt/vocal.wav` and `reference-prompt/metadata.json` as the `--prompt-wav` and `--prompt-metadata` inputs to `soulx_local_runner.py`. Preprocessing requires the upstream preprocessing checkpoints and runtime dependencies to already exist in the local SoulX checkout. It does not download or install them.
+
 ## Data flow
 
 1. Author the sung phrase in the track-local Vocal Score Editor.
