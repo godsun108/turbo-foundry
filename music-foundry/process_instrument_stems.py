@@ -66,8 +66,8 @@ def process(config_path, output_path):
     if not isinstance(bpm, (int, float)) or not 40 <= bpm <= 240:
         raise ValueError("source manifest bpm must be between 40 and 240")
     settings = config.get("stems", {})
-    if not isinstance(settings, dict):
-        raise ValueError("stems settings must be an object")
+    if not isinstance(settings, dict) or set(settings) - set(stem_files):
+        raise ValueError("stems settings must be an object keyed only by source stem filenames")
 
     rendered = {}
     sample_rate = None
@@ -86,6 +86,8 @@ def process(config_path, output_path):
         if not isinstance(stem_settings, dict):
             raise ValueError(f"settings for {filename} must be an object")
         effects = stem_settings.get("effects", {})
+        if not isinstance(effects, dict):
+            raise ValueError(f"{filename}: effects must be an object")
         automation = _validate_automation(stem_settings.get("automation", []))
         gain_db = stem_settings.get("gain_db", 0)
         pan = stem_settings.get("pan", 0)
@@ -94,15 +96,14 @@ def process(config_path, output_path):
         if not isinstance(pan, (int, float)) or not -1 <= pan <= 1:
             raise ValueError(f"{filename}: pan must be between -1 and 1")
         processed = _apply_effects(samples, rate, effects, automation, tempo_bpm=bpm)
-        gain_base = 10.0 ** (gain_db / 20.0)
         for index, value in enumerate(processed):
             time_ms = index * 1000.0 / rate
             automated_db = _automation_value(automation, "gain_db", time_ms, gain_db)
-            processed[index] = value * (10.0 ** (automated_db / 20.0)) / gain_base if gain_base else value
+            processed[index] = value * (10.0 ** (automated_db / 20.0))
         left_pan = math.sqrt((1.0 - pan) / 2.0) * math.sqrt(2.0)
         right_pan = math.sqrt((1.0 + pan) / 2.0) * math.sqrt(2.0)
-        left = [value * gain_base * left_pan for value in processed]
-        right = [value * gain_base * right_pan for value in processed]
+        left = [value * left_pan for value in processed]
+        right = [value * right_pan for value in processed]
         rendered[filename] = {
             "left": left, "right": right, "source": source_path,
             "settings": {"effects": effects, "automation": automation, "gain_db": gain_db, "pan": pan},
