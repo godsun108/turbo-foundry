@@ -87,6 +87,7 @@ def main() -> None:
     except ValueError:
         source_ref = str(cue_path)
     manifest = build_manifest(cue_text, timing, source_ref)
+    args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
