@@ -14,7 +14,7 @@ def aligned_fixture():
     score["tempo_status"] = "locked"
     score["score_status"] = "reviewed"
     for phrase in score["phrases"]:
-        phrase["delivery"] = "gang_shout"
+        phrase["delivery"] = "spoken"
     phrase = score["phrases"][1]
     phrase.update({
         "delivery": "sung",
