@@ -39,7 +39,7 @@ function render() {
   if (!score) return;
   $("tempo").value = score.tempo_bpm ?? 127;
   $("tempoLock").value = score.tempo_status || "provisional";
-  for (const phrase of score.phrases.filter(p => p.delivery === "sung" || p.delivery === "chant")) {
+  for (const phrase of score.phrases.filter(p => ["sung", "chant", "gang_shout"].includes(p.delivery))) {
     const card = document.createElement("section"); card.className="phrase";
     const heading=document.createElement("h2"); heading.textContent=phrase.id+" · "+phrase.text; card.append(heading);
     const meta=document.createElement("p"); meta.className="small muted";
@@ -82,7 +82,7 @@ function render() {
   }
   $("saveWork").disabled=false;
   $("exportScore").disabled=false;
-  setStatus("Loaded "+score.phrases.filter(p=>p.delivery==="sung"||p.delivery==="chant").length+" sung/chant phrases. No score values have been inferred.");
+  setStatus("Loaded "+score.phrases.filter(p=>["sung","chant","gang_shout"].includes(p.delivery)).length+" sung/chant/gang-shout phrases. No score values have been inferred.");
 }
 function makeField(label,value,type,kind) {
   const wrap=document.createElement("div"); const l=document.createElement("label"); l.textContent=label; wrap.append(l);
@@ -125,7 +125,7 @@ function collectAll() {
   output.tempo_status=$("tempoLock").value;
   if(output.tempo_bpm===null || output.tempo_bpm<=0) errors.push("Tempo must be a positive number.");
   if(output.tempo_status!=="locked") errors.push("Lock the performance tempo before canonical singing export.");
-  const sung=output.phrases.filter(p=>p.delivery==="sung"||p.delivery==="chant");
+  const sung=output.phrases.filter(p=>["sung","chant","gang_shout"].includes(p.delivery));
   for(const phrase of sung){
     const source=score.phrases.find(p=>p.id===phrase.id);
     const result=collectPhrase(source);
@@ -146,13 +146,13 @@ $("scoreFile").addEventListener("change",async event=>{
     if(isWorkbench(data)){score=data.score;drafts=data.drafts;reviewFlags=data.reviewFlags||{};}
     else if(data && Array.isArray(data.phrases)){score=data;drafts={};}
     else throw new Error("This file is not a supported vocal score or workbench file.");
-    for(const p of score.phrases){if((p.delivery==="sung"||p.delivery==="chant")&&!drafts[p.id]) drafts[p.id]=phraseDraft(p);}
+    for(const p of score.phrases){if((["sung","chant","gang_shout"].includes(p.delivery))&&!drafts[p.id]) drafts[p.id]=phraseDraft(p);}
     render();
   }catch(error){setStatus("Could not open file: "+error.message);}
 });
 $("saveWork").addEventListener("click",()=>{
   if(!score)return;
-  for(const phrase of score.phrases.filter(p=>p.delivery==="sung"||p.delivery==="chant")){
+  for(const phrase of score.phrases.filter(p=>["sung","chant","gang_shout"].includes(p.delivery))){
     const control=controls[phrase.id] || {};
     phrase.start_beat=safeNumber(control.startInput?.value ?? phrase.start_beat);
     phrase.duration_beats=safeNumber(control.durationInput?.value ?? phrase.duration_beats);
