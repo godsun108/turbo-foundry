@@ -54,6 +54,13 @@ jobs:
             music-foundry/output/warehouse-rave-v2/synth.wav
             music-foundry/output/warehouse-rave-v2/fx.wav
 
+      - name: Diagnose public Warehouse Rave V2 asset delivery
+        run: |
+          curl -sS -L -D /tmp/warehouse-headers.txt -o /dev/null "https://github.com/godsun108/turbo-foundry/releases/download/warehouse-rave-v2/instrumental_mix.wav"
+          cat /tmp/warehouse-headers.txt
+          grep -Eiq '^HTTP/.* 200' /tmp/warehouse-headers.txt
+          grep -Eiq '^content-type: audio/wav' /tmp/warehouse-headers.txt
+          echo "Final release asset response is HTTP 200 with audio/wav content type."
       - name: Publish public read-only audio assets
         uses: softprops/action-gh-release@v2
         with:
