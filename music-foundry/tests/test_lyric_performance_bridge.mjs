@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { webcrypto } from "node:crypto";
 import { buildVerifiedPerformanceCueSheet } from "../projects/somebodys-gotta-do-it/lyric-performance-bridge-core.mjs";
-globalThis.crypto = webcrypto;
+const crypto = webcrypto;
 const source = "## Intro tag\nFirst exact line\nSecond exact line\n";
 async function digest(text) {
   const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
