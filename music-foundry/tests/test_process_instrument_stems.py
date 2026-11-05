@@ -102,6 +102,9 @@ class InstrumentStemProcessingTests(unittest.TestCase):
             manifest = json.loads((source / "audio_manifest.json").read_text())
             manifest["stems"][0] = "../outside.wav"
             (source / "audio_manifest.json").write_text(json.dumps(manifest))
+            settings = json.loads(config.read_text())
+            settings["stems"] = {}
+            config.write_text(json.dumps(settings))
             with self.assertRaisesRegex(ValueError, "plain WAV filenames"):
                 processor.process(config, root / "processed")
 
