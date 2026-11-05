@@ -43,7 +43,7 @@ class SingingRenderImportTests(unittest.TestCase):
 
     def test_imported_take_runs_through_existing_assembler_end_to_end(self):
         import_render(render_manifest_path=self.render_manifest, output_manifest_path=self.output,
-            offset_ms=100, project_duration_seconds=1.0, layer="gang_vocals")
+            offset_ms=0, project_duration_seconds=1.0, layer="gang_vocals")
         rendered = assembler.assemble(self.output, self.root / "final-vocals")
         mix, stem = rendered / "spoken_vocal_mix.wav", rendered / "gang_vocals.wav"
         self.assertTrue(mix.is_file()); self.assertTrue(stem.is_file())
