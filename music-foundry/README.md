@@ -189,6 +189,20 @@ The timeline ruler also displays translucent A and B region bands so the selecte
 Loop Lab supports an adjustable 0–100 ms crossfade (12 ms default) between consecutive loop regions. Crossfade envelopes are scheduled against the region timeline and bounded for short source segments to reduce clicks without extending the project. The take comparison panel lets the user choose two imported takes, audition A or B over loop region A, or compare A followed by B with a short transition. Comparison preserves each take's phrase processing, effects, automation and pan; explicitly muted takes/lanes remain muted. Comparison selection is session UI state, not a change to source recordings.
 
 
+## Non-destructive instrument-stem processing
+
+Instrument stems can now use the existing bounded DSP path from the spoken-take assembler without creating a second audio engine. The processor reuses drive/saturation, low-pass filtering, tempo-aware stutter, feedback delay, gain automation, and equal-power stereo placement. It writes processed stereo stems and a mix to a separate output folder, records source checksums, and never modifies the dry source stems.
+
+A conservative Warehouse Rave Texture A starting preset is provided in `music-foundry/warehouse_rave_v2_texture_a.example.json`. After rendering Warehouse Rave V2, run:
+
+```bash
+python3 music-foundry/process_instrument_stems.py \
+  --config music-foundry/warehouse_rave_v2_texture_a.example.json \
+  --output music-foundry/output/warehouse-rave-texture-a
+```
+
+The preset uses light drum drive, bass saturation and low-pass shaping, animated synth filtering with a tempo-related 1/16 delay, and a wider delayed FX layer. It is an A/B audition—not a mastering preset or a claim that the arrangement is finished. Keep the dry Warehouse Rave V2 render as the reference and compare the processed result by ear. The instrument processor and its safety/format checks are covered by the Music Foundry unit-test workflow.
+
 ## Genesis local spoken-vocal synthesis
 
 The Genesis Voice Engine now has a local Piper CLI adapter in `music-foundry/genesis_voice_adapter.py`. It requires an operator-supplied Piper executable and local ONNX voice model; it performs no downloads or provider calls, and dispatch is explicitly denied unless authorized. It renders spoken text to normalized 16-bit WAV. Singing remains a separate, unimplemented engine. See [GENESIS_VOICE_ENGINE.md](GENESIS_VOICE_ENGINE.md) for configuration, usage, and verification limits. Automated tests use a fake local renderer; a real Piper/model render has not yet been verified.
