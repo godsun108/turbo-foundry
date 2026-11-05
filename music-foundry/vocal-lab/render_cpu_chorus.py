@@ -11,7 +11,7 @@ from array import array
 from pathlib import Path
 
 BPM = 127
-SR = 24000
+SR = 22050
 BASE_MIDI = 65
 # Exact chorus lines from the canonical cue sheet. Each word is a scored unit.
 PHRASES = [
