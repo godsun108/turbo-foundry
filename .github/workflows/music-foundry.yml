@@ -48,12 +48,36 @@ jobs:
         run: python3 music-foundry/generate.py --output music-foundry/output
       - name: Generate Somebody's Gotta Do It arrangement
         run: python3 music-foundry/arrange_project.py --output music-foundry/output/somebodys-gotta-do-it --bpm 127
+      - name: Generate Warehouse Rave V3 composition MIDI
+        run: python3 music-foundry/warehouse_rave_v3.py --output music-foundry/output/warehouse-rave-v3 --bpm 127
+      - name: Verify Warehouse Rave V3 MIDI exports
+        run: |
+          test -s music-foundry/output/warehouse-rave-v3/manifest.json
+          test -s music-foundry/output/warehouse-rave-v3/chords.mid
+          test -s music-foundry/output/warehouse-rave-v3/bass.mid
+          test -s music-foundry/output/warehouse-rave-v3/lead.mid
+          test -s music-foundry/output/warehouse-rave-v3/drums.mid
+          test -s music-foundry/output/warehouse-rave-v3/texture.mid
+      - name: Render Warehouse Rave V3 composition audition through existing synth
+        run: |
+          python3 music-foundry/render_warehouse_rave_v3.py --output music-foundry/output/warehouse-rave-v3-audio --bpm 127
+          test -s music-foundry/output/warehouse-rave-v3-audio/instrumental_mix.wav
+          test -s music-foundry/output/warehouse-rave-v3-audio/drums.wav
+          test -s music-foundry/output/warehouse-rave-v3-audio/bass.wav
+          test -s music-foundry/output/warehouse-rave-v3-audio/lead.wav
+          test -s music-foundry/output/warehouse-rave-v3-audio/chords.wav
+          test -s music-foundry/output/warehouse-rave-v3-audio/texture.wav
       - name: Generate provisional chorus melody audition MIDI
         run: |
           python3 music-foundry/build_chorus_melody_preview.py --output music-foundry/output/somebodys-gotta-do-it/chorus_melody_concept_a.mid
           test -s music-foundry/output/somebodys-gotta-do-it/chorus_melody_concept_a.mid
       - name: Render offline instrumental WAV preview
         run: python3 music-foundry/render_instrumental.py --output music-foundry/output/somebodys-gotta-do-it-audio --bpm 127
+      - name: Upload Warehouse Rave V3 audition
+        uses: actions/upload-artifact@v4
+        with:
+          name: warehouse-rave-v3-audition
+          path: music-foundry/output/warehouse-rave-v3-audio/
       - name: Upload MIDI preview files
         uses: actions/upload-artifact@v4
         with:
