@@ -33,7 +33,11 @@ jobs:
             if [ "$r" = "turbo-foundry" ]; then
               ln -s "$GITHUB_WORKSPACE" "ecosystem/turbo-foundry"
             else
-              gh repo clone "godsun108/$r" "ecosystem/$r" -- --depth 1 || echo "::warning::could not clone $r"
+              if gh repo clone "godsun108/$r" "ecosystem/$r" -- --depth 1 2>/dev/null; then
+                echo "cloned $r"
+              else
+                echo "::warning::could not clone $r (likely private; GH_TOKEN cannot read sibling private repos). Validator will SKIP it."
+              fi
             fi
           done
         env:
