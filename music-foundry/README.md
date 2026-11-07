@@ -211,3 +211,8 @@ The Genesis Voice Engine now has a local Piper CLI adapter in `music-foundry/gen
 ## Browser-first neural voice studio
 
 The Somebody's Gotta Do It project now includes a browser-local Kokoro/MediaPipe TTS prototype at `projects/somebodys-gotta-do-it/genesis-voice-studio.html`. It loads a locally selected LiteRT-LM model, synthesizes speech in a Web Worker, and exports 24 kHz mono WAV for import into the vocal timeline. The MediaPipe JS/WASM runtime is currently loaded from a pinned CDN version; model weights are never auto-downloaded. iPhone/Safari and real-model audio tests remain pending. See [GENESIS_VOICE_ENGINE.md](GENESIS_VOICE_ENGINE.md).
+
+
+## Reusable instrument and vocal automation
+
+The offline instrument-stem processor and spoken-take assembler share bounded, linearly interpolated automation lanes for gain, low-pass filter, delay wet/feedback, drive/saturation, and stereo pan. Source audio is never overwritten. See [INSTRUMENT_AUTOMATION_LANES.md](INSTRUMENT_AUTOMATION_LANES.md) for the manifest contract and reproducible example.
