@@ -197,6 +197,31 @@ class SpokenTakeAssemblyTests(unittest.TestCase):
             result = json.loads((out / "spoken_audio_manifest.json").read_text())
             self.assertEqual(len(result["takes"][0]["automation"]), 2)
 
+    def test_pan_automation_moves_vocal_take_across_stereo_field(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_source(root / "lead.wav", [4000] * 800, 8000)
+            path = root / "spoken-takes.json"
+            path.write_text(json.dumps({
+                "schema": "turbo.music-foundry.spoken-takes.v1",
+                "duration_seconds": 0.1,
+                "takes": [{
+                    "file": "lead.wav", "layer": "dry_lead", "pan": 0,
+                    "automation": [
+                        {"time_ms": 0, "param": "pan", "value": -1},
+                        {"time_ms": 80, "param": "pan", "value": 1}
+                    ]
+                }]
+            }))
+            out = assembler.assemble(path, root / "out", 8000)
+            with wave.open(str(out / "dry_lead.wav"), "rb") as wav:
+                frames = array.array("h")
+                frames.frombytes(wav.readframes(wav.getnframes()))
+            early = frames[20 * 2:21 * 2]
+            late = frames[600 * 2:601 * 2]
+            self.assertGreater(abs(early[0]), abs(early[1]))
+            self.assertGreater(abs(late[1]), abs(late[0]))
+
     def test_rejects_unsafe_automation_points(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

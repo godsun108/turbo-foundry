@@ -108,6 +108,41 @@ class InstrumentStemProcessingTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "plain WAV filenames"):
                 processor.process(config, root / "processed")
 
+    def test_drive_and_pan_automation_are_interpolated(self):
+        points = assembler._validate_automation([
+            {"param": "drive_db", "time_ms": 0, "value": 0},
+            {"param": "drive_db", "time_ms": 1000, "value": 12},
+            {"param": "pan", "time_ms": 0, "value": -1},
+            {"param": "pan", "time_ms": 1000, "value": 1},
+        ])
+        self.assertEqual(assembler._automation_value(points, "drive_db", 0, 3), 0)
+        self.assertEqual(assembler._automation_value(points, "drive_db", 500, 3), 6)
+        self.assertEqual(assembler._automation_value(points, "pan", 500, 0), 0)
+        self.assertEqual(assembler._automation_value(points, "pan", 1000, 0), 1)
+
+    def test_pan_automation_moves_instrument_across_stereo_field(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source, config, _ = self._project(root)
+            settings = json.loads(config.read_text())
+            settings["stems"] = {
+                "bass.wav": {
+                    "automation": [
+                        {"param": "pan", "time_ms": 0, "value": -1},
+                        {"param": "pan", "time_ms": 200, "value": 1},
+                    ]
+                }
+            }
+            config.write_text(json.dumps(settings))
+            output = processor.process(config, root / "processed")
+            with wave.open(str(output / "bass.wav"), "rb") as wav:
+                frames = array.array("h")
+                frames.frombytes(wav.readframes(wav.getnframes()))
+            early = frames[20 * 2:21 * 2]
+            late = frames[1600 * 2:1601 * 2]
+            self.assertGreater(abs(early[0]), abs(early[1]))
+            self.assertGreater(abs(late[1]), abs(late[0]))
+
     def test_stutter_uses_project_tempo(self):
         samples = list(range(2000))
         at_132 = assembler._apply_effects(samples, 8000, {"stutter": "1/4"}, tempo_bpm=132)

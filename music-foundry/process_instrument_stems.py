@@ -100,10 +100,14 @@ def process(config_path, output_path):
             time_ms = index * 1000.0 / rate
             automated_db = _automation_value(automation, "gain_db", time_ms, gain_db)
             processed[index] = value * (10.0 ** (automated_db / 20.0))
-        left_pan = math.sqrt((1.0 - pan) / 2.0) * math.sqrt(2.0)
-        right_pan = math.sqrt((1.0 + pan) / 2.0) * math.sqrt(2.0)
-        left = [value * left_pan for value in processed]
-        right = [value * right_pan for value in processed]
+        left, right = [], []
+        for index, value in enumerate(processed):
+            time_ms = index * 1000.0 / rate
+            current_pan = _automation_value(automation, "pan", time_ms, pan)
+            left_pan = math.sqrt((1.0 - current_pan) / 2.0) * math.sqrt(2.0)
+            right_pan = math.sqrt((1.0 + current_pan) / 2.0) * math.sqrt(2.0)
+            left.append(value * left_pan)
+            right.append(value * right_pan)
         rendered[filename] = {
             "left": left, "right": right, "source": source_path,
             "settings": {"effects": effects, "automation": automation, "gain_db": gain_db, "pan": pan},
