@@ -274,13 +274,15 @@ def assemble(manifest_path, output, sample_rate=DEFAULT_RATE):
         start = round(offset_ms * sample_rate / 1000)
         if start >= total_frames:
             raise ValueError(f"take {index}: offset starts after project duration")
-        left_pan, right_pan = math.sqrt((1.0 - pan) / 2.0) * math.sqrt(2.0), math.sqrt((1.0 + pan) / 2.0) * math.sqrt(2.0)
         left, right = layer_buffers[layer]
         count = min(len(samples), total_frames - start) if audible else 0
         for frame in range(count):
             time_ms = frame * 1000.0 / sample_rate
             automated_gain = _automation_value(automation, "gain_db", time_ms, gain_db)
+            automated_pan = _automation_value(automation, "pan", time_ms, pan)
             value = samples[frame] * (10.0 ** (automated_gain / 20.0))
+            left_pan = math.sqrt((1.0 - automated_pan) / 2.0) * math.sqrt(2.0)
+            right_pan = math.sqrt((1.0 + automated_pan) / 2.0) * math.sqrt(2.0)
             left[start + frame] += value * left_pan
             right[start + frame] += value * right_pan
         take_records.append({
