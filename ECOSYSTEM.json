@@ -263,21 +263,11 @@
         "transparency proofs",
         "Fonzi portable character identity/provenance"
       ],
-      "contracts": [
-        {
-          "name": "canonical architecture",
-          "path": "VICTORY_ARCHITECTURE.md",
-          "type": "architecture",
-          "status": "active"
-        },
-        {
-          "name": "Fonzi portable character identity",
-          "path": "FONZI.md",
-          "type": "concept-contract",
-          "status": "pre-implementation"
-        }
-      ],
-      "boundary": "legacy trading code is not the canonical Victory protocol"
+      "contracts": [],
+      "boundary": "legacy trading code is not the canonical Victory protocol",
+      "status": "source-not-located",
+      "source": "local filesystem: ~/victorychain_stack_launchd (GitHub repo is chain code only; declared contract docs live in local OMNIS_LOCAL_AUDIT/)",
+      "contract_note": "VICTORY_ARCHITECTURE.md / FONZI.md declared historically but not present in any checkout; re-declare when docs are committed."
     },
     {
       "id": "soul-key",
@@ -301,7 +291,8 @@
       "contracts": [],
       "status": "source-not-located",
       "known_history": "Existing game described by its creator as Flappy Bird-like; source is not present in the currently audited godsun108 repositories.",
-      "boundary": "Do not treat a new implementation as the recovered original. Locate original source/artifact first, then migrate deliberately."
+      "boundary": "Do not treat a new implementation as the recovered original. Locate original source/artifact first, then migrate deliberately.",
+      "note": "GitHub repo deleted; no source located. Kept as honest tombstone."
     },
     {
       "id": "ryln-ai",

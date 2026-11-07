@@ -1,0 +1,42 @@
+name: ecosystem-contract-validation
+# Automated cross-repo proof validation (Turbo Foundry North Star event).
+# Checks out all declared ecosystem repos and verifies ECOSYSTEM.json claims:
+# contract paths exist, hygiene (README/tests) for active stages, and
+# cross-repo schema lockstep (bridge/anchor/evidence contracts).
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Mondays 09:00 UTC
+  workflow_dispatch:
+  push:
+    paths: ["ECOSYSTEM.json", "validate_ecosystem.py"]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check out ecosystem siblings
+        run: |
+          mkdir -p ecosystem
+          repos=$(python3 - <<'PY'
+          import json
+          d=json.load(open("ECOSYSTEM.json"))
+          for s in d["systems"]:
+              if s.get("repo"):
+                  print(s["repo"].split("/",1)[1])
+          PY
+          )
+          for r in $repos; do
+            if [ "$r" = "turbo-foundry" ]; then
+              ln -s "$GITHUB_WORKSPACE" "ecosystem/turbo-foundry"
+            else
+              gh repo clone "godsun108/$r" "ecosystem/$r" -- --depth 1 || echo "::warning::could not clone $r"
+            fi
+          done
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Validate all ecosystem claims
+        run: python3 validate_ecosystem.py
