@@ -77,7 +77,7 @@ def _automation_value(points, parameter, time_ms, base):
 def _validate_automation(points):
     if not isinstance(points, list) or len(points) > 64:
         raise ValueError("automation must be a list with no more than 64 points")
-    ranges = {"gain_db": (-60, 12), "lowpass_hz": (500, 20000), "delay_wet": (0, 100), "delay_feedback": (0, 75)}
+    ranges = {"gain_db": (-60, 12), "lowpass_hz": (500, 20000), "delay_wet": (0, 100), "delay_feedback": (0, 75), "drive_db": (0, 24), "pan": (-1, 1)}
     for point in points:
         if not isinstance(point, dict) or point.get("param") not in ranges:
             raise ValueError("automation point has an unsupported parameter")
@@ -148,10 +148,18 @@ def _apply_effects(samples, sample_rate, effects, automation=None, tempo_bpm=127
         slice_frames = max(1, round((60.0 / tempo_bpm / divisor) * sample_rate))
         first_slice = output[:slice_frames]
         output = [first_slice[index % len(first_slice)] for index in range(len(output))]
-    if drive_db:
-        amount = 10.0 ** (drive_db / 20.0)
-        normalizer = math.tanh(amount)
-        output = [math.tanh((value / 32768.0) * amount) / normalizer * 32768.0 for value in output]
+    if drive_db or any(point["param"] == "drive_db" for point in automation):
+        shaped = []
+        for index, value in enumerate(output):
+            time_ms = index * 1000.0 / sample_rate
+            current_drive = _automation_value(automation, "drive_db", time_ms, drive_db)
+            if current_drive <= 0:
+                shaped.append(value)
+                continue
+            amount = 10.0 ** (current_drive / 20.0)
+            normalizer = math.tanh(amount)
+            shaped.append(math.tanh((value / 32768.0) * amount) / normalizer * 32768.0)
+        output = shaped
     if output and (lowpass_hz < 19999 or any(p["param"] == "lowpass_hz" for p in automation)):
         previous, filtered = 0.0, []
         for index, value in enumerate(output):
