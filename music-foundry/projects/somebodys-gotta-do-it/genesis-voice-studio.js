@@ -6,6 +6,7 @@ let busy = false;
 let audioUrl = null;
 let audioContext = null;
 let lastMode = "spoken";
+let bundledScoreText = null;
 
 function setStatus(message) {
   $("status").textContent = message;
@@ -15,7 +16,7 @@ function setBusy(value) {
   busy = value;
   $("load").disabled = busy || ready;
   $("synthesize").disabled = busy || !ready;
-  $("sing").disabled = busy || !ready || !$("score").files?.length;
+  $("sing").disabled = busy || !ready || (!bundledScoreText && !$("score").files?.length);
   $("stop").disabled = !busy;
   $("model").disabled = busy || ready;
   $("delegate").disabled = busy || ready;
@@ -97,9 +98,32 @@ $("load").addEventListener("click", () => {
 });
 
 $("score").addEventListener("change", () => {
+  bundledScoreText = null;
   setBusy(false);
   const file = $("score").files?.[0];
   if (file) setStatus("Score selected: " + file.name + ". Load the voice model, then generate the sung take.");
+});
+
+$("fineChina").addEventListener("click", async () => {
+  if (busy) return;
+  setStatus("Loading the bundled Fine China composition-draft score…");
+  try {
+    const response = await fetch("../fine-china/vocal_score_draft.json", { cache: "no-store" });
+    if (!response.ok) throw new Error("Fine China score could not be loaded (" + response.status + ").");
+    const text = await response.text();
+    const parsed = JSON.parse(text);
+    if (parsed.project_id !== "fine-china" || parsed.tempo_bpm !== 126) {
+      throw new Error("The bundled Fine China score did not match the expected project.");
+    }
+    bundledScoreText = text;
+    $("score").value = "";
+    setBusy(false);
+    setStatus("Fine China draft loaded: 73 placed syllables at 126 BPM. This is a composition draft—audition and approve the melody before release.");
+  } catch (error) {
+    bundledScoreText = null;
+    setBusy(false);
+    setStatus("Could not load Fine China score: " + error.message);
+  }
 });
 
 $("synthesize").addEventListener("click", async () => {
@@ -115,11 +139,11 @@ $("synthesize").addEventListener("click", async () => {
 
 $("sing").addEventListener("click", async () => {
   const file = $("score").files?.[0];
-  if (!file) return setStatus("Choose a Music Foundry vocal-score JSON file first.");
-  if (file.size > 2_000_000) return setStatus("Score file exceeds the 2 MB safety limit.");
-  let scoreText;
+  if (!bundledScoreText && !file) return setStatus("Choose a Music Foundry vocal-score JSON file or load the Fine China draft.");
+  if (file && file.size > 2_000_000) return setStatus("Score file exceeds the 2 MB safety limit.");
+  let scoreText = bundledScoreText;
   try {
-    scoreText = await file.text();
+    if (!scoreText) scoreText = await file.text();
     JSON.parse(scoreText);
     await resumeAudio();
   } catch (error) {
