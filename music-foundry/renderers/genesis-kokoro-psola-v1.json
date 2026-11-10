@@ -1,0 +1,27 @@
+{
+  "schema": "turbo.music-foundry.renderer.v1",
+  "id": "genesis-kokoro-psola-v1",
+  "execution": "local",
+  "modes": [
+    "spoken",
+    "sung"
+  ],
+  "formats": [
+    "wav"
+  ],
+  "credential_handling": "server_or_local_only",
+  "verification": {
+    "status": "pending",
+    "verified_modes": [],
+    "note": "Prototype implementation exists; internal runner and target-iPhone audition evidence are still required before enabling sung dispatch."
+  },
+  "implementation": {
+    "voice_engine": "existing-local-kokoro-litert-tts",
+    "pitch_renderer": "psola",
+    "model_required": "operator-selected-local-litertlm",
+    "user_voice_required": false,
+    "reference_audio_required": false,
+    "inference_network_required": false,
+    "startup_runtime": "pinned-mediapipe-wasm-cdn"
+  }
+}
