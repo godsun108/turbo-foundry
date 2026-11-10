@@ -94,19 +94,24 @@ if (navigator.gpu) {
   });
 }
 
+$("model").addEventListener("change", () => {
+  const gpu = $("model").value === "gpu";
+  $("delegate").value = gpu ? "GPU" : "CPU";
+  if (gpu && !navigator.gpu) setStatus("This browser does not expose WebGPU. Choose the CPU model instead.");
+});
 $("load").addEventListener("click", () => {
-  const file = $("model").files?.[0];
-  if (!file) return setStatus("Choose a .litertlm model file first.");
-  if (!file.name.toLowerCase().endsWith(".litertlm") || file.size < 1024 * 1024) return setStatus("Choose a complete .litertlm model bundle.");
-  const delegate = $("delegate").value;
+  const variant = $("model").value;
+  const delegate = variant === "gpu" ? "GPU" : "CPU";
   if (delegate === "GPU" && !navigator.gpu) {
-    return setStatus("WebGPU is unavailable in this browser. Select CPU and a CPU-compatible model.");
+    return setStatus("WebGPU is unavailable in this browser. Choose the CPU-compatible model.");
   }
+  const filename = variant === "gpu" ? "kokoro_int8_gpu_fp16.litertlm" : "kokoro_int8_fp16.litertlm";
+  const modelUrl = "https://huggingface.co/litert-community/Kokoro-82M/resolve/main/" + filename;
   setBusy(true);
-  setStatus("Loading model into the local worker. Large model files can take time and memory…");
+  setStatus("Downloading or opening the 295 MB Kokoro model from its Apache-2.0 release. Keep this page open; the first install may take a while…");
   worker.postMessage({
     type: "init",
-    file,
+    modelUrl,
     delegate,
     speakingRate: Number($("rate").value)
   });
