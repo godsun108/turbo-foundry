@@ -14,7 +14,7 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
   }
 }
 const worker = new Worker("./genesis-voice-worker.js", { type: "module" });
-$("text").maxLength = 1200;
+$("text").maxLength = 4000;
 let ready = false;
 let busy = false;
 let audioUrl = null;
@@ -118,6 +118,53 @@ $("load").addEventListener("click", () => {
   });
 });
 
+function extractTrackLyrics(markdown) {
+  const output = [];
+  let inLyrics = false;
+  let includeAdlibs = false;
+  for (const rawLine of markdown.split(/\\r?\\n/)) {
+    const line = rawLine.trim();
+    if (line.startsWith("## Mix / edit notes") || line.startsWith("## Current implementation boundary")) break;
+    if (line.startsWith("## ")) {
+      inLyrics = true;
+      includeAdlibs = false;
+      continue;
+    }
+    if (!inLyrics || !line) continue;
+    if (line.startsWith("**")) {
+      includeAdlibs = line.includes("Optional response ad-libs");
+      continue;
+    }
+    if (line.startsWith("- ")) {
+      if (includeAdlibs) output.push(line.slice(2));
+      continue;
+    }
+    if (line.startsWith("Lead:") || line.startsWith("Group:")) {
+      output.push(line.slice(line.indexOf(":") + 1).trim());
+      continue;
+    }
+    if (line.startsWith("#") || line.startsWith(">")) continue;
+    output.push(line);
+  }
+  const lyrics = output.join("\\n").replace(/\\n{3,}/g, "\\n\\n").trim();
+  if (!lyrics) throw new Error("No lyric lines were found in the project cue sheet.");
+  if (lyrics.length > 4000) throw new Error("The extracted lyrics exceed the 4,000-character studio limit.");
+  return lyrics;
+}
+
+$("loadTrackLyrics").addEventListener("click", async () => {
+  if (busy) return;
+  setStatus("Loading the approved project cue sheet…");
+  try {
+    const response = await fetch("./cue-sheet.md", { cache: "no-store" });
+    if (!response.ok) throw new Error("Cue sheet could not be loaded (" + response.status + ").");
+    $("text").value = extractTrackLyrics(await response.text());
+    setStatus("Track lyrics loaded from cue-sheet.md. Load the voice model, choose a voice, then generate the spoken-led vocal pass.");
+  } catch (error) {
+    setStatus("Could not load track lyrics: " + error.message);
+  }
+});
+
 $("score").addEventListener("change", () => {
   bundledScoreText = null;
   setBusy(false);
@@ -150,7 +197,7 @@ $("fineChina").addEventListener("click", async () => {
 $("synthesize").addEventListener("click", async () => {
   const text = $("text").value.trim();
   if (!text) return setStatus("Enter text to synthesize.");
-  if (text.length > 1200) return setStatus("Text exceeds the 1,200-character prototype limit.");
+  if (text.length > 4000) return setStatus("Text exceeds the 4,000-character prototype limit.");
   try { await resumeAudio(); }
   catch (error) { return setStatus("Audio playback could not start: " + error.message); }
   setBusy(true);
