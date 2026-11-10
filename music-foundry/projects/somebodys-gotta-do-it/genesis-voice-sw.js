@@ -1,5 +1,6 @@
-const CACHE_NAME = "genesis-voice-studio-v1";
+const CACHE_NAME = "genesis-voice-studio-v2";
 const MAX_CDN_RESPONSE_BYTES = 64 * 1024 * 1024;
+const MAX_MODEL_RESPONSE_BYTES = 350 * 1024 * 1024;
 const SHELL_FILES = [
   "genesis-voice-studio.html",
   "genesis-voice-studio.js",
