@@ -180,6 +180,7 @@ def main() -> int:
     parser.add_argument("--model", type=Path, help="Optional explicit checkpoint path.")
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--timeout", type=int, default=3600)
+    parser.add_argument("--python-executable", default=sys.executable, help="Python interpreter inside the SoulX environment.")
     args = parser.parse_args()
     try:
         result = run_render(
@@ -191,6 +192,7 @@ def main() -> int:
             model_path=args.model,
             device=args.device,
             timeout_seconds=args.timeout,
+            python_executable=args.python_executable,
         )
     except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
