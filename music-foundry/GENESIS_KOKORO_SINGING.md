@@ -44,6 +44,12 @@ This is designed for the existing Sovereign-Offline controlled executor, not a m
 
 The response should end with schema `sovereign.music-foundry.internal-run.v1` and `ok: true` only when all checks pass. No run is claimed until that response is observed.
 
+## Bundled real-song fixture
+
+The studio can load the bundled Fine China chorus draft with one tap. The fixture contains 73 placed syllables at 126 BPM, from beat 128 through beat 186, with no overlapping lead events. It is still marked composition_draft and must be auditioned and approved; the fixture test proves score import and timing integrity, not vocal quality or artistic approval.
+
+The renderer descriptor is intentionally registered with verification status pending and no verified modes. The existing provider-neutral contract therefore continues to block sung dispatch until independent evidence is recorded.
+
 ## Score requirements
 
 - `tempo_bpm` between 40 and 240.
