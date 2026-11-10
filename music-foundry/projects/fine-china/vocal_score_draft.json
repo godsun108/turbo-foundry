@@ -36,7 +36,8 @@
           ],
           "onset_beats": 0,
           "duration_beats": 0.5,
-          "midi_pitch": 64
+          "midi_pitch": 64,
+          "unit_index": 0
         },
         {
           "word": "save",
@@ -48,7 +49,8 @@
           ],
           "onset_beats": 0.5,
           "duration_beats": 0.5,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 1
         },
         {
           "word": "the",
@@ -59,7 +61,8 @@
           ],
           "onset_beats": 1,
           "duration_beats": 0.5,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 2
         },
         {
           "word": "fine",
@@ -71,7 +74,8 @@
           ],
           "onset_beats": 1.5,
           "duration_beats": 0.5,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 3
         },
         {
           "word": "China",
@@ -82,7 +86,8 @@
           ],
           "onset_beats": 2,
           "duration_beats": 1,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 4
         },
         {
           "word": "China",
@@ -93,7 +98,8 @@
           ],
           "onset_beats": 3,
           "duration_beats": 1,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 4
         }
       ],
       "lyric_units": [
@@ -178,7 +184,8 @@
           ],
           "onset_beats": 0,
           "duration_beats": 0.75,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 0
         },
         {
           "word": "ON",
@@ -189,7 +196,8 @@
           ],
           "onset_beats": 0.75,
           "duration_beats": 0.5,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 1
         },
         {
           "word": "IT",
@@ -200,7 +208,8 @@
           ],
           "onset_beats": 1.25,
           "duration_beats": 0.75,
-          "midi_pitch": 64
+          "midi_pitch": 64,
+          "unit_index": 2
         }
       ],
       "lyric_units": [
@@ -256,7 +265,8 @@
           ],
           "onset_beats": 0,
           "duration_beats": 2,
-          "midi_pitch": 0
+          "midi_pitch": 0,
+          "unit_index": 0
         }
       ],
       "lyric_units": [
@@ -291,7 +301,8 @@
           ],
           "onset_beats": 0,
           "duration_beats": 1,
-          "midi_pitch": 64
+          "midi_pitch": 64,
+          "unit_index": 0
         },
         {
           "word": "the",
@@ -302,7 +313,8 @@
           ],
           "onset_beats": 1,
           "duration_beats": 0.5,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 1
         },
         {
           "word": "good",
@@ -314,7 +326,8 @@
           ],
           "onset_beats": 1.5,
           "duration_beats": 0.5,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 2
         },
         {
           "word": "wine",
@@ -326,7 +339,8 @@
           ],
           "onset_beats": 2,
           "duration_beats": 2,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 3
         }
       ],
       "lyric_units": [
@@ -400,7 +414,8 @@
           ],
           "onset_beats": 0,
           "duration_beats": 0.75,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 0
         },
         {
           "word": "ON",
@@ -411,7 +426,8 @@
           ],
           "onset_beats": 0.75,
           "duration_beats": 0.5,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 1
         },
         {
           "word": "IT",
@@ -422,7 +438,8 @@
           ],
           "onset_beats": 1.25,
           "duration_beats": 0.75,
-          "midi_pitch": 64
+          "midi_pitch": 64,
+          "unit_index": 2
         }
       ],
       "lyric_units": [
@@ -481,7 +498,8 @@
           ],
           "onset_beats": 0,
           "duration_beats": 2,
-          "midi_pitch": 0
+          "midi_pitch": 0,
+          "unit_index": 0
         }
       ],
       "lyric_units": [
@@ -516,7 +534,8 @@
           ],
           "onset_beats": 0,
           "duration_beats": 1,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 0
         },
         {
           "word": "your",
@@ -528,7 +547,8 @@
           ],
           "onset_beats": 1,
           "duration_beats": 0.5,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 1
         },
         {
           "word": "Sunday",
@@ -540,7 +560,8 @@
           ],
           "onset_beats": 1.5,
           "duration_beats": 1,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 2
         },
         {
           "word": "Sunday",
@@ -551,7 +572,8 @@
           ],
           "onset_beats": 2.5,
           "duration_beats": 0.5,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 2
         },
         {
           "word": "shoes",
@@ -563,7 +585,8 @@
           ],
           "onset_beats": 3,
           "duration_beats": 1,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 3
         },
         {
           "word": "on",
@@ -574,7 +597,8 @@
           ],
           "onset_beats": 4,
           "duration_beats": 0.5,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 4
         },
         {
           "word": "a",
@@ -584,7 +608,8 @@
           ],
           "onset_beats": 4.5,
           "duration_beats": 0.5,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 5
         },
         {
           "word": "Tuesday",
@@ -596,7 +621,8 @@
           ],
           "onset_beats": 5,
           "duration_beats": 1,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 6
         },
         {
           "word": "Tuesday",
@@ -607,7 +633,8 @@
           ],
           "onset_beats": 6,
           "duration_beats": 0.5,
-          "midi_pitch": 74
+          "midi_pitch": 74,
+          "unit_index": 6
         },
         {
           "word": "night",
@@ -619,7 +646,8 @@
           ],
           "onset_beats": 6.5,
           "duration_beats": 1.5,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 7
         }
       ],
       "lyric_units": [
@@ -740,7 +768,8 @@
           ],
           "onset_beats": 0,
           "duration_beats": 0.5,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 0
         },
         {
           "word": "you",
@@ -751,7 +780,8 @@
           ],
           "onset_beats": 0.5,
           "duration_beats": 0.5,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 1
         },
         {
           "word": "got",
@@ -763,7 +793,8 @@
           ],
           "onset_beats": 1,
           "duration_beats": 0.5,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 2
         },
         {
           "word": "a",
@@ -773,7 +804,8 @@
           ],
           "onset_beats": 1.5,
           "duration_beats": 0.5,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 3
         },
         {
           "word": "little",
@@ -785,7 +817,8 @@
           ],
           "onset_beats": 2,
           "duration_beats": 0.75,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 4
         },
         {
           "word": "little",
@@ -796,7 +829,8 @@
           ],
           "onset_beats": 2.75,
           "duration_beats": 0.75,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 4
         },
         {
           "word": "love",
@@ -808,7 +842,8 @@
           ],
           "onset_beats": 3.5,
           "duration_beats": 1,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 5
         },
         {
           "word": "you",
@@ -819,7 +854,8 @@
           ],
           "onset_beats": 4.5,
           "duration_beats": 0.5,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 6
         },
         {
           "word": "got",
@@ -831,7 +867,8 @@
           ],
           "onset_beats": 5,
           "duration_beats": 0.5,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 7
         },
         {
           "word": "a",
@@ -841,7 +878,8 @@
           ],
           "onset_beats": 5.5,
           "duration_beats": 0.5,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 8
         },
         {
           "word": "reason",
@@ -853,7 +891,8 @@
           ],
           "onset_beats": 6,
           "duration_beats": 1,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 9
         },
         {
           "word": "reason",
@@ -864,7 +903,8 @@
           ],
           "onset_beats": 7,
           "duration_beats": 0.5,
-          "midi_pitch": 71
+          "midi_pitch": 71,
+          "unit_index": 9
         },
         {
           "word": "to",
@@ -875,7 +915,8 @@
           ],
           "onset_beats": 7.5,
           "duration_beats": 0.5,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 10
         },
         {
           "word": "celebrate",
@@ -887,7 +928,8 @@
           ],
           "onset_beats": 8,
           "duration_beats": 0.75,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 11
         },
         {
           "word": "celebrate",
@@ -897,7 +939,8 @@
           ],
           "onset_beats": 8.75,
           "duration_beats": 0.5,
-          "midi_pitch": 74
+          "midi_pitch": 74,
+          "unit_index": 11
         },
         {
           "word": "celebrate",
@@ -910,7 +953,8 @@
           ],
           "onset_beats": 9.25,
           "duration_beats": 0.75,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 11
         },
         {
           "word": "life",
@@ -922,7 +966,8 @@
           ],
           "onset_beats": 10,
           "duration_beats": 2,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 12
         }
       ],
       "lyric_units": [
@@ -1105,7 +1150,8 @@
           ],
           "onset_beats": 0,
           "duration_beats": 0.75,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 0
         },
         {
           "word": "save",
@@ -1117,7 +1163,8 @@
           ],
           "onset_beats": 0.75,
           "duration_beats": 0.75,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 1
         },
         {
           "word": "it",
@@ -1128,7 +1175,8 @@
           ],
           "onset_beats": 1.5,
           "duration_beats": 0.5,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 2
         },
         {
           "word": "for",
@@ -1140,7 +1188,8 @@
           ],
           "onset_beats": 2,
           "duration_beats": 0.5,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 3
         },
         {
           "word": "later",
@@ -1151,7 +1200,8 @@
           ],
           "onset_beats": 2.5,
           "duration_beats": 1,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 4
         },
         {
           "word": "later",
@@ -1162,7 +1212,8 @@
           ],
           "onset_beats": 3.5,
           "duration_beats": 0.5,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 4
         },
         {
           "word": "don't",
@@ -1175,7 +1226,8 @@
           ],
           "onset_beats": 4,
           "duration_beats": 0.75,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 5
         },
         {
           "word": "wait",
@@ -1187,7 +1239,8 @@
           ],
           "onset_beats": 4.75,
           "duration_beats": 0.75,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 6
         },
         {
           "word": "in",
@@ -1198,7 +1251,8 @@
           ],
           "onset_beats": 5.5,
           "duration_beats": 0.5,
-          "midi_pitch": 71
+          "midi_pitch": 71,
+          "unit_index": 7
         },
         {
           "word": "line",
@@ -1210,7 +1264,8 @@
           ],
           "onset_beats": 6,
           "duration_beats": 2,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 8
         }
       ],
       "lyric_units": [
@@ -1343,7 +1398,8 @@
           ],
           "onset_beats": 0,
           "duration_beats": 0.5,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 0
         },
         {
           "word": "world's",
@@ -1357,7 +1413,8 @@
           ],
           "onset_beats": 0.5,
           "duration_beats": 1,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 1
         },
         {
           "word": "too",
@@ -1368,7 +1425,8 @@
           ],
           "onset_beats": 1.5,
           "duration_beats": 1,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 2
         },
         {
           "word": "beautiful",
@@ -1380,7 +1438,8 @@
           ],
           "onset_beats": 2.5,
           "duration_beats": 0.75,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 3
         },
         {
           "word": "beautiful",
@@ -1391,7 +1450,8 @@
           ],
           "onset_beats": 3.25,
           "duration_beats": 0.5,
-          "midi_pitch": 74
+          "midi_pitch": 74,
+          "unit_index": 3
         },
         {
           "word": "beautiful",
@@ -1403,7 +1463,8 @@
           ],
           "onset_beats": 3.75,
           "duration_beats": 0.75,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 3
         },
         {
           "word": "to",
@@ -1414,7 +1475,8 @@
           ],
           "onset_beats": 4.5,
           "duration_beats": 0.5,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 4
         },
         {
           "word": "leave",
@@ -1426,7 +1488,8 @@
           ],
           "onset_beats": 5,
           "duration_beats": 1,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 5
         },
         {
           "word": "it",
@@ -1437,7 +1500,8 @@
           ],
           "onset_beats": 6,
           "duration_beats": 0.5,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 6
         },
         {
           "word": "behind",
@@ -1448,7 +1512,8 @@
           ],
           "onset_beats": 6.5,
           "duration_beats": 0.5,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 7
         },
         {
           "word": "behind",
@@ -1461,7 +1526,8 @@
           ],
           "onset_beats": 7,
           "duration_beats": 1,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 7
         }
       ],
       "lyric_units": [
@@ -1589,7 +1655,8 @@
           ],
           "onset_beats": 0,
           "duration_beats": 0.5,
-          "midi_pitch": 64
+          "midi_pitch": 64,
+          "unit_index": 0
         },
         {
           "word": "save",
@@ -1601,7 +1668,8 @@
           ],
           "onset_beats": 0.5,
           "duration_beats": 0.5,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 1
         },
         {
           "word": "the",
@@ -1612,7 +1680,8 @@
           ],
           "onset_beats": 1,
           "duration_beats": 0.5,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 2
         },
         {
           "word": "fine",
@@ -1624,7 +1693,8 @@
           ],
           "onset_beats": 1.5,
           "duration_beats": 0.5,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 3
         },
         {
           "word": "China",
@@ -1635,7 +1705,8 @@
           ],
           "onset_beats": 2,
           "duration_beats": 1,
-          "midi_pitch": 74
+          "midi_pitch": 74,
+          "unit_index": 4
         },
         {
           "word": "China",
@@ -1646,7 +1717,8 @@
           ],
           "onset_beats": 3,
           "duration_beats": 1,
-          "midi_pitch": 72
+          "midi_pitch": 72,
+          "unit_index": 4
         }
       ],
       "lyric_units": [
@@ -1731,7 +1803,8 @@
           ],
           "onset_beats": 0,
           "duration_beats": 0.75,
-          "midi_pitch": 69
+          "midi_pitch": 69,
+          "unit_index": 0
         },
         {
           "word": "ON",
@@ -1742,7 +1815,8 @@
           ],
           "onset_beats": 0.75,
           "duration_beats": 0.5,
-          "midi_pitch": 67
+          "midi_pitch": 67,
+          "unit_index": 1
         },
         {
           "word": "IT",
@@ -1753,7 +1827,8 @@
           ],
           "onset_beats": 1.25,
           "duration_beats": 0.75,
-          "midi_pitch": 64
+          "midi_pitch": 64,
+          "unit_index": 2
         }
       ],
       "lyric_units": [
@@ -1809,7 +1884,8 @@
           ],
           "onset_beats": 0,
           "duration_beats": 2,
-          "midi_pitch": 0
+          "midi_pitch": 0,
+          "unit_index": 0
         }
       ],
       "lyric_units": [
