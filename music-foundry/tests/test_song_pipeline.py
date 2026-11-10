@@ -117,7 +117,7 @@ class SongPipelineTests(unittest.TestCase):
         self.assertEqual(report["note_events"], 2)
         self.assertEqual(report["duration_beats"], 1)
         self.assertEqual(report["start_beat_in_source"], 128)
-        self.assertEqual(report["end_beat_in_source"], 188)
+        self.assertEqual(report["end_beat_in_source"], 129)
         self.assertFalse(report["preserved_timeline"])
 
     def test_fine_china_project_score_has_syllable_level_midi_preview(self):
