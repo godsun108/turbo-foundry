@@ -1,12 +1,7 @@
 name: Music Foundry MIDI tests
+# Hosted Actions are manual-only. Use the repository-owned Linux internal runner
+# (music-foundry/run-singing-internal.sh) for the singing DSP validation.
 on:
-  push:
-    paths:
-      - 'music-foundry/**'
-      - '.github/workflows/music-foundry.yml'
-  pull_request:
-    paths:
-      - 'music-foundry/**'
   workflow_dispatch:
 jobs:
   test:
