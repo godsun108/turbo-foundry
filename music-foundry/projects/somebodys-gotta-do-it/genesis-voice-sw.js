@@ -54,16 +54,22 @@ self.addEventListener("fetch", (event) => {
 
   // Only persist the exact pinned MediaPipe Tasks Audio package. The selected
   // .litertlm model is user-owned local input and is never fetched or cached here.
-  if (url.origin === "https://cdn.jsdelivr.net" &&
-      url.pathname.startsWith("/npm/@mediapipe/tasks-audio@1.2.2/")) {
+  const isPinnedRuntime = url.origin === "https://cdn.jsdelivr.net" &&
+    url.pathname.startsWith("/npm/@mediapipe/tasks-audio@1.2.2/");
+  const isPinnedModel = url.origin === "https://huggingface.co" &&
+    url.pathname.startsWith("/litert-community/Kokoro-82M/resolve/main/") &&
+    (url.pathname.endsWith("/kokoro_int8_gpu_fp16.litertlm") ||
+     url.pathname.endsWith("/kokoro_int8_fp16.litertlm"));
+  if (isPinnedRuntime || isPinnedModel) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
       const cached = await cache.match(request);
       if (cached) return cached;
       const response = await fetch(request);
       const declaredLength = Number(response.headers.get("content-length") || 0);
+      const limit = isPinnedModel ? MAX_MODEL_RESPONSE_BYTES : MAX_CDN_RESPONSE_BYTES;
       if (response.ok && response.type !== "opaque" &&
-          (!declaredLength || declaredLength <= MAX_CDN_RESPONSE_BYTES)) {
+          (!declaredLength || declaredLength <= limit)) {
         try { await cache.put(request, response.clone()); } catch {}
       }
       return response;
