@@ -35,6 +35,20 @@ class SongPipelineTests(unittest.TestCase):
             self.assertFalse(report["ready_for_local_singing_render"])
             self.assertTrue(report["policy"]["no_hosted_provider"])
 
+    def test_approved_vocal_direction_profile_is_reported_ready(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = self.make_project(Path(temp))
+            profile = {
+                "verse_delivery": "spoken",
+                "pre_chorus_delivery": "rhythmic sung",
+                "chorus_delivery": "soulful melodic",
+                "bridge_delivery": "spoken",
+                "gang_response": "layered group shouts"
+            }
+            (project / "vocal_direction.json").write_text(json.dumps(profile), encoding="utf-8")
+            report = song_pipeline.inspect_project(project, None)
+            self.assertEqual(report["stages"]["vocal_direction"]["status"], "ready")
+
     def test_reviewed_score_still_requires_model_and_reference_assets(self):
         with tempfile.TemporaryDirectory() as temp:
             project = self.make_project(Path(temp))
