@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create a clearly labeled MIDI audition guide from Music Foundry word-level score data.
+"""Create a clearly labeled MIDI audition guide from Music Foundry syllable-level score data.
 
 This is a melody sketch for listening and review, not a SoulX render or a
 substitute for an approved phoneme-aligned singing score. No external MIDI
@@ -67,6 +67,7 @@ def build_midi(score: Any, preserve_timeline: bool = False) -> tuple[bytes, dict
     origin_beat = 0.0 if preserve_timeline or not eligible_starts else min(eligible_starts)
     tracks: dict[str, list[tuple[int, int, bytes]]] = {"lead": [], "gang": []}
     words = 0
+    syllable_events = 0
     notes = 0
     max_tick = 0
     for phrase in phrases:
@@ -76,23 +77,26 @@ def build_midi(score: Any, preserve_timeline: bool = False) -> tuple[bytes, dict
             continue
         start = phrase.get("start_beat")
         units = phrase.get("lyric_units")
+        syllables = phrase.get("syllables")
         if not isinstance(start, (int, float)) or not math.isfinite(start) or start < 0:
             raise ValueError(f"{phrase.get('id', 'phrase')}: invalid start_beat")
         if not isinstance(units, list) or not units:
             continue
+        if not isinstance(syllables, list) or not syllables:
+            syllables = units
         layer = "gang" if phrase.get("delivery") == "gang_shout" else "lead"
         cursor = 0.0
-        for unit in units:
+        for unit in syllables:
             if not isinstance(unit, dict):
-                raise ValueError("lyric units must be objects")
+                raise ValueError("syllable units must be objects")
             onset, duration = unit.get("onset_beats"), unit.get("duration_beats")
             pitch, text = unit.get("midi_pitch"), unit.get("text")
             if not isinstance(onset, (int, float)) or not isinstance(duration, (int, float)) or duration <= 0:
-                raise ValueError(f"{phrase.get('id')}: invalid unit timing")
+                raise ValueError(f"{phrase.get('id')}: invalid syllable timing")
             if abs(float(onset) - cursor) > 1e-6:
-                raise ValueError(f"{phrase.get('id')}: units must be contiguous; encode rests explicitly")
+                raise ValueError(f"{phrase.get('id')}: syllables must be contiguous; encode rests explicitly")
             if not isinstance(text, str) or not text:
-                raise ValueError(f"{phrase.get('id')}: unit text is required")
+                raise ValueError(f"{phrase.get('id')}: syllable text is required")
             start_tick = int(round((float(start) + float(onset) - origin_beat) * ppq))
             end_tick = int(round((float(start) + float(onset) + float(duration) - origin_beat) * ppq))
             max_tick = max(max_tick, end_tick)
@@ -102,13 +106,15 @@ def build_midi(score: Any, preserve_timeline: bool = False) -> tuple[bytes, dict
                 channel = 1 if layer == "gang" else 0
                 tracks[layer].append((start_tick, 2, bytes((0x90 | channel, pitch, 92 if layer == "gang" else 82))))
                 tracks[layer].append((end_tick, 0, bytes((0x80 | channel, pitch, 0))))
-                tracks[layer].append((start_tick, 3, _meta(0x05, text.encode("utf-8"))))
-                words += 1
+                label = f"{unit.get('word', text)}:{text}"
+                tracks[layer].append((start_tick, 3, _meta(0x05, label.encode("utf-8"))))
+                syllable_events += 1
                 notes += 1
             cursor += float(duration)
         declared = phrase.get("duration_beats")
         if declared is not None and abs(cursor - float(declared)) > 1e-6:
-            raise ValueError(f"{phrase.get('id')}: unit durations do not match phrase duration")
+            raise ValueError(f"{phrase.get('id')}: syllable durations do not match phrase duration")
+        words += sum(1 for item in units if isinstance(item, dict) and item.get("text") != "<SP>")
 
     tempo = int(round(60_000_000 / float(bpm)))
     header = b"MThd" + struct.pack(">IHHH", 6, 1, 3, ppq)
@@ -128,6 +134,7 @@ def build_midi(score: Any, preserve_timeline: bool = False) -> tuple[bytes, dict
         "tempo_bpm": bpm,
         "ppq": ppq,
         "word_events": words,
+        "syllable_events": syllable_events,
         "note_events": notes,
         "start_beat_in_source": origin_beat,
         "end_beat_in_source": origin_beat + max_tick / ppq,
