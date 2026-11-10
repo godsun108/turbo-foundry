@@ -62,6 +62,34 @@ jobs:
           Path("/tmp/music-foundry-control-room.js").write_text("\\n".join(scripts), encoding="utf-8")
           PY
           node --check /tmp/music-foundry-control-room.js
+      - name: Render Fine China soulful disco-house instrumental
+        run: python3 music-foundry/render_fine_china.py --output music-foundry/output/fine-china-audio --bpm 126
+      - name: Validate Fine China arrangement and WAV stems
+        run: |
+          python3 - <<'PY'
+          import json, wave
+          from pathlib import Path
+          folder = Path("music-foundry/output/fine-china-audio")
+          manifest = json.loads((folder / "audio_manifest.json").read_text())
+          assert manifest["title"] == "Fine China (Eat On It)"
+          assert manifest["bpm"] == 126 and manifest["key_center"] == "A minor"
+          assert manifest["chord_progression"] == ["Am", "F", "C", "G"]
+          assert manifest["bars"] == 120
+          for name in [manifest["mix"], *manifest["stems"]]:
+              path = folder / name
+              assert path.is_file() and path.stat().st_size > 4096, f"missing/placeholder WAV: {path}"
+              with wave.open(str(path), "rb") as audio:
+                  assert audio.getnframes() > audio.getframerate() * 180
+                  assert audio.getsampwidth() == 2
+                  print(f"{name}: {audio.getnchannels()}ch {audio.getframerate()}Hz {audio.getnframes()/audio.getframerate():.2f}s")
+          PY
+      - name: Publish Fine China instrumental artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fine-china-soulful-disco-house-instrumental
+          path: music-foundry/output/fine-china-audio/
+          retention-days: 7
+          if-no-files-found: error
       - name: Render Somebody's Gotta Do It instrumental
         run: |
           python3 music-foundry/render_warehouse_rave_v3.py --output music-foundry/output/somebodys-gotta-do-it-audio --bpm 127
