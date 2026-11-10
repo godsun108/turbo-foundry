@@ -24,7 +24,78 @@
       "alignment_status": "composition_draft",
       "start_beat": 128,
       "duration_beats": 4,
-      "syllables": [],
+      "syllables": [
+        {
+          "word": "Don't",
+          "text": "Don't",
+          "phonemes": [
+            "D",
+            "OW1",
+            "N",
+            "T"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 0.5,
+          "midi_pitch": 64
+        },
+        {
+          "word": "save",
+          "text": "save",
+          "phonemes": [
+            "S",
+            "EY1",
+            "V"
+          ],
+          "onset_beats": 0.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 67
+        },
+        {
+          "word": "the",
+          "text": "the",
+          "phonemes": [
+            "DH",
+            "AH0"
+          ],
+          "onset_beats": 1,
+          "duration_beats": 0.5,
+          "midi_pitch": 69
+        },
+        {
+          "word": "fine",
+          "text": "fine",
+          "phonemes": [
+            "F",
+            "AY1",
+            "N"
+          ],
+          "onset_beats": 1.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 67
+        },
+        {
+          "word": "China",
+          "text": "Chi",
+          "phonemes": [
+            "CH",
+            "AY1"
+          ],
+          "onset_beats": 2,
+          "duration_beats": 1,
+          "midi_pitch": 69
+        },
+        {
+          "word": "China",
+          "text": "na",
+          "phonemes": [
+            "N",
+            "AH0"
+          ],
+          "onset_beats": 3,
+          "duration_beats": 1,
+          "midi_pitch": 67
+        }
+      ],
       "lyric_units": [
         {
           "text": "Don't",
@@ -84,7 +155,7 @@
           ],
           "onset_beats": 2,
           "duration_beats": 2,
-          "midi_pitch": 64,
+          "midi_pitch": 69,
           "note_type": "normal"
         }
       ]
@@ -97,7 +168,41 @@
       "alignment_status": "composition_draft",
       "start_beat": 132,
       "duration_beats": 2,
-      "syllables": [],
+      "syllables": [
+        {
+          "word": "EAT",
+          "text": "EAT",
+          "phonemes": [
+            "IY1",
+            "T"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 0.75,
+          "midi_pitch": 69
+        },
+        {
+          "word": "ON",
+          "text": "ON",
+          "phonemes": [
+            "AA1",
+            "N"
+          ],
+          "onset_beats": 0.75,
+          "duration_beats": 0.5,
+          "midi_pitch": 67
+        },
+        {
+          "word": "IT",
+          "text": "IT",
+          "phonemes": [
+            "IH1",
+            "T"
+          ],
+          "onset_beats": 1.25,
+          "duration_beats": 0.75,
+          "midi_pitch": 64
+        }
+      ],
       "lyric_units": [
         {
           "text": "EAT",
@@ -142,7 +247,18 @@
       "alignment_status": "composition_draft",
       "start_beat": 134,
       "duration_beats": 2,
-      "syllables": [],
+      "syllables": [
+        {
+          "word": "<SP>",
+          "text": "<SP>",
+          "phonemes": [
+            "<SP>"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 2,
+          "midi_pitch": 0
+        }
+      ],
       "lyric_units": [
         {
           "text": "<SP>",
@@ -164,7 +280,55 @@
       "alignment_status": "composition_draft",
       "start_beat": 136,
       "duration_beats": 4,
-      "syllables": [],
+      "syllables": [
+        {
+          "word": "Pour",
+          "text": "Pour",
+          "phonemes": [
+            "P",
+            "AO1",
+            "R"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 1,
+          "midi_pitch": 64
+        },
+        {
+          "word": "the",
+          "text": "the",
+          "phonemes": [
+            "DH",
+            "AH0"
+          ],
+          "onset_beats": 1,
+          "duration_beats": 0.5,
+          "midi_pitch": 67
+        },
+        {
+          "word": "good",
+          "text": "good",
+          "phonemes": [
+            "G",
+            "UH1",
+            "D"
+          ],
+          "onset_beats": 1.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 69
+        },
+        {
+          "word": "wine",
+          "text": "wine",
+          "phonemes": [
+            "W",
+            "AY1",
+            "N"
+          ],
+          "onset_beats": 2,
+          "duration_beats": 2,
+          "midi_pitch": 67
+        }
+      ],
       "lyric_units": [
         {
           "text": "Pour",
@@ -223,7 +387,44 @@
       "alignment_status": "composition_draft",
       "start_beat": 140,
       "duration_beats": 2,
-      "syllables": [],
+      "syllables": [
+        {
+          "word": "DRINK",
+          "text": "DRINK",
+          "phonemes": [
+            "D",
+            "R",
+            "IH1",
+            "NG",
+            "K"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 0.75,
+          "midi_pitch": 69
+        },
+        {
+          "word": "ON",
+          "text": "ON",
+          "phonemes": [
+            "AA1",
+            "N"
+          ],
+          "onset_beats": 0.75,
+          "duration_beats": 0.5,
+          "midi_pitch": 67
+        },
+        {
+          "word": "IT",
+          "text": "IT",
+          "phonemes": [
+            "IH1",
+            "T"
+          ],
+          "onset_beats": 1.25,
+          "duration_beats": 0.75,
+          "midi_pitch": 64
+        }
+      ],
       "lyric_units": [
         {
           "text": "DRINK",
@@ -271,7 +472,18 @@
       "alignment_status": "composition_draft",
       "start_beat": 142,
       "duration_beats": 2,
-      "syllables": [],
+      "syllables": [
+        {
+          "word": "<SP>",
+          "text": "<SP>",
+          "phonemes": [
+            "<SP>"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 2,
+          "midi_pitch": 0
+        }
+      ],
       "lyric_units": [
         {
           "text": "<SP>",
@@ -293,7 +505,123 @@
       "alignment_status": "composition_draft",
       "start_beat": 144,
       "duration_beats": 8,
-      "syllables": [],
+      "syllables": [
+        {
+          "word": "Wear",
+          "text": "Wear",
+          "phonemes": [
+            "W",
+            "EH1",
+            "R"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 1,
+          "midi_pitch": 67
+        },
+        {
+          "word": "your",
+          "text": "your",
+          "phonemes": [
+            "Y",
+            "AO1",
+            "R"
+          ],
+          "onset_beats": 1,
+          "duration_beats": 0.5,
+          "midi_pitch": 69
+        },
+        {
+          "word": "Sunday",
+          "text": "Sun",
+          "phonemes": [
+            "S",
+            "AH1",
+            "N"
+          ],
+          "onset_beats": 1.5,
+          "duration_beats": 1,
+          "midi_pitch": 69
+        },
+        {
+          "word": "Sunday",
+          "text": "day",
+          "phonemes": [
+            "D",
+            "EY2"
+          ],
+          "onset_beats": 2.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 72
+        },
+        {
+          "word": "shoes",
+          "text": "shoes",
+          "phonemes": [
+            "SH",
+            "UW1",
+            "Z"
+          ],
+          "onset_beats": 3,
+          "duration_beats": 1,
+          "midi_pitch": 69
+        },
+        {
+          "word": "on",
+          "text": "on",
+          "phonemes": [
+            "AA1",
+            "N"
+          ],
+          "onset_beats": 4,
+          "duration_beats": 0.5,
+          "midi_pitch": 67
+        },
+        {
+          "word": "a",
+          "text": "a",
+          "phonemes": [
+            "AH0"
+          ],
+          "onset_beats": 4.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 67
+        },
+        {
+          "word": "Tuesday",
+          "text": "Tues",
+          "phonemes": [
+            "T",
+            "UW1",
+            "Z"
+          ],
+          "onset_beats": 5,
+          "duration_beats": 1,
+          "midi_pitch": 72
+        },
+        {
+          "word": "Tuesday",
+          "text": "day",
+          "phonemes": [
+            "D",
+            "EY2"
+          ],
+          "onset_beats": 6,
+          "duration_beats": 0.5,
+          "midi_pitch": 74
+        },
+        {
+          "word": "night",
+          "text": "night",
+          "phonemes": [
+            "N",
+            "AY1",
+            "T"
+          ],
+          "onset_beats": 6.5,
+          "duration_beats": 1.5,
+          "midi_pitch": 72
+        }
+      ],
       "lyric_units": [
         {
           "text": "Wear",
@@ -330,7 +658,7 @@
           ],
           "onset_beats": 1.5,
           "duration_beats": 1.5,
-          "midi_pitch": 72,
+          "midi_pitch": 69,
           "note_type": "normal"
         },
         {
@@ -389,7 +717,7 @@
           ],
           "onset_beats": 6.5,
           "duration_beats": 1.5,
-          "midi_pitch": 69,
+          "midi_pitch": 72,
           "note_type": "normal"
         }
       ]
@@ -402,7 +730,201 @@
       "alignment_status": "composition_draft",
       "start_beat": 152,
       "duration_beats": 12,
-      "syllables": [],
+      "syllables": [
+        {
+          "word": "If",
+          "text": "If",
+          "phonemes": [
+            "IH1",
+            "F"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 0.5,
+          "midi_pitch": 69
+        },
+        {
+          "word": "you",
+          "text": "you",
+          "phonemes": [
+            "Y",
+            "UW1"
+          ],
+          "onset_beats": 0.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 69
+        },
+        {
+          "word": "got",
+          "text": "got",
+          "phonemes": [
+            "G",
+            "AA1",
+            "T"
+          ],
+          "onset_beats": 1,
+          "duration_beats": 0.5,
+          "midi_pitch": 72
+        },
+        {
+          "word": "a",
+          "text": "a",
+          "phonemes": [
+            "AH0"
+          ],
+          "onset_beats": 1.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 69
+        },
+        {
+          "word": "little",
+          "text": "lit",
+          "phonemes": [
+            "L",
+            "IH1",
+            "T"
+          ],
+          "onset_beats": 2,
+          "duration_beats": 0.75,
+          "midi_pitch": 67
+        },
+        {
+          "word": "little",
+          "text": "tle",
+          "phonemes": [
+            "AH0",
+            "L"
+          ],
+          "onset_beats": 2.75,
+          "duration_beats": 0.75,
+          "midi_pitch": 69
+        },
+        {
+          "word": "love",
+          "text": "love",
+          "phonemes": [
+            "L",
+            "AH1",
+            "V"
+          ],
+          "onset_beats": 3.5,
+          "duration_beats": 1,
+          "midi_pitch": 69
+        },
+        {
+          "word": "you",
+          "text": "you",
+          "phonemes": [
+            "Y",
+            "UW1"
+          ],
+          "onset_beats": 4.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 69
+        },
+        {
+          "word": "got",
+          "text": "got",
+          "phonemes": [
+            "G",
+            "AA1",
+            "T"
+          ],
+          "onset_beats": 5,
+          "duration_beats": 0.5,
+          "midi_pitch": 72
+        },
+        {
+          "word": "a",
+          "text": "a",
+          "phonemes": [
+            "AH0"
+          ],
+          "onset_beats": 5.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 69
+        },
+        {
+          "word": "reason",
+          "text": "rea",
+          "phonemes": [
+            "R",
+            "IY1",
+            "Z"
+          ],
+          "onset_beats": 6,
+          "duration_beats": 1,
+          "midi_pitch": 72
+        },
+        {
+          "word": "reason",
+          "text": "son",
+          "phonemes": [
+            "AH0",
+            "N"
+          ],
+          "onset_beats": 7,
+          "duration_beats": 0.5,
+          "midi_pitch": 71
+        },
+        {
+          "word": "to",
+          "text": "to",
+          "phonemes": [
+            "T",
+            "AH0"
+          ],
+          "onset_beats": 7.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 69
+        },
+        {
+          "word": "celebrate",
+          "text": "cel",
+          "phonemes": [
+            "S",
+            "EH1",
+            "L"
+          ],
+          "onset_beats": 8,
+          "duration_beats": 0.75,
+          "midi_pitch": 72
+        },
+        {
+          "word": "celebrate",
+          "text": "e",
+          "phonemes": [
+            "AH0"
+          ],
+          "onset_beats": 8.75,
+          "duration_beats": 0.5,
+          "midi_pitch": 74
+        },
+        {
+          "word": "celebrate",
+          "text": "brate",
+          "phonemes": [
+            "B",
+            "R",
+            "EY2",
+            "T"
+          ],
+          "onset_beats": 9.25,
+          "duration_beats": 0.75,
+          "midi_pitch": 72
+        },
+        {
+          "word": "life",
+          "text": "life",
+          "phonemes": [
+            "L",
+            "AY1",
+            "F"
+          ],
+          "onset_beats": 10,
+          "duration_beats": 2,
+          "midi_pitch": 72
+        }
+      ],
       "lyric_units": [
         {
           "text": "If",
@@ -546,7 +1068,7 @@
           ],
           "onset_beats": 8,
           "duration_beats": 2,
-          "midi_pitch": 74,
+          "midi_pitch": 72,
           "note_type": "normal"
         },
         {
@@ -571,7 +1093,126 @@
       "alignment_status": "composition_draft",
       "start_beat": 164,
       "duration_beats": 8,
-      "syllables": [],
+      "syllables": [
+        {
+          "word": "Don't",
+          "text": "Don't",
+          "phonemes": [
+            "D",
+            "OW1",
+            "N",
+            "T"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 0.75,
+          "midi_pitch": 69
+        },
+        {
+          "word": "save",
+          "text": "save",
+          "phonemes": [
+            "S",
+            "EY1",
+            "V"
+          ],
+          "onset_beats": 0.75,
+          "duration_beats": 0.75,
+          "midi_pitch": 72
+        },
+        {
+          "word": "it",
+          "text": "it",
+          "phonemes": [
+            "IH1",
+            "T"
+          ],
+          "onset_beats": 1.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 69
+        },
+        {
+          "word": "for",
+          "text": "for",
+          "phonemes": [
+            "F",
+            "AO1",
+            "R"
+          ],
+          "onset_beats": 2,
+          "duration_beats": 0.5,
+          "midi_pitch": 67
+        },
+        {
+          "word": "later",
+          "text": "la",
+          "phonemes": [
+            "L",
+            "EY1"
+          ],
+          "onset_beats": 2.5,
+          "duration_beats": 1,
+          "midi_pitch": 69
+        },
+        {
+          "word": "later",
+          "text": "ter",
+          "phonemes": [
+            "T",
+            "ER0"
+          ],
+          "onset_beats": 3.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 67
+        },
+        {
+          "word": "don't",
+          "text": "don't",
+          "phonemes": [
+            "D",
+            "OW1",
+            "N",
+            "T"
+          ],
+          "onset_beats": 4,
+          "duration_beats": 0.75,
+          "midi_pitch": 69
+        },
+        {
+          "word": "wait",
+          "text": "wait",
+          "phonemes": [
+            "W",
+            "EY1",
+            "T"
+          ],
+          "onset_beats": 4.75,
+          "duration_beats": 0.75,
+          "midi_pitch": 72
+        },
+        {
+          "word": "in",
+          "text": "in",
+          "phonemes": [
+            "IH1",
+            "N"
+          ],
+          "onset_beats": 5.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 71
+        },
+        {
+          "word": "line",
+          "text": "line",
+          "phonemes": [
+            "L",
+            "AY1",
+            "N"
+          ],
+          "onset_beats": 6,
+          "duration_beats": 2,
+          "midi_pitch": 69
+        }
+      ],
       "lyric_units": [
         {
           "text": "Don't",
@@ -644,7 +1285,7 @@
           ],
           "onset_beats": 4,
           "duration_beats": 0.75,
-          "midi_pitch": 72,
+          "midi_pitch": 69,
           "note_type": "normal"
         },
         {
@@ -656,7 +1297,7 @@
           ],
           "onset_beats": 4.75,
           "duration_beats": 0.75,
-          "midi_pitch": 74,
+          "midi_pitch": 72,
           "note_type": "normal"
         },
         {
@@ -667,7 +1308,7 @@
           ],
           "onset_beats": 5.5,
           "duration_beats": 0.5,
-          "midi_pitch": 72,
+          "midi_pitch": 71,
           "note_type": "normal"
         },
         {
@@ -692,7 +1333,137 @@
       "alignment_status": "composition_draft",
       "start_beat": 172,
       "duration_beats": 8,
-      "syllables": [],
+      "syllables": [
+        {
+          "word": "The",
+          "text": "The",
+          "phonemes": [
+            "DH",
+            "AH0"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 0.5,
+          "midi_pitch": 67
+        },
+        {
+          "word": "world's",
+          "text": "world's",
+          "phonemes": [
+            "W",
+            "ER1",
+            "L",
+            "D",
+            "Z"
+          ],
+          "onset_beats": 0.5,
+          "duration_beats": 1,
+          "midi_pitch": 69
+        },
+        {
+          "word": "too",
+          "text": "too",
+          "phonemes": [
+            "T",
+            "UW1"
+          ],
+          "onset_beats": 1.5,
+          "duration_beats": 1,
+          "midi_pitch": 72
+        },
+        {
+          "word": "beautiful",
+          "text": "beau",
+          "phonemes": [
+            "B",
+            "Y",
+            "UW1"
+          ],
+          "onset_beats": 2.5,
+          "duration_beats": 0.75,
+          "midi_pitch": 72
+        },
+        {
+          "word": "beautiful",
+          "text": "ti",
+          "phonemes": [
+            "T",
+            "AH0"
+          ],
+          "onset_beats": 3.25,
+          "duration_beats": 0.5,
+          "midi_pitch": 74
+        },
+        {
+          "word": "beautiful",
+          "text": "ful",
+          "phonemes": [
+            "F",
+            "AH0",
+            "L"
+          ],
+          "onset_beats": 3.75,
+          "duration_beats": 0.75,
+          "midi_pitch": 72
+        },
+        {
+          "word": "to",
+          "text": "to",
+          "phonemes": [
+            "T",
+            "AH0"
+          ],
+          "onset_beats": 4.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 72
+        },
+        {
+          "word": "leave",
+          "text": "leave",
+          "phonemes": [
+            "L",
+            "IY1",
+            "V"
+          ],
+          "onset_beats": 5,
+          "duration_beats": 1,
+          "midi_pitch": 69
+        },
+        {
+          "word": "it",
+          "text": "it",
+          "phonemes": [
+            "IH1",
+            "T"
+          ],
+          "onset_beats": 6,
+          "duration_beats": 0.5,
+          "midi_pitch": 67
+        },
+        {
+          "word": "behind",
+          "text": "be",
+          "phonemes": [
+            "B",
+            "IH0"
+          ],
+          "onset_beats": 6.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 67
+        },
+        {
+          "word": "behind",
+          "text": "hind",
+          "phonemes": [
+            "HH",
+            "AY1",
+            "N",
+            "D"
+          ],
+          "onset_beats": 7,
+          "duration_beats": 1,
+          "midi_pitch": 69
+        }
+      ],
       "lyric_units": [
         {
           "text": "The",
@@ -744,7 +1515,7 @@
           ],
           "onset_beats": 2.5,
           "duration_beats": 2,
-          "midi_pitch": 74,
+          "midi_pitch": 72,
           "note_type": "normal"
         },
         {
@@ -793,7 +1564,7 @@
           ],
           "onset_beats": 6.5,
           "duration_beats": 1.5,
-          "midi_pitch": 69,
+          "midi_pitch": 67,
           "note_type": "normal"
         }
       ]
@@ -806,7 +1577,78 @@
       "alignment_status": "composition_draft",
       "start_beat": 180,
       "duration_beats": 4,
-      "syllables": [],
+      "syllables": [
+        {
+          "word": "Don't",
+          "text": "Don't",
+          "phonemes": [
+            "D",
+            "OW1",
+            "N",
+            "T"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 0.5,
+          "midi_pitch": 64
+        },
+        {
+          "word": "save",
+          "text": "save",
+          "phonemes": [
+            "S",
+            "EY1",
+            "V"
+          ],
+          "onset_beats": 0.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 67
+        },
+        {
+          "word": "the",
+          "text": "the",
+          "phonemes": [
+            "DH",
+            "AH0"
+          ],
+          "onset_beats": 1,
+          "duration_beats": 0.5,
+          "midi_pitch": 69
+        },
+        {
+          "word": "fine",
+          "text": "fine",
+          "phonemes": [
+            "F",
+            "AY1",
+            "N"
+          ],
+          "onset_beats": 1.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 72
+        },
+        {
+          "word": "China",
+          "text": "Chi",
+          "phonemes": [
+            "CH",
+            "AY1"
+          ],
+          "onset_beats": 2,
+          "duration_beats": 1,
+          "midi_pitch": 74
+        },
+        {
+          "word": "China",
+          "text": "na",
+          "phonemes": [
+            "N",
+            "AH0"
+          ],
+          "onset_beats": 3,
+          "duration_beats": 1,
+          "midi_pitch": 72
+        }
+      ],
       "lyric_units": [
         {
           "text": "Don't",
@@ -866,7 +1708,7 @@
           ],
           "onset_beats": 2,
           "duration_beats": 2,
-          "midi_pitch": 69,
+          "midi_pitch": 74,
           "note_type": "normal"
         }
       ]
@@ -879,7 +1721,41 @@
       "alignment_status": "composition_draft",
       "start_beat": 184,
       "duration_beats": 2,
-      "syllables": [],
+      "syllables": [
+        {
+          "word": "EAT",
+          "text": "EAT",
+          "phonemes": [
+            "IY1",
+            "T"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 0.75,
+          "midi_pitch": 69
+        },
+        {
+          "word": "ON",
+          "text": "ON",
+          "phonemes": [
+            "AA1",
+            "N"
+          ],
+          "onset_beats": 0.75,
+          "duration_beats": 0.5,
+          "midi_pitch": 67
+        },
+        {
+          "word": "IT",
+          "text": "IT",
+          "phonemes": [
+            "IH1",
+            "T"
+          ],
+          "onset_beats": 1.25,
+          "duration_beats": 0.75,
+          "midi_pitch": 64
+        }
+      ],
       "lyric_units": [
         {
           "text": "EAT",
@@ -924,7 +1800,18 @@
       "alignment_status": "composition_draft",
       "start_beat": 186,
       "duration_beats": 2,
-      "syllables": [],
+      "syllables": [
+        {
+          "word": "<SP>",
+          "text": "<SP>",
+          "phonemes": [
+            "<SP>"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 2,
+          "midi_pitch": 0
+        }
+      ],
       "lyric_units": [
         {
           "text": "<SP>",
