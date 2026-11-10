@@ -5,6 +5,7 @@ let ready = false;
 let busy = false;
 let audioUrl = null;
 let audioContext = null;
+let lastMode = "spoken";
 
 function setStatus(message) {
   $("status").textContent = message;
@@ -14,9 +15,11 @@ function setBusy(value) {
   busy = value;
   $("load").disabled = busy || ready;
   $("synthesize").disabled = busy || !ready;
+  $("sing").disabled = busy || !ready || !$("score").files?.length;
   $("stop").disabled = !busy;
   $("model").disabled = busy || ready;
   $("delegate").disabled = busy || ready;
+  $("score").disabled = busy;
 }
 
 function releaseAudioUrl() {
@@ -48,6 +51,13 @@ function encodeWav(samples, sampleRate) {
     view.setInt16(44 + i * 2, Math.round(value * 32767), true);
   }
   return new Blob([bytes], { type: "audio/wav" });
+}
+
+async function resumeAudio() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) throw new Error("Web Audio is unavailable.");
+  audioContext ??= new AudioContextClass();
+  await audioContext.resume();
 }
 
 $("delegate").value = navigator.gpu ? "GPU" : "CPU";
@@ -86,21 +96,42 @@ $("load").addEventListener("click", () => {
   });
 });
 
+$("score").addEventListener("change", () => {
+  setBusy(false);
+  const file = $("score").files?.[0];
+  if (file) setStatus("Score selected: " + file.name + ". Load the voice model, then generate the sung take.");
+});
+
 $("synthesize").addEventListener("click", async () => {
   const text = $("text").value.trim();
   if (!text) return setStatus("Enter text to synthesize.");
   if (text.length > 1200) return setStatus("Text exceeds the 1,200-character prototype limit.");
+  try { await resumeAudio(); }
+  catch (error) { return setStatus("Audio playback could not start: " + error.message); }
+  setBusy(true);
+  setStatus("Synthesizing speech locally…");
+  worker.postMessage({ type: "synthesize", text, voiceId: $("voice").value });
+});
+
+$("sing").addEventListener("click", async () => {
+  const file = $("score").files?.[0];
+  if (!file) return setStatus("Choose a Music Foundry vocal-score JSON file first.");
+  if (file.size > 2_000_000) return setStatus("Score file exceeds the 2 MB safety limit.");
+  let scoreText;
   try {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) throw new Error("Web Audio is unavailable.");
-    audioContext ??= new AudioContextClass();
-    await audioContext.resume();
+    scoreText = await file.text();
+    JSON.parse(scoreText);
+    await resumeAudio();
   } catch (error) {
-    return setStatus("Audio playback could not start: " + error.message);
+    return setStatus("Score or audio setup error: " + error.message);
   }
   setBusy(true);
-  setStatus("Synthesizing locally…");
-  worker.postMessage({ type: "synthesize", text, voiceId: $("voice").value });
+  setStatus("Preparing score. The local voice will sing each placed syllable on its MIDI pitch…");
+  worker.postMessage({
+    type: "synthesize-score",
+    scoreText,
+    voiceId: $("voice").value
+  });
 });
 
 $("stop").addEventListener("click", () => {
@@ -114,7 +145,7 @@ $("download").addEventListener("click", () => {
   if (!player.src) return;
   const anchor = document.createElement("a");
   anchor.href = player.src;
-  anchor.download = "genesis-spoken-take.wav";
+  anchor.download = lastMode === "sung" ? "genesis-sung-take.wav" : "genesis-spoken-take.wav";
   document.body.append(anchor);
   anchor.click();
   anchor.remove();
@@ -145,9 +176,11 @@ worker.addEventListener("message", async (event) => {
     $("locale").value = $("voice").selectedOptions[0]?.dataset.locale || "—";
     setBusy(false);
     $("load").disabled = true;
-    setStatus("Model ready. " + data.voices.length + " voices available. No audio has been uploaded.");
+    setStatus("Model ready. " + data.voices.length + " voices available. Speech and singing inference stay in this browser.");
   } else if (data.type === "progress") {
     setStatus("Generating speech locally… completed " + data.chunkCount + " audio chunk(s).");
+  } else if (data.type === "singing-progress") {
+    setStatus("Singing syllable " + data.completed + " of " + data.total + ": “" + data.lyric + "”");
   } else if (data.type === "audio") {
     const samples = new Float32Array(data.samples);
     const blob = encodeWav(samples, data.sampleRateHz);
@@ -156,6 +189,7 @@ worker.addEventListener("message", async (event) => {
     $("preview").src = audioUrl;
     $("preview").hidden = false;
     $("download").disabled = false;
+    lastMode = data.mode || "spoken";
     try {
       const buffer = audioContext.createBuffer(1, samples.length, data.sampleRateHz);
       buffer.copyToChannel(samples, 0);
@@ -167,7 +201,15 @@ worker.addEventListener("message", async (event) => {
       setStatus("WAV ready; automatic preview failed: " + error.message);
     }
     setBusy(false);
-    setStatus("Spoken take rendered. " + samples.length + " samples at " + data.sampleRateHz + " Hz. Download the WAV and import it into the vocal timeline.");
+    if (lastMode === "sung") {
+      const meta = data.metadata || {};
+      setStatus("Sung take rendered: " + (meta.syllableCount || "—") + " syllables · " +
+        (meta.tempoBpm || "—") + " BPM · " + samples.length + " samples at " +
+        data.sampleRateHz + " Hz. This is a prototype render; audition it before using it in a release.");
+    } else {
+      setStatus("Spoken take rendered. " + samples.length + " samples at " + data.sampleRateHz +
+        " Hz. Download the WAV and import it into the vocal timeline.");
+    }
   } else if (data.type === "cancelled") {
     setBusy(false);
     setStatus("Synthesis cancelled.");
