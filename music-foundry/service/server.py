@@ -26,7 +26,7 @@ TOKEN = os.environ.get("MUSIC_FOUNDRY_API_TOKEN", "")
 PORT = int(os.environ.get("PORT", "8080"))
 MAX_BODY = 16_384
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
-FILENAME = re.compile(r"^[a-z0-9][a-z0-9_.-]{0,100}\\.(wav|json)$")
+FILENAME = re.compile(r"^[a-z0-9][a-z0-9_.-]{0,100}\.(wav|json)$")
 LOCK = threading.Lock()
 
 
