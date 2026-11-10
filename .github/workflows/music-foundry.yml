@@ -56,7 +56,7 @@ jobs:
       - name: Verify all canonical song performance cues
         run: node --test music-foundry/tests/test_lyric_performance_bridge_integration.mjs
       - name: Test private render service
-        run: python3 -m unittest music-foundry/tests/test_render_service.py -v
+        run: python3 music-foundry/tests/test_render_service.py -v
       - name: Syntax-check private render service
         run: python3 -m py_compile music-foundry/service/server.py
       - name: Generate MIDI
