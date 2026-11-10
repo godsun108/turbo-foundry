@@ -66,6 +66,15 @@ button.secondary{background:#25344b}button.danger{background:#613642}
 <p id="status" role="status" aria-live="polite">Ready. Install the Kokoro model to begin.</p>
 <audio id="preview" controls hidden style="width:100%;margin-top:12px"></audio>
 <button id="download" class="secondary" disabled>Download WAV</button>
+<div class="panel">
+<h2>5 · Combine the sung take with Fine China</h2>
+<label for="apiToken">Private Music Foundry access token</label>
+<input id="apiToken" type="password" autocomplete="off" placeholder="Paste the token from your private production setup">
+<label for="renderJobId">Instrumental render job ID</label>
+<input id="renderJobId" type="text" autocomplete="off" placeholder="Paste the Fine China job ID from the control room">
+<button id="sendToMix" class="secondary" disabled>Send sung take to instrumental mix</button>
+<p class="note">This uploads only the WAV you just generated to your authenticated private Music Foundry job. The server aligns the score's beat offsets and creates a combined preview mix.</p>
+</div>
 <p class="note">Export is 48 kHz, mono, 16-bit PCM WAV. Spoken mode is neural TTS. Sung mode reuses the same local TTS voice and retunes score-aligned syllables. No voice cloning is performed. Audio and text are processed in this browser worker; the model/runtime files are loaded locally or from the pinned open-source runtime CDN.</p>
 </div>
 <p class="note">Privacy and compatibility: the model is fetched from the published Apache-2.0 release and used locally; it is not uploaded by this page. The app shell, runtime, and model are cached where browser storage permits, but iOS may evict large caches. The first install requires network access. iPhone Safari/WebGPU performance and memory use still need device validation. If GPU initialization fails, choose the CPU-compatible model.</p>
