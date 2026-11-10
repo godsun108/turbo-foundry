@@ -124,7 +124,7 @@ def run(project_dir: Path, output_dir: Path, soulx_root: Path | None = None,
         execute_midi: bool = False, execute_vocals: bool = False, device: str = "cpu",
         execute_instrumental: bool = False, soundfont: Path | None = None,
         execute_master: bool = False, vocal_wav: Path | None = None,
-        execute_vocal_guide: bool = False) -> dict[str, Any]:
+        execute_vocal_guide: bool = False, python_executable: str = sys.executable) -> dict[str, Any]:
     report = inspect_project(project_dir, soulx_root, soundfont)
     project_dir, output_dir = project_dir.expanduser().resolve(), output_dir.expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -164,7 +164,8 @@ def run(project_dir: Path, output_dir: Path, soulx_root: Path | None = None,
                    "--score", str(project_dir / "vocal_score.json"), "--engine-root", str(root),
                    "--prompt-wav", str(project_dir / "vocal-reference.wav"),
                    "--prompt-metadata", str(project_dir / "vocal-reference.metadata.json"),
-                   "--output-dir", str(output_dir / "soulx-vocals"), "--device", device]
+                   "--output-dir", str(output_dir / "soulx-vocals"), "--device", device,
+                   "--python-executable", python_executable]
         completed = subprocess.run(command, check=False, capture_output=True, text=True)
         report["singing_execution"] = {"returncode": completed.returncode,
                                        "stdout": completed.stdout, "stderr": completed.stderr}
@@ -218,11 +219,14 @@ def main() -> int:
     parser.add_argument("--execute-master", action="store_true")
     parser.add_argument("--vocal-wav", type=Path)
     parser.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
+    parser.add_argument("--python-executable", default=sys.executable,
+                        help="Python interpreter in the installed SoulX environment.")
     args = parser.parse_args()
     try:
         report = run(args.project, args.output, args.soulx_root, args.execute_midi,
                      args.execute_vocals, args.device, args.execute_instrumental,
-                     args.soundfont, args.execute_master, args.vocal_wav, args.execute_vocal_guide)
+                     args.soundfont, args.execute_master, args.vocal_wav, args.execute_vocal_guide,
+                     args.python_executable)
     except (OSError, ValueError, RuntimeError, KeyError, json.JSONDecodeError) as exc:
         print(f"PIPELINE BLOCKED: {exc}", file=sys.stderr)
         return 2
