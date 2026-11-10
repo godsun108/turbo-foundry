@@ -80,6 +80,34 @@ jobs:
                   assert audio.getsampwidth() == 2
                   print(f"{name}: {audio.getnchannels()}ch {audio.getframerate()}Hz {audio.getnframes()/audio.getframerate():.2f}s")
           PY
+      - name: Render Fine China instrumental
+        run: |
+          python3 music-foundry/render_fine_china.py --output music-foundry/output/fine-china-audio --bpm 126
+      - name: Validate Fine China WAV output
+        run: |
+          python3 - <<'PY'
+          import json, wave
+          from pathlib import Path
+          folder = Path("music-foundry/output/fine-china-audio")
+          manifest = json.loads((folder / "audio_manifest.json").read_text())
+          assert manifest["project_id"] == "fine-china"
+          assert manifest["bpm"] == 126 and manifest["key_center"] == "A minor"
+          assert manifest["chord_progression"] == ["Am", "F", "C", "G"]
+          for name in [manifest["mix"], *manifest["stems"]]:
+              path = folder / name
+              assert path.is_file() and path.stat().st_size > 4096, f"missing/placeholder WAV: {path}"
+              with wave.open(str(path), "rb") as audio:
+                  assert audio.getnframes() > audio.getframerate() * 200
+                  assert audio.getsampwidth() == 2
+                  print(f"{name}: {audio.getnchannels()}ch {audio.getframerate()}Hz {audio.getnframes()/audio.getframerate():.2f}s")
+          PY
+      - name: Publish Fine China instrumental preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: fine-china-instrumental-preview
+          path: music-foundry/output/fine-china-audio/
+          retention-days: 7
+          if-no-files-found: error
       - name: Publish private-review audio artifact
         uses: actions/upload-artifact@v4
         with:
