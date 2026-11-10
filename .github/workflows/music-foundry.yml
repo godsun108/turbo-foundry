@@ -21,6 +21,7 @@ jobs:
           files = [
               Path("music-foundry/projects/somebodys-gotta-do-it/recording-booth.html"),
               Path("music-foundry/projects/somebodys-gotta-do-it/vocal-timeline.html"),
+              Path("music-foundry/service/index.html"),
           ]
           for source in files:
               html = source.read_text(encoding="utf-8")
@@ -31,6 +32,7 @@ jobs:
           PY
           node --check /tmp/recording-booth.js
           node --check /tmp/vocal-timeline.js
+          node --check /tmp/index.js
       - name: Syntax-check vocal score editor module
         run: node --check --input-type=module < music-foundry/projects/somebodys-gotta-do-it/vocal-score-editor.js
       - name: Test SoulX phone inventory
