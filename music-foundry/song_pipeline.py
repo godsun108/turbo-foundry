@@ -38,6 +38,12 @@ def inspect_project(project_dir: Path, soulx_root: Path | None = None,
         raise ValueError("project is missing required creative source files: " + ", ".join(missing))
 
     midi_engine = ROOT / "generate.py"
+    voice_path = project_dir / "vocal_direction.json"
+    voice_direction = _read_json(voice_path) if voice_path.is_file() else None
+    voice_required = ("verse_delivery", "pre_chorus_delivery", "chorus_delivery", "bridge_delivery", "gang_response")
+    voice_ready = bool(voice_direction and all(isinstance(voice_direction.get(key), str)
+                                               and voice_direction[key].strip() for key in voice_required))
+
     score_path = project_dir / "vocal_score.json"
     score = _read_json(score_path) if score_path.is_file() else None
     score_ready = bool(
@@ -84,6 +90,9 @@ def inspect_project(project_dir: Path, soulx_root: Path | None = None,
             "midi": {"status": "ready" if midi_engine.is_file() else "blocked", "engine": str(midi_engine)},
             "vocal_score": {"status": "ready" if score_ready else "blocked", "file": str(score_path),
                             "reason": None if score_ready else "requires human-reviewed sung lyric_units and locked tempo"},
+            "vocal_direction": {"status": "ready" if voice_ready else "blocked",
+                                "file": str(voice_path),
+                                "reason": None if voice_ready else "requires a vocal_direction.json with verse, pre-chorus, chorus, bridge and gang-response direction"},
             "soulx_runtime": {"status": "ready" if root and not missing_soulx else "blocked",
                               "root": str(root) if root else None,
                               "missing": missing_soulx if root else ["SOULX_ROOT not set; existing local SoulX checkout required"]},
