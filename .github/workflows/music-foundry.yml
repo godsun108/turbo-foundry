@@ -1,6 +1,6 @@
 name: Music Foundry MIDI tests
-# Hosted Actions are manual-only. Use the repository-owned Linux internal runner
-# (music-foundry/run-singing-internal.sh) for the singing DSP validation.
+# Manual-only validation on the repository-owned Linux runner.
+# Sovereign-Offline can also invoke music-foundry/run-singing-internal.mjs directly.
 on:
   workflow_dispatch:
 jobs:
