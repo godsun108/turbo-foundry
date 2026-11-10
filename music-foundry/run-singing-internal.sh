@@ -39,5 +39,8 @@ fi
     --setenv HOME "/tmp" \
     --setenv TMPDIR "/tmp" \
     "$TIMEOUT" --signal=TERM --kill-after=10 180s \
+    "$NODE" --check --input-type=module < music-foundry/projects/somebodys-gotta-do-it/genesis-voice-studio.js
+    "$NODE" --check --input-type=module < music-foundry/projects/somebodys-gotta-do-it/genesis-voice-worker.js
+    "$NODE" --check music-foundry/voice/genesis-singing-dsp.mjs
     "$NODE" --test music-foundry/tests/test_genesis_singing_dsp.mjs
 )
