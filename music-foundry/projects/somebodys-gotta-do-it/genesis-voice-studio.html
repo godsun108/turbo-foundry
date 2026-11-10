@@ -43,8 +43,10 @@ button.secondary{background:#25344b}button.danger{background:#613642}
 <div><label for="voice">Voice</label><select id="voice" disabled><option>Load a model first</option></select></div>
 <div><label for="locale">Voice locale</label><input id="locale" readonly value="—"></div>
 </div>
-<label for="text">Text to synthesize</label>
+<label for="text">Track lyrics or spoken performance</label>
+<button id="loadTrackLyrics" class="secondary" type="button">Load Somebody’s Gotta Do It lyrics</button>
 <textarea id="text" maxlength="4000" placeholder="Paste a line or passage from your approved lyric sheet…">Somebody's gotta do it.</textarea>
+<p class="note">The button loads the lyric lines from the project cue sheet, leaving out production notes. Generate a full spoken-led vocal pass, then download the WAV and place it on the vocal timeline.</p>
 <div class="actions">
 <button id="synthesize" disabled>Generate spoken take</button>
 <button id="stop" class="danger" disabled>Stop</button>
