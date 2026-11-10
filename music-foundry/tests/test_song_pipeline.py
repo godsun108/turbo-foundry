@@ -87,7 +87,8 @@ class SongPipelineTests(unittest.TestCase):
         self.assertTrue(midi.startswith(b"MThd"))
         self.assertEqual(report["status"], "draft_preview_only")
         self.assertEqual(report["note_events"], 2)
-        self.assertEqual(report["duration_beats"], 130)
+        self.assertEqual(report["duration_beats"], 2)
+        self.assertEqual(report["start_beat_in_source"], 128)
 
     def test_midi_execution_calls_existing_generator(self):
         with tempfile.TemporaryDirectory() as temp:
