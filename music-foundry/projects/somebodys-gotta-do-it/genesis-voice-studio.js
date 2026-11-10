@@ -137,7 +137,7 @@ function extractTrackLyrics(markdown) {
     }
     if (line.startsWith("- ")) {
       if (includeAdlibs) {
-        const response = line.match(/—\\s*[“"]([^”"]+)[”"]/);
+        const response = line.match(/—\s*[“"]([^”"]+)[”"]/);
         if (response) output.push(response[1]);
       }
       continue;
