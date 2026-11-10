@@ -159,6 +159,11 @@ export function psola(samples, sampleRate, targetHz, outputSeconds, vibrato = {}
   return output;
 }
 
+function convertSampleRate(samples, sourceRate, targetRate) {
+  if (sourceRate === targetRate) return samples;
+  return resampleSegment(samples, Math.max(1, Math.round(samples.length * targetRate / sourceRate)));
+}
+
 export function renderSingingNote(samples, sampleRate, note, tempoBpm) {
   if (!note || !Number.isInteger(note.midi_pitch) ||
       !finite(note.duration_beats) || note.duration_beats <= 0 ||
@@ -245,7 +250,9 @@ export async function renderSingingScore({ score, sampleRate, synthesizeText, on
     const event = parsed.events[index];
     const source = await synthesizeText(event.text);
     if (isCancelled?.()) throw new SingingRenderError("Singing render cancelled.");
-    const noteAudio = renderSingingNote(source.samples, source.sampleRateHz || sampleRate, event, parsed.tempoBpm);
+    const sourceRate = source.sampleRateHz || sampleRate;
+    const normalizedSource = convertSampleRate(source.samples, sourceRate, sampleRate);
+    const noteAudio = renderSingingNote(normalizedSource, sampleRate, event, parsed.tempoBpm);
     const start = Math.round(event.start_beat * 60 / parsed.tempoBpm * sampleRate);
     for (let i = 0; i < noteAudio.length && start + i < mix.length; i++) {
       mix[start + i] += noteAudio[i] * 0.78;
