@@ -20,8 +20,11 @@ jobs:
         run: python3 -m unittest discover -s music-foundry/tests -v
       - name: Generate Fine China full-length MIDI arrangement
         run: python3 music-foundry/generate.py --output music-foundry/output/fine-china --bpm 126 --bars 120
-      - name: Upload Fine China MIDI project
+      - name: Run Fine China production preflight (blocked stages are reported, not hidden)
+        run: |
+          python3 music-foundry/song_pipeline.py --project music-foundry/projects/fine-china --output music-foundry/output/fine-china || test -f music-foundry/output/fine-china/pipeline-report.json
+      - name: Upload Fine China MIDI project and production report
         uses: actions/upload-artifact@v4
         with:
-          name: fine-china-midi-project
+          name: fine-china-production-preflight
           path: music-foundry/output/fine-china/
