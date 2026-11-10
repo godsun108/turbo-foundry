@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import song_pipeline
+import vocal_score_midi
 
 
 class SongPipelineTests(unittest.TestCase):
@@ -62,6 +63,31 @@ class SongPipelineTests(unittest.TestCase):
             self.assertEqual(report["stages"]["vocal_score"]["status"], "ready")
             self.assertFalse(report["ready_for_local_singing_render"])
             self.assertEqual(report["stages"]["singing_reference"]["status"], "blocked")
+
+    def test_vocal_score_midi_builds_draft_guide_without_external_dependencies(self):
+        score = {
+            "project_id": "fine-china",
+            "tempo_bpm": 126,
+            "ppq": 480,
+            "score_status": "composition_draft",
+            "phrases": [{
+                "id": "hook",
+                "delivery": "sung",
+                "start_beat": 128,
+                "duration_beats": 2,
+                "lyric_units": [
+                    {"text": "Fine", "onset_beats": 0, "duration_beats": 1,
+                     "midi_pitch": 69, "note_type": "normal"},
+                    {"text": "China", "onset_beats": 1, "duration_beats": 1,
+                     "midi_pitch": 67, "note_type": "normal"}
+                ]
+            }]
+        }
+        midi, report = vocal_score_midi.build_midi(score)
+        self.assertTrue(midi.startswith(b"MThd"))
+        self.assertEqual(report["status"], "draft_preview_only")
+        self.assertEqual(report["note_events"], 2)
+        self.assertEqual(report["duration_beats"], 130)
 
     def test_midi_execution_calls_existing_generator(self):
         with tempfile.TemporaryDirectory() as temp:
