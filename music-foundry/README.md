@@ -211,3 +211,12 @@ The Genesis Voice Engine now has a local Piper CLI adapter in `music-foundry/gen
 ## Browser-first neural voice studio
 
 The Somebody's Gotta Do It project now includes a browser-local Kokoro/MediaPipe TTS prototype at `projects/somebodys-gotta-do-it/genesis-voice-studio.html`. It loads a locally selected LiteRT-LM model, synthesizes speech in a Web Worker, and exports 24 kHz mono WAV for import into the vocal timeline. The MediaPipe JS/WASM runtime is currently loaded from a pinned CDN version; model weights are never auto-downloaded. iPhone/Safari and real-model audio tests remain pending. See [GENESIS_VOICE_ENGINE.md](GENESIS_VOICE_ENGINE.md).
+
+
+## Genesis local voice and singing studio
+
+The existing Genesis Voice Studio now includes a prototype score-conditioned singing lane. It reuses the local Kokoro/LiteRT neural speech voice already supported by the studio, retunes voiced syllables to Music Foundry MIDI pitches with local PSOLA processing, places notes on the score timeline, and exports a WAV for audition and timeline import.
+
+Open `projects/somebodys-gotta-do-it/genesis-voice-studio.html` from the Music Foundry workspace. Select the local `.litertlm` model, load a Music Foundry vocal-score JSON (or use the bundled Fine China composition-draft fixture), then generate a sung take. No user vocal recording or reference singer is required.
+
+This is melodic TTS, not a dedicated singing-trained neural checkpoint. The Fine China fixture remains a composition draft and needs human audition/approval. The prototype's pinned MediaPipe runtime/WASM is still fetched from jsDelivr; model inference and singing DSP are local after the runtime loads. See `GENESIS_KOKORO_SINGING.md` for the internal Sovereign-Offline runner path and limitations.
