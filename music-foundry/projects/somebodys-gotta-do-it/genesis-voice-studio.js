@@ -75,6 +75,7 @@ async function resumeAudio() {
   await audioContext.resume();
 }
 
+$("model").value = navigator.gpu ? "gpu" : "cpu";
 $("delegate").value = navigator.gpu ? "GPU" : "CPU";
 const browserChecks = [
   "Secure context: " + (window.isSecureContext ? "yes" : "no"),
@@ -83,7 +84,7 @@ const browserChecks = [
   "Device memory hint: " + (navigator.deviceMemory ? navigator.deviceMemory + " GB" : "not exposed"),
   "Offline app/runtime cache: " + (offlineCacheReady ? "active" : "unavailable")
 ];
-setStatus(browserChecks.join(" · ") + (navigator.gpu ? "" : " · CPU mode selected; choose a CPU-compatible model."));
+setStatus(browserChecks.join(" · ") + (navigator.gpu ? "" : " · CPU-compatible model selected."));
 if (navigator.gpu) {
   navigator.gpu.requestAdapter().then((adapter) => {
     browserChecks.push("WebGPU adapter: " + (adapter ? "available" : "not available"));
