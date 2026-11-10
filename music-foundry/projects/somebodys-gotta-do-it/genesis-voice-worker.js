@@ -108,7 +108,7 @@ self.addEventListener("message", async (event) => {
       self.postMessage({ type: "status", message: "Reading score and checking every placed syllable…" });
       const rendered = await renderSingingScore({
         score,
-        sampleRate: 24000,
+        sampleRate: 48000,
         synthesizeText,
         isCancelled: () => job !== activeJob,
         onProgress: ({ completed, total, lyric }) => {
