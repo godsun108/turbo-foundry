@@ -66,7 +66,9 @@ def render_job(job):
         project_dir = PROJECTS / job["project"]
         output = project_dir / job["id"]
         output.mkdir(parents=True, exist_ok=True)
-        if job["arrangement"] == "warehouse-rave-v3":
+        if job["project"] == "fine-china":
+            script = ROOT / "render_fine_china.py"
+        elif job["arrangement"] == "warehouse-rave-v3":
             script = ROOT / "render_warehouse_rave_v3.py"
         else:
             script = ROOT / "render_instrumental.py"
@@ -166,7 +168,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self.authorized():
             return
         if path == "/api/v1/projects":
-            json_response(self, 200, {"projects": [{"id": "somebodys-gotta-do-it", "title": "Somebody's Gotta Do It", "arrangements": ["warehouse-rave-v3", "original"]}]})
+            json_response(self, 200, {"projects": [{"id": "somebodys-gotta-do-it", "title": "Somebody's Gotta Do It", "arrangements": ["warehouse-rave-v3", "original"]}, {"id": "fine-china", "title": "Fine China (Eat On It)", "arrangements": ["soulful-bass-house"]}]})
             return
         match = re.fullmatch(r"/api/v1/jobs/([0-9a-f-]{36})", path)
         if match:
@@ -212,10 +214,11 @@ class Handler(BaseHTTPRequestHandler):
             project = payload.get("project", "somebodys-gotta-do-it")
             arrangement = payload.get("arrangement", "warehouse-rave-v3")
             bpm = int(payload.get("bpm", 127))
-            if project != "somebodys-gotta-do-it" or not SLUG.fullmatch(project):
+            if project not in ("somebodys-gotta-do-it", "fine-china") or not SLUG.fullmatch(project):
                 raise ValueError("Unknown project")
-            if arrangement not in ("warehouse-rave-v3", "original"):
-                raise ValueError("Unknown arrangement")
+            allowed = ("soulful-bass-house",) if project == "fine-china" else ("warehouse-rave-v3", "original")
+            if arrangement not in allowed:
+                raise ValueError("Unknown arrangement for selected project")
             if not 40 <= bpm <= 240:
                 raise ValueError("BPM must be between 40 and 240")
         except (ValueError, TypeError, json.JSONDecodeError) as exc:
