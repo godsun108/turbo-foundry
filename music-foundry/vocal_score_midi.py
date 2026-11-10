@@ -84,6 +84,20 @@ def build_midi(score: Any, preserve_timeline: bool = False) -> tuple[bytes, dict
             continue
         if not isinstance(syllables, list) or not syllables:
             syllables = units
+        else:
+            for unit_index, word_unit in enumerate(units):
+                mapped = [item for item in syllables
+                          if isinstance(item, dict) and item.get("unit_index") == unit_index]
+                if not mapped:
+                    raise ValueError(f"{phrase.get('id')}: lyric unit {unit_index} has no syllable mapping")
+                mapped_duration = sum(float(item.get("duration_beats", 0)) for item in mapped)
+                if abs(mapped_duration - float(word_unit.get("duration_beats", 0))) > 1e-6:
+                    raise ValueError(f"{phrase.get('id')}: syllable durations do not match word {word_unit.get('text')}")
+                mapped_phones = [phone for item in mapped for phone in item.get("phonemes", [])]
+                if mapped_phones != word_unit.get("phonemes"):
+                    raise ValueError(f"{phrase.get('id')}: syllable phonemes do not reconstruct word {word_unit.get('text')}")
+                if any(item.get("word") != word_unit.get("text") for item in mapped):
+                    raise ValueError(f"{phrase.get('id')}: syllables are attached to the wrong word occurrence")
         layer = "gang" if phrase.get("delivery") == "gang_shout" else "lead"
         cursor = 0.0
         for unit in syllables:
