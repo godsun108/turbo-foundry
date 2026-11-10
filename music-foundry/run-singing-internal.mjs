@@ -16,6 +16,7 @@ const checks = [
   { label: "syntax: singing DSP", args: ["--check", "music-foundry/voice/genesis-singing-dsp.mjs"] },
   { label: "syntax: offline service worker", args: ["--check", "music-foundry/projects/somebodys-gotta-do-it/genesis-voice-sw.js"] },
   { label: "tests: offline service worker cache policy", args: ["--test", "music-foundry/tests/test_genesis_voice_sw.mjs"] },
+  { label: "tests: voice model bootstrap and track vocal workflow", args: ["--test", "music-foundry/tests/test_genesis_voice_bootstrap.mjs"] },
   { label: "tests: singing DSP", args: ["--test", "music-foundry/tests/test_genesis_singing_dsp.mjs"] }
 ];
 
