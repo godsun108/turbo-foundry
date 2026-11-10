@@ -7,6 +7,7 @@ Rendered files and job state live under MUSIC_FOUNDRY_DATA (mount a persistent v
 from __future__ import annotations
 
 import json
+import mimetypes
 import os
 import re
 import subprocess
@@ -147,8 +148,39 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", "0")
         self.end_headers()
 
+
+    def serve_static(self, root, relative):
+        root = root.resolve()
+        target = (root / relative).resolve()
+        if not target.is_relative_to(root) or not target.is_file():
+            json_response(self, 404, {"error": "Asset not found"})
+            return
+        content_type = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
+        raw = target.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(raw)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(raw)
+
     def do_GET(self):
         path = unquote(urlparse(self.path).path)
+        if path == "/voice-studio" or path == "/voice-studio/":
+            self.send_response(302)
+            self.send_header("Location", "/voice-studio/genesis-voice-studio.html")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        if path.startswith("/voice-studio/"):
+            self.serve_static(ROOT / "projects" / "somebodys-gotta-do-it", path[len("/voice-studio/"):])
+            return
+        if path.startswith("/fine-china/"):
+            self.serve_static(ROOT / "projects" / "fine-china", path[len("/fine-china/"):])
+            return
+        if path.startswith("/voice/"):
+            self.serve_static(ROOT / "voice", path[len("/voice/"):])
+            return
         if path in ("/", "/app"):
             page = ROOT / "service" / "index.html"
             if not page.is_file():
