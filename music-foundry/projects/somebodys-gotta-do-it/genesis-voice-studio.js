@@ -1,4 +1,18 @@
 const $ = (id) => document.getElementById(id);
+
+// Activate the app-scoped cache before creating the dedicated inference worker.
+// The worker's pinned MediaPipe ESM/WASM requests can then be cached by the
+// service worker after the first online load and reused on later offline starts.
+let offlineCacheReady = false;
+if ("serviceWorker" in navigator && window.isSecureContext) {
+  try {
+    await navigator.serviceWorker.register("./genesis-voice-sw.js");
+    await navigator.serviceWorker.ready;
+    offlineCacheReady = true;
+  } catch {
+    // Keep the studio usable when service workers are unavailable or blocked.
+  }
+}
 const worker = new Worker("./genesis-voice-worker.js", { type: "module" });
 $("text").maxLength = 1200;
 let ready = false;
@@ -66,7 +80,8 @@ const browserChecks = [
   "Secure context: " + (window.isSecureContext ? "yes" : "no"),
   "Web Audio: " + (window.AudioContext || window.webkitAudioContext ? "available" : "unavailable"),
   "WebGPU API: " + (navigator.gpu ? "present" : "not present"),
-  "Device memory hint: " + (navigator.deviceMemory ? navigator.deviceMemory + " GB" : "not exposed")
+  "Device memory hint: " + (navigator.deviceMemory ? navigator.deviceMemory + " GB" : "not exposed"),
+  "Offline app/runtime cache: " + (offlineCacheReady ? "active" : "unavailable")
 ];
 setStatus(browserChecks.join(" · ") + (navigator.gpu ? "" : " · CPU mode selected; choose a CPU-compatible model."));
 if (navigator.gpu) {
