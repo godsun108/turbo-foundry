@@ -48,7 +48,7 @@ def _track(events: list[tuple[int, int, bytes]], end_tick: int) -> bytes:
     return b"MTrk" + struct.pack(">I", len(data)) + data
 
 
-def build_midi(score: Any) -> tuple[bytes, dict[str, Any]]:
+def build_midi(score: Any, preserve_timeline: bool = False) -> tuple[bytes, dict[str, Any]]:
     if not isinstance(score, dict):
         raise ValueError("score root must be an object")
     bpm = score.get("tempo_bpm")
@@ -61,6 +61,10 @@ def build_midi(score: Any) -> tuple[bytes, dict[str, Any]]:
     if ppq <= 0 or ppq > 32767:
         raise ValueError("ppq must be between 1 and 32767")
 
+    eligible_starts = [float(p["start_beat"]) for p in phrases
+                       if isinstance(p, dict) and p.get("delivery") in {"sung", "chant", "gang_shout"}
+                       and isinstance(p.get("start_beat"), (int, float)) and p.get("lyric_units")]
+    origin_beat = 0.0 if preserve_timeline or not eligible_starts else min(eligible_starts)
     tracks: dict[str, list[tuple[int, int, bytes]]] = {"lead": [], "gang": []}
     words = 0
     notes = 0
@@ -89,8 +93,8 @@ def build_midi(score: Any) -> tuple[bytes, dict[str, Any]]:
                 raise ValueError(f"{phrase.get('id')}: units must be contiguous; encode rests explicitly")
             if not isinstance(text, str) or not text:
                 raise ValueError(f"{phrase.get('id')}: unit text is required")
-            start_tick = int(round((float(start) + float(onset)) * ppq))
-            end_tick = int(round((float(start) + float(onset) + float(duration)) * ppq))
+            start_tick = int(round((float(start) + float(onset) - origin_beat) * ppq))
+            end_tick = int(round((float(start) + float(onset) + float(duration) - origin_beat) * ppq))
             max_tick = max(max_tick, end_tick)
             if text != "<SP>":
                 if not isinstance(pitch, int) or isinstance(pitch, bool) or not 1 <= pitch <= 127:
@@ -125,7 +129,10 @@ def build_midi(score: Any) -> tuple[bytes, dict[str, Any]]:
         "ppq": ppq,
         "word_events": words,
         "note_events": notes,
+        "start_beat_in_source": origin_beat,
+        "end_beat_in_source": origin_beat + max_tick / ppq,
         "duration_beats": max_tick / ppq,
+        "preserved_timeline": preserve_timeline,
         "tracks": ["conductor", "lead", "gang"],
         "warning": "MIDI guide is a composition preview only; not an approved SoulX score or a rendered vocal recording."
     }
@@ -136,10 +143,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--score", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--preserve-timeline", action="store_true", help="Keep the source-song beat offset instead of starting the preview at beat zero.")
     args = parser.parse_args()
     try:
         score = json.loads(args.score.read_text(encoding="utf-8"))
-        midi, report = build_midi(score)
+        midi, report = build_midi(score, preserve_timeline=args.preserve_timeline)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_bytes(midi)
         report_path = args.output.with_suffix(".report.json")
