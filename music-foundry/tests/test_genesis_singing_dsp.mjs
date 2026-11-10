@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   analyzeVoicedRegion, midiToHz, parseSingingScore, psola,
   renderSingingNote, renderSingingScore, SingingRenderError
@@ -103,4 +104,23 @@ test("complete score renderer synthesizes syllables locally and mixes on timelin
   assert.equal(result.samples.length, 24000);
   assert.equal(result.mode, "sung");
   assert.ok(result.samples.some((sample) => Math.abs(sample) > 0.01));
+});
+
+test("real Fine China draft imports all placed syllables without inventing notes", () => {
+  const score = JSON.parse(readFileSync(
+    "music-foundry/projects/fine-china/vocal_score_draft.json", "utf8"
+  ));
+  const parsed = parseSingingScore(score);
+  assert.equal(parsed.tempoBpm, 126);
+  assert.equal(parsed.events.length, 73);
+  assert.equal(parsed.events[0].start_beat, 128);
+  const last = parsed.events.at(-1);
+  assert.equal(last.start_beat + last.duration_beats, 186);
+  for (let index = 1; index < parsed.events.length; index++) {
+    const previous = parsed.events[index - 1];
+    assert.ok(
+      parsed.events[index].start_beat >= previous.start_beat + previous.duration_beats - 1e-8,
+      "overlap between " + previous.text + " and " + parsed.events[index].text
+    );
+  }
 });
