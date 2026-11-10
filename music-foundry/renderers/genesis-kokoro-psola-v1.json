@@ -18,7 +18,7 @@
   "implementation": {
     "voice_engine": "existing-local-kokoro-litert-tts",
     "pitch_renderer": "psola",
-    "model_required": "operator-selected-local-litertlm",
+    "model_required": "pinned-kokoro-litertlm-downloaded-to-device",
     "user_voice_required": false,
     "reference_audio_required": false,
     "inference_network_required": false,
