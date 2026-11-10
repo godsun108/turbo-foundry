@@ -6,6 +6,7 @@ Rendered files and job state live under MUSIC_FOUNDRY_DATA (mount a persistent v
 """
 from __future__ import annotations
 
+import array
 import json
 import mimetypes
 import os
@@ -60,6 +61,57 @@ def valid_audio(path):
             "frames": audio.getnframes(),
             "duration_seconds": round(audio.getnframes() / audio.getframerate(), 3),
         }
+
+
+
+def read_mono_pcm(path):
+    with wave.open(str(path), "rb") as audio:
+        if audio.getnchannels() != 1 or audio.getsampwidth() != 2:
+            raise ValueError("Audio must be mono, 16-bit PCM WAV")
+        rate = audio.getframerate()
+        frames = audio.getnframes()
+        samples = array.array("h")
+        samples.frombytes(audio.readframes(frames))
+        return samples, rate
+
+
+def resample_pcm(samples, source_rate, target_rate):
+    if source_rate == target_rate:
+        return samples
+    output_length = round(len(samples) * target_rate / source_rate)
+    output = array.array("h")
+    for index in range(output_length):
+        position = index * source_rate / target_rate
+        left = min(len(samples) - 1, int(position))
+        right = min(len(samples) - 1, left + 1)
+        fraction = position - left
+        output.append(max(-32768, min(32767, round(
+            samples[left] * (1 - fraction) + samples[right] * fraction
+        ))))
+    return output
+
+
+def combine_vocal_with_instrumental(instrumental_path, vocal_path, output_path):
+    instrumental, instrumental_rate = read_mono_pcm(instrumental_path)
+    vocal, vocal_rate = read_mono_pcm(vocal_path)
+    target_rate = max(instrumental_rate, vocal_rate)
+    instrumental = resample_pcm(instrumental, instrumental_rate, target_rate)
+    vocal = resample_pcm(vocal, vocal_rate, target_rate)
+    length = max(len(instrumental), len(vocal))
+    mixed = array.array("i", [0]) * length
+    for index in range(length):
+        backing = instrumental[index] if index < len(instrumental) else 0
+        lead = vocal[index] if index < len(vocal) else 0
+        mixed[index] = round(backing * 0.82 + lead * 0.92)
+    peak = max((abs(value) for value in mixed), default=1)
+    gain = min(1.0, 30000 / peak) if peak else 1.0
+    pcm = array.array("h", (max(-32768, min(32767, round(value * gain))) for value in mixed))
+    with wave.open(str(output_path), "wb") as audio:
+        audio.setnchannels(1)
+        audio.setsampwidth(2)
+        audio.setframerate(target_rate)
+        audio.writeframes(pcm.tobytes())
+    return valid_audio(output_path)
 
 
 def render_job(job):
@@ -235,6 +287,54 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if not self.authorized():
             return
+
+        vocal_match = re.fullmatch(r"/api/v1/jobs/([0-9a-f-]{36})/vocal", urlparse(self.path).path)
+        if vocal_match:
+            job = read_job(vocal_match.group(1))
+            if not job or job.get("status") != "succeeded":
+                json_response(self, 409, {"error": "Render the instrumental successfully before uploading vocals"})
+                return
+            content_type = self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
+            if content_type != "audio/wav":
+                json_response(self, 415, {"error": "Upload must be audio/wav"})
+                return
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                if length < 44 or length > 100 * 1024 * 1024:
+                    raise ValueError("Vocal WAV must be between 44 bytes and 100 MB")
+                output = (DATA / job["output_dir"]).resolve()
+                if not output.is_relative_to(DATA) or not output.is_dir():
+                    raise ValueError("Invalid render output directory")
+                vocal_path = output / "vocal_lead.wav"
+                vocal_path.write_bytes(self.rfile.read(length))
+                vocal_meta = valid_audio(vocal_path)
+                if vocal_meta["channels"] != 1 or vocal_meta["sample_width_bytes"] != 2:
+                    vocal_path.unlink(missing_ok=True)
+                    raise ValueError("Vocal must be mono, 16-bit PCM WAV")
+                if not 5 <= vocal_meta["duration_seconds"] <= 180:
+                    vocal_path.unlink(missing_ok=True)
+                    raise ValueError("Vocal duration must be between 5 and 180 seconds")
+                instrumental = output / job["manifest"].get("mix", "instrumental_mix.wav")
+                final_mix = output / "final_mix.wav"
+                mix_meta = combine_vocal_with_instrumental(instrumental, vocal_path, final_mix)
+                job["vocal_upload"] = vocal_meta
+                job["final_mix"] = mix_meta
+                job["files"]["vocal_lead.wav"] = vocal_meta
+                job["files"]["final_mix.wav"] = mix_meta
+                job["manifest"]["vocals_rendered"] = True
+                job["message"] = "Fine China vocal take combined with the instrumental audition. Review the performance and balance before release."
+                job["mixed_at"] = utc_now()
+                write_job(job)
+                json_response(self, 200, {
+                    "status": "succeeded",
+                    "vocal": vocal_meta,
+                    "final_mix": mix_meta,
+                    "final_mix_url": "/api/v1/jobs/" + job["id"] + "/files/final_mix.wav"
+                })
+            except (ValueError, OSError, wave.Error) as exc:
+                json_response(self, 400, {"error": str(exc)})
+            return
+
         if urlparse(self.path).path != "/api/v1/render":
             json_response(self, 404, {"error": "Not found"})
             return
