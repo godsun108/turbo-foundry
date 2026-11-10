@@ -11,7 +11,7 @@ Status: implementation prototype. This connects the existing local Kokoro / Medi
 5. Each note is placed on the score timeline; overlapping events are mixed, peak-limited, and exported as 48 kHz mono 16-bit PCM WAV.
 6. The WAV can be auditioned and imported into the existing Music Foundry vocal timeline.
 
-No user voice, reference singer, reference WAV, or cloud inference is needed. The TTS model is loaded from a local file selected by the operator. Inference and DSP run in the browser worker. The prototype currently loads the MediaPipe runtime/WASM from a pinned CDN, so the first load still needs network access. Vendor those exact runtime assets before claiming fully offline startup.
+No user voice, reference singer, reference WAV, or cloud inference is needed. The TTS model is loaded from a local file selected by the operator. Inference and DSP run in the browser worker. The prototype loads the pinned MediaPipe runtime/WASM from jsDelivr on first use. A same-origin service worker now caches the app shell, score fixture, DSP module, and pinned runtime responses for later offline launches. The first successful runtime load still requires network access, and browser storage may evict cached assets; this is offline-capable after warm-up, not a fully self-contained/vendor-free runtime.
 
 ## Run tests on Sovereign's internal execution system
 
