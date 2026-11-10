@@ -96,7 +96,7 @@ class SongPipelineTests(unittest.TestCase):
                 "id": "hook",
                 "delivery": "sung",
                 "start_beat": 128,
-                "duration_beats": 2,
+                "duration_beats": 1,
                 "lyric_units": [
                     {"text": "Hello", "phonemes": ["HH", "AH0", "L", "OW1"], "onset_beats": 0, "duration_beats": 1,
                      "midi_pitch": 69, "note_type": "normal"}
@@ -115,7 +115,7 @@ class SongPipelineTests(unittest.TestCase):
         self.assertEqual(report["word_events"], 1)
         self.assertEqual(report["syllable_events"], 2)
         self.assertEqual(report["note_events"], 2)
-        self.assertEqual(report["duration_beats"], 2)
+        self.assertEqual(report["duration_beats"], 1)
         self.assertEqual(report["start_beat_in_source"], 128)
 
     def test_fine_china_project_score_has_syllable_level_midi_preview(self):
