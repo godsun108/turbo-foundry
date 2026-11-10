@@ -31,6 +31,12 @@ test("voice analysis detects a stable TTS vowel region", () => {
   assert.ok(analysis.end > analysis.start);
 });
 
+test("short TTS syllables still provide enough voiced frames", () => {
+  const short = tone(220, 0.14);
+  const analysis = analyzeVoicedRegion(short, 24000);
+  assert.ok(analysis.sourceHz > 205 && analysis.sourceHz < 235);
+});
+
 test("PSOLA changes pitch while preserving requested duration", () => {
   const rendered = psola(tone(220), 24000, 440, 0.5);
   assert.equal(rendered.length, 12000);
