@@ -1,17 +1,17 @@
 # Genesis Kokoro score-conditioned singing
 
-Status: implementation prototype. This connects the existing local Kokoro / MediaPipe TTS voice to Music Foundry's note-level vocal score. It does not introduce another hosted voice provider or ask the user to record vocals.
+Status: implementation prototype with automatic model installation. This connects the Kokoro / MediaPipe TTS voice to Music Foundry's spoken and note-level sung vocal paths. It does not introduce another hosted voice provider or ask the user to record vocals.
 
 ## Render path
 
-1. Load the existing .litertlm voice bundle into Genesis Voice Studio on the iPhone/browser.
+1. Choose GPU or CPU in Genesis Voice Studio. The studio loads the pinned Kokoro `.litertlm` model directly from its Apache-2.0 Hugging Face release; no manual file picker is required. The first download is about 295 MB.
 2. Select a Music Foundry vocal-score JSON with tempo and placed syllables (text, MIDI pitch, onset beats, and duration beats).
 3. The existing neural TTS model synthesizes each syllable using the selected voice.
 4. Local JavaScript DSP analyzes voiced periods and applies pitch-synchronous overlap-add (PSOLA) to retune the vowel region to the score's MIDI pitch. Consonant onset/coda are kept outside the pitch-synchronous region as much as possible.
 5. Each note is placed on the score timeline; overlapping events are mixed, peak-limited, and exported as 48 kHz mono 16-bit PCM WAV.
 6. The WAV can be auditioned and imported into the existing Music Foundry vocal timeline.
 
-No user voice, reference singer, reference WAV, or cloud inference is needed. The TTS model is loaded from a local file selected by the operator. Inference and DSP run in the browser worker. The prototype loads the pinned MediaPipe runtime/WASM from jsDelivr on first use. A same-origin service worker now caches the app shell, score fixture, DSP module, and pinned runtime responses for later offline launches. The first successful runtime load still requires network access, and browser storage may evict cached assets; this is offline-capable after warm-up, not a fully self-contained/vendor-free runtime.
+No user voice, reference singer, reference WAV, or cloud inference is needed. The TTS model is downloaded from the published Apache-2.0 release and inference/DSP run in the browser worker. The prototype loads the pinned MediaPipe runtime/WASM from jsDelivr on first use. A same-origin service worker caches the app shell, score fixture, DSP module, pinned runtime responses, and the exact Kokoro model URLs where browser quota permits. The first install requires network access, and iOS may evict cached assets; this is warm-cache offline-capable, not guaranteed permanent storage.
 
 ## Run tests on Sovereign's internal execution system
 
@@ -64,7 +64,7 @@ The renderer descriptor is intentionally registered with verification status pen
 - One syllable is synthesized at a time, so natural coarticulation between words may need a later phrase-level alignment model.
 - Very short/unvoiced syllables may be rejected if there is no stable vowel pitch to track.
 - Harmony layers can overlap and are mixed, but each note currently uses the same selected voice identity.
-- The real .litertlm file, target iPhone memory/thermal behavior, and listening quality must be verified on-device. A passing DSP test is not evidence of a finished commercial vocal.
+- The real model load, target iPhone memory/thermal behavior, and listening quality must be verified on-device. A passing DSP test is not evidence of a finished commercial vocal.
 
 ## Existing project integration
 
