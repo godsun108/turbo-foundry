@@ -47,8 +47,12 @@ export function analyzeVoicedRegion(samples, sampleRate) {
       !finite(sampleRate) || sampleRate < 8000 || sampleRate > 96000) {
     throw new SingingRenderError("TTS audio must be a Float32Array with a valid sample rate.");
   }
-  const frameSize = Math.min(2048, Math.max(1024, 2 ** Math.floor(Math.log2(samples.length))));
-  const hop = Math.max(128, Math.floor(frameSize / 4));
+  // Adapt the analysis window to short TTS syllables. A fixed 2048-sample
+  // window silently leaves short vowels with only one frame, which is not
+  // enough to establish a stable pitch track.
+  const available = Math.max(512, Math.floor(samples.length / 2));
+  const frameSize = Math.min(2048, 2 ** Math.floor(Math.log2(available)));
+  const hop = Math.max(96, Math.floor(frameSize / 4));
   const frames = [];
   for (let start = 0; start + frameSize <= samples.length; start += hop) {
     const frame = samples.subarray(start, start + frameSize);
