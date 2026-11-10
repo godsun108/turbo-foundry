@@ -8,15 +8,15 @@
 
 - 126 BPM, 4/4, A minor.
 - Chorus harmony proposal: one bar each of Am – F – C – G, repeated.
-- The 16-bar chorus occupies arrangement bars 33–48 (source beats 128–192).
+- The 16-bar chorus occupies arrangement bars 33–48 (source beats 128–192). The score contains 61 word units and 73 pitched syllable events (plus explicit rests).
 - Lead guide range: E4–D5. Gang response range: E4–A4.
 - The MIDI audition guide starts immediately at beat zero for quick listening. Its report preserves the original arrangement start at beat 128 (bar 33). Use the renderer's `--preserve-timeline` option when importing into the full arrangement.
 
-## First hook — exact proposed note contour
+## First hook — exact proposed syllable contour
 
 | Phrase | Proposed notes (one word per note) | Rhythm |
 |---|---|---|
-| Don't save the fine China | E4 – G4 – A4 – G4 – E4 | ½ + ½ + ½ + ½ + 2 beats |
+| Don't save the fine China | E4 – G4 – A4 – G4 – A4 – G4 | ½ + ½ + ½ + ½ + 1 + 1 beats |
 | EAT ON IT! | A4 – G4 – E4 | ¾ + ½ + ¾ beats |
 | Pour the good wine | E4 – G4 – A4 – G4 | 1 + ½ + ½ + 2 beats |
 | DRINK ON IT! | A4 – G4 – E4 | ¾ + ½ + ¾ beats |
@@ -39,7 +39,7 @@ The response should feel like a small, joyful group of friends around the table,
 | 47 | EAT ON IT! + response gap | 4 beats |
 | 48 | Instrumental turnaround / breath | 4 beats |
 
-The melody opens up on “Sunday”, “Tuesday”, and especially “celebrate”, then returns to the simple hook contour for the final payoff. The guide includes 13 phrase events and 64 word/rest units.
+The melody opens up across the two syllables of “Sunday” and “Tuesday”, and gives “celebrate” a three-syllable rising/settling figure. “China”, “little”, “reason”, “later”, “beautiful”, and “behind” also have explicit syllable subdivisions. The guide contains 13 phrase events, 61 word units, and 73 pitched syllable events (plus three explicit rest events).
 
 ## MIDI audition guide
 
@@ -52,7 +52,7 @@ python3 music-foundry/song_pipeline.py \
   --execute-vocal-guide
 ```
 
-It writes `fine-china-vocal-melody-draft.mid` with separate lead and gang tracks, plus a report. It is a pitch/rhythm guide, not a sung recording. The current draft includes explicit draft ARPABET phones for every lyric word so we can inspect the proposed pronunciation mapping, but those phones still require human review.
+It writes `fine-china-vocal-melody-draft.mid` with separate lead and gang tracks, plus a report. It is a pitch/rhythm guide, not a sung recording. The current draft includes explicit draft ARPABET phones for every word and syllable, with syllable durations and pitches that reconstruct each word's phoneme sequence. The mappings passed structural checks, but pronunciation and musical stress still require human review.
 
 ## What remains before singing
 
