@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   standards:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
     steps:
       - uses: actions/checkout@v4
       - name: Verify Foundry core
