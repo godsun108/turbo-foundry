@@ -1,0 +1,943 @@
+{
+  "schema": "turbo.music-foundry.vocal-score.v1",
+  "project_id": "fine-china",
+  "source_ref": "lyrics.md",
+  "tempo_bpm": 126,
+  "tempo_status": "locked",
+  "meter": "4/4",
+  "ppq": 480,
+  "score_status": "composition_draft",
+  "key_center": "A minor",
+  "concert_pitch": true,
+  "chorus_harmony": [
+    "Am",
+    "F",
+    "C",
+    "G"
+  ],
+  "phrases": [
+    {
+      "id": "chorus_lead_1",
+      "text": "Don't save the fine China",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "composition_draft",
+      "start_beat": 128,
+      "duration_beats": 4,
+      "syllables": [],
+      "lyric_units": [
+        {
+          "text": "Don't",
+          "phonemes": [
+            "D",
+            "OW1",
+            "N",
+            "T"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 0.5,
+          "midi_pitch": 64,
+          "note_type": "normal"
+        },
+        {
+          "text": "save",
+          "phonemes": [
+            "S",
+            "EY1",
+            "V"
+          ],
+          "onset_beats": 0.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 67,
+          "note_type": "normal"
+        },
+        {
+          "text": "the",
+          "phonemes": [
+            "DH",
+            "AH0"
+          ],
+          "onset_beats": 1,
+          "duration_beats": 0.5,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "fine",
+          "phonemes": [
+            "F",
+            "AY1",
+            "N"
+          ],
+          "onset_beats": 1.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 67,
+          "note_type": "normal"
+        },
+        {
+          "text": "China",
+          "phonemes": [
+            "CH",
+            "AY1",
+            "N",
+            "AH0"
+          ],
+          "onset_beats": 2,
+          "duration_beats": 2,
+          "midi_pitch": 64,
+          "note_type": "normal"
+        }
+      ]
+    },
+    {
+      "id": "chorus_gang_1",
+      "text": "EAT ON IT",
+      "delivery": "gang_shout",
+      "layer": "gang_vocals",
+      "alignment_status": "composition_draft",
+      "start_beat": 132,
+      "duration_beats": 2,
+      "syllables": [],
+      "lyric_units": [
+        {
+          "text": "EAT",
+          "phonemes": [
+            "IY1",
+            "T"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 0.75,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "ON",
+          "phonemes": [
+            "AA1",
+            "N"
+          ],
+          "onset_beats": 0.75,
+          "duration_beats": 0.5,
+          "midi_pitch": 67,
+          "note_type": "normal"
+        },
+        {
+          "text": "IT",
+          "phonemes": [
+            "IH1",
+            "T"
+          ],
+          "onset_beats": 1.25,
+          "duration_beats": 0.75,
+          "midi_pitch": 64,
+          "note_type": "normal"
+        }
+      ]
+    },
+    {
+      "id": "chorus_rest_1",
+      "text": "",
+      "delivery": "sung",
+      "layer": "rest",
+      "alignment_status": "composition_draft",
+      "start_beat": 134,
+      "duration_beats": 2,
+      "syllables": [],
+      "lyric_units": [
+        {
+          "text": "<SP>",
+          "phonemes": [
+            "<SP>"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 2,
+          "midi_pitch": 0,
+          "note_type": "rest"
+        }
+      ]
+    },
+    {
+      "id": "chorus_lead_2",
+      "text": "Pour the good wine",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "composition_draft",
+      "start_beat": 136,
+      "duration_beats": 4,
+      "syllables": [],
+      "lyric_units": [
+        {
+          "text": "Pour",
+          "phonemes": [
+            "P",
+            "AO1",
+            "R"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 1,
+          "midi_pitch": 64,
+          "note_type": "normal"
+        },
+        {
+          "text": "the",
+          "phonemes": [
+            "DH",
+            "AH0"
+          ],
+          "onset_beats": 1,
+          "duration_beats": 0.5,
+          "midi_pitch": 67,
+          "note_type": "normal"
+        },
+        {
+          "text": "good",
+          "phonemes": [
+            "G",
+            "UH1",
+            "D"
+          ],
+          "onset_beats": 1.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "wine",
+          "phonemes": [
+            "W",
+            "AY1",
+            "N"
+          ],
+          "onset_beats": 2,
+          "duration_beats": 2,
+          "midi_pitch": 67,
+          "note_type": "normal"
+        }
+      ]
+    },
+    {
+      "id": "chorus_gang_2",
+      "text": "DRINK ON IT",
+      "delivery": "gang_shout",
+      "layer": "gang_vocals",
+      "alignment_status": "composition_draft",
+      "start_beat": 140,
+      "duration_beats": 2,
+      "syllables": [],
+      "lyric_units": [
+        {
+          "text": "DRINK",
+          "phonemes": [
+            "D",
+            "R",
+            "IH1",
+            "NG",
+            "K"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 0.75,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "ON",
+          "phonemes": [
+            "AA1",
+            "N"
+          ],
+          "onset_beats": 0.75,
+          "duration_beats": 0.5,
+          "midi_pitch": 67,
+          "note_type": "normal"
+        },
+        {
+          "text": "IT",
+          "phonemes": [
+            "IH1",
+            "T"
+          ],
+          "onset_beats": 1.25,
+          "duration_beats": 0.75,
+          "midi_pitch": 64,
+          "note_type": "normal"
+        }
+      ]
+    },
+    {
+      "id": "chorus_rest_2",
+      "text": "",
+      "delivery": "sung",
+      "layer": "rest",
+      "alignment_status": "composition_draft",
+      "start_beat": 142,
+      "duration_beats": 2,
+      "syllables": [],
+      "lyric_units": [
+        {
+          "text": "<SP>",
+          "phonemes": [
+            "<SP>"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 2,
+          "midi_pitch": 0,
+          "note_type": "rest"
+        }
+      ]
+    },
+    {
+      "id": "chorus_line_3",
+      "text": "Wear your Sunday shoes on a Tuesday night",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "composition_draft",
+      "start_beat": 144,
+      "duration_beats": 8,
+      "syllables": [],
+      "lyric_units": [
+        {
+          "text": "Wear",
+          "phonemes": [
+            "W",
+            "EH1",
+            "R"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 1,
+          "midi_pitch": 67,
+          "note_type": "normal"
+        },
+        {
+          "text": "your",
+          "phonemes": [
+            "Y",
+            "AO1",
+            "R"
+          ],
+          "onset_beats": 1,
+          "duration_beats": 0.5,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "Sunday",
+          "phonemes": [
+            "S",
+            "AH1",
+            "N",
+            "D",
+            "EY2"
+          ],
+          "onset_beats": 1.5,
+          "duration_beats": 1.5,
+          "midi_pitch": 72,
+          "note_type": "normal"
+        },
+        {
+          "text": "shoes",
+          "phonemes": [
+            "SH",
+            "UW1",
+            "Z"
+          ],
+          "onset_beats": 3,
+          "duration_beats": 1,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "on",
+          "phonemes": [
+            "AA1",
+            "N"
+          ],
+          "onset_beats": 4,
+          "duration_beats": 0.5,
+          "midi_pitch": 67,
+          "note_type": "normal"
+        },
+        {
+          "text": "a",
+          "phonemes": [
+            "AH0"
+          ],
+          "onset_beats": 4.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 67,
+          "note_type": "normal"
+        },
+        {
+          "text": "Tuesday",
+          "phonemes": [
+            "T",
+            "UW1",
+            "Z",
+            "D",
+            "EY2"
+          ],
+          "onset_beats": 5,
+          "duration_beats": 1.5,
+          "midi_pitch": 72,
+          "note_type": "normal"
+        },
+        {
+          "text": "night",
+          "phonemes": [
+            "N",
+            "AY1",
+            "T"
+          ],
+          "onset_beats": 6.5,
+          "duration_beats": 1.5,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        }
+      ]
+    },
+    {
+      "id": "chorus_line_4",
+      "text": "If you got a little love you got a reason to celebrate life",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "composition_draft",
+      "start_beat": 152,
+      "duration_beats": 12,
+      "syllables": [],
+      "lyric_units": [
+        {
+          "text": "If",
+          "phonemes": [
+            "IH1",
+            "F"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 0.5,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "you",
+          "phonemes": [
+            "Y",
+            "UW1"
+          ],
+          "onset_beats": 0.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "got",
+          "phonemes": [
+            "G",
+            "AA1",
+            "T"
+          ],
+          "onset_beats": 1,
+          "duration_beats": 0.5,
+          "midi_pitch": 72,
+          "note_type": "normal"
+        },
+        {
+          "text": "a",
+          "phonemes": [
+            "AH0"
+          ],
+          "onset_beats": 1.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "little",
+          "phonemes": [
+            "L",
+            "IH1",
+            "T",
+            "AH0",
+            "L"
+          ],
+          "onset_beats": 2,
+          "duration_beats": 1.5,
+          "midi_pitch": 67,
+          "note_type": "normal"
+        },
+        {
+          "text": "love",
+          "phonemes": [
+            "L",
+            "AH1",
+            "V"
+          ],
+          "onset_beats": 3.5,
+          "duration_beats": 1,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "you",
+          "phonemes": [
+            "Y",
+            "UW1"
+          ],
+          "onset_beats": 4.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "got",
+          "phonemes": [
+            "G",
+            "AA1",
+            "T"
+          ],
+          "onset_beats": 5,
+          "duration_beats": 0.5,
+          "midi_pitch": 72,
+          "note_type": "normal"
+        },
+        {
+          "text": "a",
+          "phonemes": [
+            "AH0"
+          ],
+          "onset_beats": 5.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "reason",
+          "phonemes": [
+            "R",
+            "IY1",
+            "Z",
+            "AH0",
+            "N"
+          ],
+          "onset_beats": 6,
+          "duration_beats": 1.5,
+          "midi_pitch": 72,
+          "note_type": "normal"
+        },
+        {
+          "text": "to",
+          "phonemes": [
+            "T",
+            "AH0"
+          ],
+          "onset_beats": 7.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "celebrate",
+          "phonemes": [
+            "S",
+            "EH1",
+            "L",
+            "AH0",
+            "B",
+            "R",
+            "EY2",
+            "T"
+          ],
+          "onset_beats": 8,
+          "duration_beats": 2,
+          "midi_pitch": 74,
+          "note_type": "normal"
+        },
+        {
+          "text": "life",
+          "phonemes": [
+            "L",
+            "AY1",
+            "F"
+          ],
+          "onset_beats": 10,
+          "duration_beats": 2,
+          "midi_pitch": 72,
+          "note_type": "normal"
+        }
+      ]
+    },
+    {
+      "id": "chorus_line_5",
+      "text": "Don't save it for later don't wait in line",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "composition_draft",
+      "start_beat": 164,
+      "duration_beats": 8,
+      "syllables": [],
+      "lyric_units": [
+        {
+          "text": "Don't",
+          "phonemes": [
+            "D",
+            "OW1",
+            "N",
+            "T"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 0.75,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "save",
+          "phonemes": [
+            "S",
+            "EY1",
+            "V"
+          ],
+          "onset_beats": 0.75,
+          "duration_beats": 0.75,
+          "midi_pitch": 72,
+          "note_type": "normal"
+        },
+        {
+          "text": "it",
+          "phonemes": [
+            "IH1",
+            "T"
+          ],
+          "onset_beats": 1.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "for",
+          "phonemes": [
+            "F",
+            "AO1",
+            "R"
+          ],
+          "onset_beats": 2,
+          "duration_beats": 0.5,
+          "midi_pitch": 67,
+          "note_type": "normal"
+        },
+        {
+          "text": "later",
+          "phonemes": [
+            "L",
+            "EY1",
+            "T",
+            "ER0"
+          ],
+          "onset_beats": 2.5,
+          "duration_beats": 1.5,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "don't",
+          "phonemes": [
+            "D",
+            "OW1",
+            "N",
+            "T"
+          ],
+          "onset_beats": 4,
+          "duration_beats": 0.75,
+          "midi_pitch": 72,
+          "note_type": "normal"
+        },
+        {
+          "text": "wait",
+          "phonemes": [
+            "W",
+            "EY1",
+            "T"
+          ],
+          "onset_beats": 4.75,
+          "duration_beats": 0.75,
+          "midi_pitch": 74,
+          "note_type": "normal"
+        },
+        {
+          "text": "in",
+          "phonemes": [
+            "IH1",
+            "N"
+          ],
+          "onset_beats": 5.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 72,
+          "note_type": "normal"
+        },
+        {
+          "text": "line",
+          "phonemes": [
+            "L",
+            "AY1",
+            "N"
+          ],
+          "onset_beats": 6,
+          "duration_beats": 2,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        }
+      ]
+    },
+    {
+      "id": "chorus_line_6",
+      "text": "The world's too beautiful to leave it behind",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "composition_draft",
+      "start_beat": 172,
+      "duration_beats": 8,
+      "syllables": [],
+      "lyric_units": [
+        {
+          "text": "The",
+          "phonemes": [
+            "DH",
+            "AH0"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 0.5,
+          "midi_pitch": 67,
+          "note_type": "normal"
+        },
+        {
+          "text": "world's",
+          "phonemes": [
+            "W",
+            "ER1",
+            "L",
+            "D",
+            "Z"
+          ],
+          "onset_beats": 0.5,
+          "duration_beats": 1,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "too",
+          "phonemes": [
+            "T",
+            "UW1"
+          ],
+          "onset_beats": 1.5,
+          "duration_beats": 1,
+          "midi_pitch": 72,
+          "note_type": "normal"
+        },
+        {
+          "text": "beautiful",
+          "phonemes": [
+            "B",
+            "Y",
+            "UW1",
+            "T",
+            "AH0",
+            "F",
+            "AH0",
+            "L"
+          ],
+          "onset_beats": 2.5,
+          "duration_beats": 2,
+          "midi_pitch": 74,
+          "note_type": "normal"
+        },
+        {
+          "text": "to",
+          "phonemes": [
+            "T",
+            "AH0"
+          ],
+          "onset_beats": 4.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 72,
+          "note_type": "normal"
+        },
+        {
+          "text": "leave",
+          "phonemes": [
+            "L",
+            "IY1",
+            "V"
+          ],
+          "onset_beats": 5,
+          "duration_beats": 1,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "it",
+          "phonemes": [
+            "IH1",
+            "T"
+          ],
+          "onset_beats": 6,
+          "duration_beats": 0.5,
+          "midi_pitch": 67,
+          "note_type": "normal"
+        },
+        {
+          "text": "behind",
+          "phonemes": [
+            "B",
+            "IH0",
+            "HH",
+            "AY1",
+            "N",
+            "D"
+          ],
+          "onset_beats": 6.5,
+          "duration_beats": 1.5,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        }
+      ]
+    },
+    {
+      "id": "chorus_lead_7",
+      "text": "Don't save the fine China",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "composition_draft",
+      "start_beat": 180,
+      "duration_beats": 4,
+      "syllables": [],
+      "lyric_units": [
+        {
+          "text": "Don't",
+          "phonemes": [
+            "D",
+            "OW1",
+            "N",
+            "T"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 0.5,
+          "midi_pitch": 64,
+          "note_type": "normal"
+        },
+        {
+          "text": "save",
+          "phonemes": [
+            "S",
+            "EY1",
+            "V"
+          ],
+          "onset_beats": 0.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 67,
+          "note_type": "normal"
+        },
+        {
+          "text": "the",
+          "phonemes": [
+            "DH",
+            "AH0"
+          ],
+          "onset_beats": 1,
+          "duration_beats": 0.5,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "fine",
+          "phonemes": [
+            "F",
+            "AY1",
+            "N"
+          ],
+          "onset_beats": 1.5,
+          "duration_beats": 0.5,
+          "midi_pitch": 72,
+          "note_type": "normal"
+        },
+        {
+          "text": "China",
+          "phonemes": [
+            "CH",
+            "AY1",
+            "N",
+            "AH0"
+          ],
+          "onset_beats": 2,
+          "duration_beats": 2,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        }
+      ]
+    },
+    {
+      "id": "chorus_gang_7",
+      "text": "EAT ON IT",
+      "delivery": "gang_shout",
+      "layer": "gang_vocals",
+      "alignment_status": "composition_draft",
+      "start_beat": 184,
+      "duration_beats": 2,
+      "syllables": [],
+      "lyric_units": [
+        {
+          "text": "EAT",
+          "phonemes": [
+            "IY1",
+            "T"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 0.75,
+          "midi_pitch": 69,
+          "note_type": "normal"
+        },
+        {
+          "text": "ON",
+          "phonemes": [
+            "AA1",
+            "N"
+          ],
+          "onset_beats": 0.75,
+          "duration_beats": 0.5,
+          "midi_pitch": 67,
+          "note_type": "normal"
+        },
+        {
+          "text": "IT",
+          "phonemes": [
+            "IH1",
+            "T"
+          ],
+          "onset_beats": 1.25,
+          "duration_beats": 0.75,
+          "midi_pitch": 64,
+          "note_type": "normal"
+        }
+      ]
+    },
+    {
+      "id": "chorus_rest_3",
+      "text": "",
+      "delivery": "sung",
+      "layer": "rest",
+      "alignment_status": "composition_draft",
+      "start_beat": 186,
+      "duration_beats": 2,
+      "syllables": [],
+      "lyric_units": [
+        {
+          "text": "<SP>",
+          "phonemes": [
+            "<SP>"
+          ],
+          "onset_beats": 0,
+          "duration_beats": 2,
+          "midi_pitch": 0,
+          "note_type": "rest"
+        }
+      ]
+    }
+  ],
+  "notes": "Draft composition only. Vocal identity D was approved by the user; this note-level chorus proposal is not yet user-auditioned or approved. Phrase alignment_status remains composition_draft. Do not SoulX-export until the user approves the melody and human review confirms pronunciation, syllable timing, note choices and phrase placement. Word-level note events use explicit draft ARPABET and beat durations; adjust against the actual singer and groove."
+}
