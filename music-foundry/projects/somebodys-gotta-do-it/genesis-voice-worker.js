@@ -26,12 +26,16 @@ self.addEventListener("message", async (event) => {
     try {
       self.postMessage({ type: "status", message: "Loading MediaPipe audio runtime…" });
       const audioFileset = await FilesetResolver.forAudioTasks(WASM_ROOT);
-      self.postMessage({ type: "status", message: "Opening the selected model file locally…" });
-      const modelReader = data.file.stream().getReader();
+      if (typeof data.modelUrl !== "string" ||
+          !/^https:\/\/huggingface\.co\/litert-community\/Kokoro-82M\/resolve\/main\/kokoro_int8_(gpu_fp16|fp16)\.litertlm$/.test(data.modelUrl)) {
+        throw new Error("Choose one of the two pinned Kokoro model bundles.");
+      }
+      self.postMessage({ type: "status", message: "Downloading or opening the pinned Kokoro model. The first download is about 295 MB…" });
       engine = await TextToSpeech.createFromOptions(audioFileset, {
-        baseOptions: { modelAssetBuffer: modelReader, delegate: data.delegate },
+        baseOptions: { modelAssetPath: data.modelUrl, delegate: data.delegate },
+        defaultVoiceId: "af_heart",
         speakingRate: data.speakingRate,
-        cacheDirectory: ":nocache"
+        cacheDirectory: ""
       });
       self.postMessage({ type: "status", message: "Model loaded. Enumerating available voices…" });
       const voices = await engine.listVoices();
