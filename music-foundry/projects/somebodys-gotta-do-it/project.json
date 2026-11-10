@@ -2,8 +2,8 @@
   "schema": "turbo.music-foundry.project.v1",
   "project": {
     "title": "Somebody's Gotta Do It",
-    "version": 1,
-    "status": "arrangement-spec",
+    "version": 2,
+    "status": "instrumental-render-validation",
     "lyrics_source": "user-original-draft",
     "genre": [
       "wonky bass house",
@@ -180,7 +180,7 @@
     "sung_audio_rendering": "not implemented; remains a separate future renderer",
     "wav_export": "instrumental WAV mix and four stems implemented; vocal WAV export not implemented",
     "vocal_render_contract": "provider-neutral spoken/sung WAV request contract implemented; validation only",
-    "offline_instrumental_wav": "dependency-free procedural renderer implemented; CI generation configured; execution not yet verified",
+    "offline_instrumental_wav": "Dependency-free procedural renderer wired into PR CI; real PCM WAV size, sample format and duration validation plus downloadable artifact configured; execution pending runner",
     "spoken_vocal_timing": "section-level recording landmarks and take plan implemented; not a vocal renderer",
     "midi_tempo_meta_event": "binary MIDI tempo meta-event corrected and regression assertion added; CI execution not yet verified",
     "recorded_spoken_take_assembly": "offline 16-bit PCM WAV take placement, layer stems, and spoken mix implemented; manual offsets; no synthesis; CI execution not yet verified",
@@ -197,6 +197,7 @@
     "private_render_api": "Implemented dependency-free authenticated render API with asynchronous jobs, persistent job manifests, path-bounded WAV downloads and real WAV header/duration validation; Railway staging configuration prepared but not deployed",
     "iphone_production_control_room": "Implemented responsive phone-first control room served by the private render API; bearer token remains in page memory only; actual iPhone/Safari runtime verification pending",
     "persistent_project_storage": "Railway 2 GB persistent volume and private renderer service staged in Foundry Staging; awaiting explicit deployment approval",
-    "audio_render_acceptance": "Existing V3 and original instrumental renderers wired into private API; CI now asserts non-placeholder WAV size, PCM format and duration; runner execution and audio audition pending"
+    "audio_render_acceptance": "Existing V3 and original instrumental renderers wired into private API; CI now asserts non-placeholder WAV size, PCM format and duration; runner execution and audio audition pending",
+    "ci_audio_artifact": "Foundry CI now renders Warehouse Rave V3 for Somebody's Gotta Do It and uploads a seven-day WAV/stem artifact for review; run queued"
   }
 }
