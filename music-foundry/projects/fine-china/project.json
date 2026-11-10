@@ -1,0 +1,32 @@
+{
+  "title": "Fine China (Eat On It)",
+  "version": "1.0.0",
+  "status": "ready_for_audio_generation",
+  "bpm": 126,
+  "meter": "4/4",
+  "target_duration_seconds": 195,
+  "key_center": "F minor",
+  "genre": [
+    "soulful bass house",
+    "funky disco house"
+  ],
+  "arrangement_bars": 120,
+  "lyrics": "lyrics.md",
+  "production_brief": "production-brief.md",
+  "generation_prompt": "generation-prompt.txt",
+  "deliverables": [
+    "24-bit stereo WAV master",
+    "320 kbps MP3 preview",
+    "lead vocal stem",
+    "backing vocal stem",
+    "drums stem",
+    "bass stem",
+    "music stem",
+    "FX stem",
+    "measured LUFS and true peak report",
+    "provenance manifest"
+  ],
+  "audio_generated": false,
+  "mix_master_verified": false,
+  "notes": "MIDI generator currently produces an instrumental sketch only; provider-backed vocal/audio rendering is a separate required stage."
+}
