@@ -1,15 +1,11 @@
 # One-command Music Foundry production pipeline
 
-Music Foundry already contains the score schema/exporter, SoulX local adapter,
-singing render importer, spoken-vocal timeline/assembler, MIDI generator,
-instrumental renderer and stem DSP on its existing development branch. This
-entrypoint is the coordination layer: it reports which existing components are
-actually ready for a given song and dispatches the already-installed local
-renderer only when all gates pass.
+This is the coordination layer over the existing Music Foundry components:
+MIDI generation, SoulX score-conditioned singing, FluidSynth instrument rendering,
+and FFmpeg mix/master. It does not replace the existing voice lab or invent
+model weights. It never downloads models or calls a hosted music provider.
 
-## Run from the repository root
-
-Preflight without generating or downloading anything:
+## Preflight (safe, no rendering)
 
 ```bash
 python3 music-foundry/song_pipeline.py \
@@ -17,7 +13,7 @@ python3 music-foundry/song_pipeline.py \
   --output music-foundry/output/fine-china
 ```
 
-Generate the editable MIDI arrangement:
+## Generate the editable MIDI
 
 ```bash
 python3 music-foundry/song_pipeline.py \
@@ -26,36 +22,59 @@ python3 music-foundry/song_pipeline.py \
   --execute-midi
 ```
 
-When the canonical vocal score has human-reviewed note/phoneme alignment,
-and a local SoulX checkout, checkpoint, reference singing WAV and matching
-reference metadata are already present:
+## Render all four instruments locally
+
+Requires FluidSynth, FFmpeg and an operator-supplied licensed SoundFont (.sf2):
+
+```bash
+python3 music-foundry/song_pipeline.py \
+  --project music-foundry/projects/fine-china \
+  --output music-foundry/output/fine-china \
+  --soundfont /path/to/licensed-soundfont.sf2 \
+  --execute-midi --execute-instrumental
+```
+
+## Generate vocals and master the complete song
+
+Requires the existing official SoulX-Singer checkout and checkpoint, plus
+`vocal_score.json`, `vocal-reference.wav` and
+`vocal-reference.metadata.json` inside the project folder. The score must
+have human-reviewed note/phoneme alignment and a locked tempo. These gates
+prevent fabricated lyrics, notes or pronunciation from being sent to a singer.
 
 ```bash
 python3 music-foundry/song_pipeline.py \
   --project music-foundry/projects/fine-china \
   --output music-foundry/output/fine-china \
   --soulx-root /path/to/SoulX-Singer \
-  --execute-midi --execute-vocals --device cpu
+  --soundfont /path/to/licensed-soundfont.sf2 \
+  --execute-midi --execute-vocals --execute-instrumental --execute-master \
+  --device cpu
 ```
 
-The local SoulX model is not downloaded by this tool. Set `SOULX_ROOT` or pass
-`--soulx-root`; place the rights-cleared reference singer assets in the project
-folder as `vocal-reference.wav` and `vocal-reference.metadata.json`.
-The score must be named `vocal_score.json`, have `score_status=reviewed`,
-`tempo_status=locked`, and include reviewed sung/chant/gang-shout lyric units.
+The model is not downloaded by this command. The reference singing recording
+must be rights-cleared and authorized. Use `--device cuda` only when the
+existing local environment has a compatible GPU runtime. You can also pass
+`--vocal-wav` to master an already-rendered vocal take.
 
-## Truthful stage reporting
+## Deliverables and truthful reporting
 
-The report `pipeline-report.json` separates preflight readiness from completed
-work. A MIDI pass does not imply audio. A singing render pass does not imply
-that the vocal has been auditioned, arranged, mixed or mastered. No TTS voice
-is substituted for singing. No network provider or model download is used.
+- MIDI: editable chords, bass, lead and drums.
+- Instrumental: four 24-bit stems and a stereo instrumental WAV.
+- Singing: actual SoulX-generated vocal WAV, never a TTS substitute.
+- Master: 24-bit stereo WAV and 320 kbps MP3.
+- Reports: stage-by-stage preflight, model/SoundFont hashes and FFmpeg loudness
+  measurements (integrated loudness and true peak).
 
-## Current Fine China gate
+A generated master still needs a human listening pass before release. A green
+MIDI test does not imply a finished song; the pipeline reports every blocked
+stage rather than marking unfinished work complete.
 
-Fine China currently has its lyric sheet, production brief, generation prompt,
-project metadata and 120-bar MIDI workflow. This integration does not invent a
-reviewed sung score or claim that the SoulX model/reference assets are present.
-The first required singing task is to finish and review the hook's note/phoneme
-score, then supply the local SoulX model and reference assets. The mix/master
-stage remains separate and must report measured loudness and true peak values.
+## Fine China current state
+
+Fine China has lyrics, creative brief, generation prompt, project metadata and
+a passing 120-bar MIDI workflow. The existing SoulX adapter and score exporter
+are now integrated into this branch. Fine China's actual note/phoneme score,
+reference singer assets, and installed local model/runtime have not yet been
+verified here. The one-command runner will stop at those gates until they are
+present; the existing singing systems are reused rather than rebuilt.
