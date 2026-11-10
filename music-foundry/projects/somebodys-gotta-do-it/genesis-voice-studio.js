@@ -122,7 +122,7 @@ function extractTrackLyrics(markdown) {
   const output = [];
   let inLyrics = false;
   let includeAdlibs = false;
-  for (const rawLine of markdown.split(/\\r?\\n/)) {
+  for (const rawLine of markdown.split(/\r?\n/)) {
     const line = rawLine.trim();
     if (line.startsWith("## Mix / edit notes") || line.startsWith("## Current implementation boundary")) break;
     if (line.startsWith("## ")) {
@@ -146,7 +146,7 @@ function extractTrackLyrics(markdown) {
     if (line.startsWith("#") || line.startsWith(">")) continue;
     output.push(line);
   }
-  const lyrics = output.join("\\n").replace(/\\n{3,}/g, "\\n\\n").trim();
+  const lyrics = output.join("\n").replace(/\n{3,}/g, "\n\n").trim();
   if (!lyrics) throw new Error("No lyric lines were found in the project cue sheet.");
   if (lyrics.length > 4000) throw new Error("The extracted lyrics exceed the 4,000-character studio limit.");
   return lyrics;
