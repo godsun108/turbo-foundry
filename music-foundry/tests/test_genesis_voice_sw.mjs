@@ -76,7 +76,17 @@ test("pinned MediaPipe runtime requests are cacheable", async () => {
   assert.ok(h.cacheCalls.some(x => x.type === "put" && x.key === request.url));
 });
 
-test("unrelated third-party URLs and model file inputs are not intercepted", () => {
+test("pinned Kokoro model bundles are cacheable", async () => {
+  const h = harness();
+  let responsePromise;
+  const request = { method: "GET", url: "https://huggingface.co/litert-community/Kokoro-82M/resolve/main/kokoro_int8_gpu_fp16.litertlm" };
+  h.listeners.get("fetch")({ request, respondWith(p) { responsePromise = p; } });
+  const response = await responsePromise;
+  assert.equal(response.status, 200);
+  assert.ok(h.cacheCalls.some(x => x.type === "put" && x.key === request.url));
+});
+
+test("unrelated third-party URLs are not intercepted", () => {
   const h = harness();
   let intercepted = false;
   const unrelated = { method: "GET", url: "https://untrusted.example/model.litertlm" };
