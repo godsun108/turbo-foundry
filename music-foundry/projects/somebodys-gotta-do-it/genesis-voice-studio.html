@@ -27,8 +27,9 @@ button.secondary{background:#25344b}button.danger{background:#613642}
 <p>Local-in-browser neural speech synthesis. Select a model file stored on your device, choose a voice, generate a spoken take, then download its WAV for the vocal timeline.</p>
 <div class="panel">
 <h2>1 · Load a voice model</h2>
-<label for="model">Kokoro / LiteRT model bundle (.litertlm)</label>
-<input id="model" type="file" accept=".litertlm,application/octet-stream">
+<label for="model">On-device voice model</label>
+<select id="model"><option value="gpu">Kokoro GPU · 295 MB · recommended</option><option value="cpu">Kokoro CPU · 295 MB · compatibility mode</option></select>
+<p class="note">The studio downloads the Apache-2.0 Kokoro model directly from its published Hugging Face release and runs inference on this device. The first install is about 295 MB. The model is cached by this browser when storage permits; no model upload or voice recording is involved.</p>
 <div class="grid">
 <div><label for="delegate">Compute</label><select id="delegate"><option value="GPU">GPU / WebGPU</option><option value="CPU">CPU</option></select></div>
 <div><label for="rate">Speaking rate</label><select id="rate"><option value="0.8">0.80 · slower</option><option value="0.9">0.90</option><option value="1.0" selected>1.00 · natural</option><option value="1.1">1.10</option><option value="1.2">1.20 · faster</option></select></div>
