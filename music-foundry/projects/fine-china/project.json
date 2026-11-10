@@ -4,8 +4,8 @@
   "status": "ready_for_audio_generation",
   "bpm": 126,
   "meter": "4/4",
-  "target_duration_seconds": 195,
-  "key_center": "F minor",
+  "target_duration_seconds": 229,
+  "key_center": "A minor",
   "genre": [
     "soulful bass house",
     "funky disco house"
@@ -28,5 +28,5 @@
   ],
   "audio_generated": false,
   "mix_master_verified": false,
-  "notes": "MIDI generator currently produces an instrumental sketch only; provider-backed vocal/audio rendering is a separate required stage."
+  "notes": "The current automated workflow creates a full-length editable four-part MIDI sketch only. Provider-backed vocal/audio rendering and measured mastering remain required."
 }
