@@ -193,6 +193,10 @@
     "tempo_synced_loop_lab": "implemented two global loop regions A/B with visible timeline bands; selectable quarter/eighth/sixteenth/bar snapping at 127 BPM; A, B, and sequential A/B loop preview; adjustable 0–100 ms crossfades (12 ms default); source-offset automation alignment; manifest persistence; 15-minute playback cap; tests and CI pending",
     "production_direction": "updated to include dubstep-influenced bass-house and higher sound-quality targets; no polished mix or new audio engine claimed",
     "local_spoken_synthesis_adapter": "Local Piper CLI adapter implemented with explicit dispatch authorization, local-only execution, 16-bit WAV normalization, and mocked regression tests; actual Piper executable/model installation and audio quality not yet verified",
-    "kokoro_browser_voice_studio": "Browser-local MediaPipe TTS/Kokoro prototype with local model selection, worker synthesis, diagnostics and bounded spoken WAV export; static syntax checks only, real model/iPhone Safari runtime and audio quality unverified"
+    "kokoro_browser_voice_studio": "Browser-local MediaPipe TTS/Kokoro prototype with local model selection, worker synthesis, diagnostics and bounded spoken WAV export; static syntax checks only, real model/iPhone Safari runtime and audio quality unverified",
+    "private_render_api": "Implemented dependency-free authenticated render API with asynchronous jobs, persistent job manifests, path-bounded WAV downloads and real WAV header/duration validation; Railway staging configuration prepared but not deployed",
+    "iphone_production_control_room": "Implemented responsive phone-first control room served by the private render API; bearer token remains in page memory only; actual iPhone/Safari runtime verification pending",
+    "persistent_project_storage": "Railway 2 GB persistent volume and private renderer service staged in Foundry Staging; awaiting explicit deployment approval",
+    "audio_render_acceptance": "Existing V3 and original instrumental renderers wired into private API; CI now asserts non-placeholder WAV size, PCM format and duration; runner execution and audio audition pending"
   }
 }
