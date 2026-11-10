@@ -136,7 +136,10 @@ function extractTrackLyrics(markdown) {
       continue;
     }
     if (line.startsWith("- ")) {
-      if (includeAdlibs) output.push(line.slice(2));
+      if (includeAdlibs) {
+        const response = line.match(/—\\s*[“"]([^”"]+)[”"]/);
+        if (response) output.push(response[1]);
+      }
       continue;
     }
     if (line.startsWith("Lead:") || line.startsWith("Group:")) {
