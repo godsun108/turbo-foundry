@@ -38,3 +38,52 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Test Base One Engine
         run: python -m unittest discover -s projects/base-one-engine/tests -v
+
+  music-foundry:
+    runs-on: [self-hosted, linux]
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run Music Foundry tests
+        run: python3 -m unittest discover -s music-foundry/tests -v
+      - name: Syntax-check private render service
+        run: python3 -m py_compile music-foundry/service/server.py
+      - name: Verify iPhone control-room JavaScript
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path("music-foundry/service/index.html").read_text(encoding="utf-8")
+          scripts = re.findall(r'<script>(.*?)</script>', html, re.S)
+          assert scripts, "control room has no inline script"
+          Path("/tmp/music-foundry-control-room.js").write_text("\\n".join(scripts), encoding="utf-8")
+          PY
+          node --check /tmp/music-foundry-control-room.js
+      - name: Render Somebody's Gotta Do It instrumental
+        run: |
+          python3 music-foundry/render_warehouse_rave_v3.py --output music-foundry/output/somebodys-gotta-do-it-audio --bpm 127
+      - name: Validate real WAV output
+        run: |
+          python3 - <<'PY'
+          import json, wave
+          from pathlib import Path
+          folder = Path("music-foundry/output/somebodys-gotta-do-it-audio")
+          manifest = json.loads((folder / "audio_manifest.json").read_text())
+          for name in [manifest["mix"], *manifest["stems"]]:
+              path = folder / name
+              assert path.is_file() and path.stat().st_size > 4096, f"missing/placeholder WAV: {path}"
+              with wave.open(str(path), "rb") as audio:
+                  assert audio.getnframes() > audio.getframerate() * 10
+                  assert audio.getsampwidth() == 2
+                  print(f"{name}: {audio.getnchannels()}ch {audio.getframerate()}Hz {audio.getnframes()/audio.getframerate():.2f}s")
+          PY
+      - name: Publish private-review audio artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: somebodys-gotta-do-it-instrumental-preview
+          path: music-foundry/output/somebodys-gotta-do-it-audio/
+          retention-days: 7
+          if-no-files-found: error
