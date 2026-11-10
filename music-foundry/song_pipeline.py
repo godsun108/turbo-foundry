@@ -45,6 +45,8 @@ def inspect_project(project_dir: Path, soulx_root: Path | None = None,
                                                and voice_direction[key].strip() for key in voice_required))
 
     score_path = project_dir / "vocal_score.json"
+    vocal_draft_path = project_dir / "vocal_score_draft.json"
+    vocal_guide_engine = ROOT / "vocal_score_midi.py"
     score = _read_json(score_path) if score_path.is_file() else None
     score_ready = bool(
         score and score.get("score_status") == "reviewed"
@@ -90,6 +92,9 @@ def inspect_project(project_dir: Path, soulx_root: Path | None = None,
             "midi": {"status": "ready" if midi_engine.is_file() else "blocked", "engine": str(midi_engine)},
             "vocal_score": {"status": "ready" if score_ready else "blocked", "file": str(score_path),
                             "reason": None if score_ready else "requires human-reviewed sung lyric_units and locked tempo"},
+            "vocal_guide": {"status": "ready" if vocal_draft_path.is_file() and vocal_guide_engine.is_file() else "blocked",
+                            "score": str(vocal_draft_path), "engine": str(vocal_guide_engine),
+                            "reason": None if vocal_draft_path.is_file() and vocal_guide_engine.is_file() else "requires draft vocal score and MIDI guide renderer"},
             "vocal_direction": {"status": "ready" if voice_ready else "blocked",
                                 "file": str(voice_path),
                                 "reason": None if voice_ready else "requires a vocal_direction.json with verse, pre-chorus, chorus, bridge and gang-response direction"},
@@ -118,7 +123,8 @@ def inspect_project(project_dir: Path, soulx_root: Path | None = None,
 def run(project_dir: Path, output_dir: Path, soulx_root: Path | None = None,
         execute_midi: bool = False, execute_vocals: bool = False, device: str = "cpu",
         execute_instrumental: bool = False, soundfont: Path | None = None,
-        execute_master: bool = False, vocal_wav: Path | None = None) -> dict[str, Any]:
+        execute_master: bool = False, vocal_wav: Path | None = None,
+        execute_vocal_guide: bool = False) -> dict[str, Any]:
     report = inspect_project(project_dir, soulx_root, soundfont)
     project_dir, output_dir = project_dir.expanduser().resolve(), output_dir.expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -134,6 +140,21 @@ def run(project_dir: Path, output_dir: Path, soulx_root: Path | None = None,
         report["stages"]["midi"]["status"] = "completed" if completed.returncode == 0 else "failed"
         if completed.returncode:
             raise RuntimeError("MIDI generation failed; see midi_execution in pipeline report.")
+
+    if execute_vocal_guide:
+        if report["stages"]["vocal_guide"]["status"] != "ready":
+            raise RuntimeError("Vocal melody guide blocked: draft score or MIDI guide renderer is missing.")
+        guide_path = output_dir / "fine-china-vocal-melody-draft.mid"
+        command = [sys.executable, str(ROOT / "vocal_score_midi.py"),
+                   "--score", str(project_dir / "vocal_score_draft.json"),
+                   "--output", str(guide_path)]
+        completed = subprocess.run(command, check=False, capture_output=True, text=True)
+        report["vocal_guide_execution"] = {"returncode": completed.returncode,
+                                           "stdout": completed.stdout, "stderr": completed.stderr,
+                                           "output": str(guide_path)}
+        report["stages"]["vocal_guide"]["status"] = "completed" if completed.returncode == 0 else "failed"
+        if completed.returncode:
+            raise RuntimeError("Vocal melody MIDI guide generation failed; inspect vocal_guide_execution.")
 
     if execute_vocals:
         if not report["ready_for_local_singing_render"]:
@@ -191,6 +212,7 @@ def main() -> int:
     parser.add_argument("--soulx-root", type=Path)
     parser.add_argument("--soundfont", type=Path)
     parser.add_argument("--execute-midi", action="store_true")
+    parser.add_argument("--execute-vocal-guide", action="store_true", help="Create a draft melody MIDI audition guide; not a vocal render.")
     parser.add_argument("--execute-vocals", action="store_true")
     parser.add_argument("--execute-instrumental", action="store_true")
     parser.add_argument("--execute-master", action="store_true")
@@ -200,7 +222,7 @@ def main() -> int:
     try:
         report = run(args.project, args.output, args.soulx_root, args.execute_midi,
                      args.execute_vocals, args.device, args.execute_instrumental,
-                     args.soundfont, args.execute_master, args.vocal_wav)
+                     args.soundfont, args.execute_master, args.vocal_wav, args.execute_vocal_guide)
     except (OSError, ValueError, RuntimeError, KeyError, json.JSONDecodeError) as exc:
         print(f"PIPELINE BLOCKED: {exc}", file=sys.stderr)
         return 2
