@@ -29,6 +29,7 @@ class SongPipelineTests(unittest.TestCase):
             project = self.make_project(Path(temp))
             report = song_pipeline.inspect_project(project, None)
             self.assertEqual(report["stages"]["creative_source"]["status"], "ready")
+            self.assertEqual(report["stages"]["vocal_direction"]["status"], "blocked")
             self.assertEqual(report["stages"]["vocal_score"]["status"], "blocked")
             self.assertEqual(report["stages"]["soulx_runtime"]["status"], "blocked")
             self.assertFalse(report["ready_for_local_singing_render"])
