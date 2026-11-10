@@ -1,0 +1,45 @@
+{
+  "schema": "turbo.music-foundry.project.v1",
+  "project_id": "fine-china",
+  "title": "Fine China (Eat On It)",
+  "status": "instrumental-arrangement-implemented",
+  "blueprint": {
+    "tempo_bpm": 126,
+    "meter": "4/4",
+    "key_center": "A minor",
+    "chord_progression": [
+      "Am",
+      "F",
+      "C",
+      "G"
+    ],
+    "bars": 120,
+    "approx_duration_seconds": 228.571,
+    "style": "funky soulful bass-house",
+    "vocal_direction": "conversational soulful lead, intimate spoken sections, group call-and-response on the EAT ON IT drop"
+  },
+  "composition": {
+    "arrangement_file": "../../fine_china_arrangement.py",
+    "renderer": "../../render_fine_china.py",
+    "stems": [
+      "chords.wav",
+      "bass.wav",
+      "lead.wav",
+      "drums.wav",
+      "texture.wav"
+    ],
+    "mix": "instrumental_mix.wav"
+  },
+  "vocal_score": {
+    "file": "vocal_score_draft.json",
+    "status": "composition_draft",
+    "chorus_start_beat": 128,
+    "chorus_alignment": "bar 32 / first chorus",
+    "note": "The current score contains chorus phrases only. Full verse/bridge lyrics and final vocal placement must be restored from the original lyric sheet before claiming a complete vocal master."
+  },
+  "acceptance": {
+    "instrumental": "must pass CI WAV duration/header checks and be auditioned",
+    "vocals": "must render and be auditioned against this instrumental",
+    "master": "not yet complete"
+  }
+}
