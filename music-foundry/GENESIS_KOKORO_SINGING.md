@@ -8,7 +8,7 @@ Status: implementation prototype. This connects the existing local Kokoro / Medi
 2. Select a Music Foundry vocal-score JSON with tempo and placed syllables (text, MIDI pitch, onset beats, and duration beats).
 3. The existing neural TTS model synthesizes each syllable using the selected voice.
 4. Local JavaScript DSP analyzes voiced periods and applies pitch-synchronous overlap-add (PSOLA) to retune the vowel region to the score's MIDI pitch. Consonant onset/coda are kept outside the pitch-synchronous region as much as possible.
-5. Each note is placed on the score timeline; overlapping events are mixed, peak-limited, and exported as 24 kHz mono 16-bit PCM WAV.
+5. Each note is placed on the score timeline; overlapping events are mixed, peak-limited, and exported as 48 kHz mono 16-bit PCM WAV.
 6. The WAV can be auditioned and imported into the existing Music Foundry vocal timeline.
 
 No user voice, reference singer, reference WAV, or cloud inference is needed. The TTS model is loaded from a local file selected by the operator. Inference and DSP run in the browser worker. The prototype currently loads the MediaPipe runtime/WASM from a pinned CDN, so the first load still needs network access. Vendor those exact runtime assets before claiming fully offline startup.
