@@ -147,6 +147,19 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = unquote(urlparse(self.path).path)
+        if path in ("/", "/app"):
+            page = ROOT / "service" / "index.html"
+            if not page.is_file():
+                json_response(self, 404, {"error": "App not found"})
+                return
+            raw = page.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(raw)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(raw)
+            return
         if path == "/health":
             json_response(self, 200, {"ok": True, "service": "music-foundry", "renderer": "offline-procedural-v1"})
             return
