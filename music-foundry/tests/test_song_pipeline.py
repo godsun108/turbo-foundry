@@ -50,6 +50,28 @@ class SongPipelineTests(unittest.TestCase):
             report = song_pipeline.inspect_project(project, None)
             self.assertEqual(report["stages"]["vocal_direction"]["status"], "ready")
 
+    def test_composition_draft_stays_blocked_for_singing_but_midi_guide_is_ready(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = self.make_project(Path(temp))
+            (project / "vocal_direction.json").write_text(json.dumps({
+                "verse_delivery": "spoken", "pre_chorus_delivery": "rhythmic sung",
+                "chorus_delivery": "soulful melodic", "bridge_delivery": "spoken",
+                "gang_response": "layered shouts"
+            }), encoding="utf-8")
+            (project / "vocal_score.json").write_text(json.dumps({
+                "score_status": "composition_draft", "tempo_status": "locked",
+                "phrases": [{"delivery": "sung", "alignment_status": "composition_draft",
+                             "lyric_units": [{"text": "Hello"}]}]
+            }), encoding="utf-8")
+            (project / "vocal_score_draft.json").write_text(json.dumps({
+                "score_status": "composition_draft", "tempo_bpm": 126, "phrases": []
+            }), encoding="utf-8")
+            report = song_pipeline.inspect_project(project, None)
+            self.assertEqual(report["stages"]["vocal_score"]["status"], "blocked")
+            self.assertEqual(report["stages"]["vocal_guide"]["status"], "ready")
+            self.assertEqual(report["stages"]["vocal_direction"]["status"], "ready")
+            self.assertFalse(report["ready_for_local_singing_render"])
+
     def test_reviewed_score_still_requires_model_and_reference_assets(self):
         with tempfile.TemporaryDirectory() as temp:
             project = self.make_project(Path(temp))
