@@ -28,5 +28,6 @@
   ],
   "audio_generated": false,
   "mix_master_verified": false,
-  "notes": "The current automated workflow creates a full-length editable four-part MIDI sketch only. Provider-backed vocal/audio rendering and measured mastering remain required."
+  "notes": "The current automated workflow creates a full-length editable four-part MIDI sketch only. Provider-backed vocal/audio rendering and measured mastering remain required.",
+  "vocal_direction": "vocal_direction.json"
 }
