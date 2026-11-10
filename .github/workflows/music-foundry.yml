@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -43,6 +43,8 @@ jobs:
           node --check --input-type=module < music-foundry/projects/somebodys-gotta-do-it/lyric-performance-bridge.js
           node --check --input-type=module < music-foundry/projects/somebodys-gotta-do-it/lyric-performance-bridge-core.mjs
           node --test music-foundry/tests/test_lyric_performance_bridge.mjs
+      - name: Run Sovereign internal singing validation
+        run: node music-foundry/run-singing-internal.mjs
       - name: Syntax-check Genesis Voice Studio modules
         run: |
           node --check music-foundry/projects/somebodys-gotta-do-it/genesis-voice-studio.js
