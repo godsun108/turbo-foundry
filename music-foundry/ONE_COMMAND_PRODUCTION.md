@@ -13,6 +13,19 @@ python3 music-foundry/song_pipeline.py \
   --output music-foundry/output/fine-china
 ```
 
+## Audition the draft chorus melody
+
+The project includes a word-level chorus composition draft and a dependency-free MIDI guide renderer. This creates an immediate-playback melody guide with separate lead and gang-response tracks. It is a composition preview only; it does not mark the vocal score reviewed or send it to SoulX.
+
+```bash
+python3 music-foundry/song_pipeline.py \
+  --project music-foundry/projects/fine-china \
+  --output music-foundry/output/fine-china \
+  --execute-vocal-guide
+```
+
+Use `--preserve-timeline` with `vocal_score_midi.py` when importing the guide into a full-song DAW session and retaining its original bar-33 start position.
+
 ## Generate the editable MIDI
 
 ```bash
@@ -72,9 +85,6 @@ stage rather than marking unfinished work complete.
 
 ## Fine China current state
 
-Fine China has lyrics, creative brief, generation prompt, project metadata and
-a passing 120-bar MIDI workflow. The existing SoulX adapter and score exporter
-are now integrated into this branch. Fine China's actual note/phoneme score,
-reference singer assets, and installed local model/runtime have not yet been
-verified here. The one-command runner will stop at those gates until they are
-present; the existing singing systems are reused rather than rebuilt.
+Fine China has lyrics, creative brief, generation prompt, project metadata and a 120-bar MIDI arrangement. The approved hybrid vocal identity is stored as structured project data. A first 13-phrase, 64-word-unit chorus melody proposal now has explicit draft pitches, beat durations and ARPABET phones, plus a dependency-free MIDI guide renderer for immediate audition.
+
+The vocal score remains deliberately marked `composition_draft`; it is not user-approved note-by-note and cannot pass the SoulX export gate. The existing SoulX adapter and score exporter are integrated, but reference singer assets and the installed local model/runtime have not been verified here. The one-command runner reports those gates rather than pretending the song is rendered.
