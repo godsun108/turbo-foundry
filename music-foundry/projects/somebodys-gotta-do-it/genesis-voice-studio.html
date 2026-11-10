@@ -62,7 +62,7 @@ button.secondary{background:#25344b}button.danger{background:#613642}
 <p id="status" role="status" aria-live="polite">Ready. Choose a local model file to begin.</p>
 <audio id="preview" controls hidden style="width:100%;margin-top:12px"></audio>
 <button id="download" class="secondary" disabled>Download WAV</button>
-<p class="note">Export is 24 kHz, mono, 16-bit PCM WAV. Spoken mode is neural TTS. Sung mode reuses the same local TTS voice and retunes score-aligned syllables. No voice cloning is performed. Audio and text are processed in this browser worker; the model/runtime files are loaded locally or from the pinned open-source runtime CDN.</p>
+<p class="note">Export is 48 kHz, mono, 16-bit PCM WAV. Spoken mode is neural TTS. Sung mode reuses the same local TTS voice and retunes score-aligned syllables. No voice cloning is performed. Audio and text are processed in this browser worker; the model/runtime files are loaded locally or from the pinned open-source runtime CDN.</p>
 </div>
 <p class="note">Privacy and compatibility: the selected model is not uploaded by this page. The JavaScript runtime and WebAssembly files are fetched from jsDelivr at a pinned version. iPhone Safari/WebGPU performance and model memory use still require device testing. If GPU initialization fails, try a CPU-compatible model and CPU mode.</p>
 <script type="module" src="./genesis-voice-studio.js"></script>
