@@ -399,6 +399,20 @@
       "boundary": "Core owns intelligence semantics, not deployment bodies or ambient machine authority."
     },
     {
+      "id": "genesis-one",
+      "repo": "godsun108/Sovereign-Core",
+      "subpath": "genesis",
+      "role": "experimental-proof-producer",
+      "owns": [
+        "Genesis ONE local-intelligence experiments",
+        "task-level inference evaluation",
+        "fingerprinted experimental proof submissions"
+      ],
+      "contracts": [],
+      "status": "experimental",
+      "boundary": "Experimental evidence producer within Sovereign Core. Does not own the Core protocol, promote its own maturity, or turn synthetic results into production claims."
+    },
+    {
       "id": "sovereign-online",
       "repo": "godsun108/Sovereign-Online",
       "role": "online-ai-body",

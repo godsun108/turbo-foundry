@@ -2,7 +2,7 @@
 
 > Generated deterministically from `ECOSYSTEM.json`. This is an architecture/contract status surface, not a network uptime claim.
 
-Canonical registry: **20 systems**
+Canonical registry: **21 systems**
 
 | System | Role | Repository | Contracts | Status |
 |---|---|---|---:|---|
@@ -24,6 +24,7 @@ Canonical registry: **20 systems**
 | `mint-placeholder` | legacy-placeholder | godsun108/Mint | 0 | empty-placeholder |
 | `turbo-foundry` | ecosystem-governance | godsun108/turbo-foundry | 3 | registered |
 | `sovereign-core` | intelligence-kernel | godsun108/Sovereign-Core | 2 | registered |
+| `genesis-one` | experimental-proof-producer | godsun108/Sovereign-Core | 0 | experimental |
 | `sovereign-online` | online-ai-body | godsun108/Sovereign-Online | 0 | registered |
 | `sovereign-offline` | offline-ai-body | godsun108/Sovereign-Offline | 1 | registered |
 
@@ -51,6 +52,7 @@ Canonical registry: **20 systems**
 - **mint-placeholder** — empty-placeholder: Empty placeholder. Canonical implemented capital system is godsun108/Mint-capital-engine.
 - **turbo-foundry** — registered: Foundry validates and preserves evidence; it does not manufacture proof for owned systems.
 - **sovereign-core** — registered: Core owns intelligence semantics, not deployment bodies or ambient machine authority.
+- **genesis-one** — experimental: Experimental evidence producer within Sovereign Core. Does not own the Core protocol, promote its own maturity, or turn synthetic results into production claims.
 - **sovereign-online** — registered: Body consumes Core semantics; inference provider remains replaceable.
 - **sovereign-offline** — registered: No cloud fallback; completion requires reproducible operation with external networking denied.
 
