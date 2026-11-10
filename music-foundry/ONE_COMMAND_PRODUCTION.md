@@ -85,6 +85,6 @@ stage rather than marking unfinished work complete.
 
 ## Fine China current state
 
-Fine China has lyrics, creative brief, generation prompt, project metadata and a 120-bar MIDI arrangement. The approved hybrid vocal identity is stored as structured project data. A first 13-phrase, 64-word-unit chorus melody proposal now has explicit draft pitches, beat durations and ARPABET phones, plus a dependency-free MIDI guide renderer for immediate audition.
+Fine China has lyrics, creative brief, generation prompt, project metadata and a 120-bar MIDI arrangement. The approved hybrid vocal identity is stored as structured project data. A first 13-phrase chorus melody proposal now has 61 word units and 73 explicit pitched syllable events, with beat durations, MIDI pitches and ARPABET phones. A dependency-free MIDI guide renderer validates the syllable-to-word phoneme maps and creates separate lead/gang tracks for immediate audition.
 
 The vocal score remains deliberately marked `composition_draft`; it is not user-approved note-by-note and cannot pass the SoulX export gate. The existing SoulX adapter and score exporter are integrated, but reference singer assets and the installed local model/runtime have not been verified here. The one-command runner reports those gates rather than pretending the song is rendered.
