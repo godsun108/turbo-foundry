@@ -20,6 +20,7 @@ let busy = false;
 let audioUrl = null;
 let audioContext = null;
 let lastMode = "spoken";
+let lastBlob = null;
 let bundledScoreText = null;
 
 function setStatus(message) {
@@ -35,6 +36,7 @@ function setBusy(value) {
   $("model").disabled = busy || ready;
   $("delegate").disabled = true;
   $("score").disabled = busy;
+  $("sendToMix").disabled = busy || !lastBlob || lastMode !== "sung";
 }
 
 function releaseAudioUrl() {
@@ -229,6 +231,43 @@ $("sing").addEventListener("click", async () => {
   });
 });
 
+
+$("sendToMix").addEventListener("click", async () => {
+  const token = $("apiToken").value.trim();
+  const jobId = $("renderJobId").value.trim();
+  if (!lastBlob || lastMode !== "sung") return setStatus("Generate a Fine China sung take first.");
+  if (!token) return setStatus("Enter the private Music Foundry access token.");
+  if (!/^[0-9a-f-]{36}$/i.test(jobId)) return setStatus("Enter the instrumental render job ID.");
+  $("sendToMix").disabled = true;
+  setStatus("Uploading the sung WAV to your private Fine China render job and creating the mix…");
+  try {
+    const response = await fetch("/api/v1/jobs/" + jobId + "/vocal", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + token, "Content-Type": "audio/wav" },
+      body: lastBlob
+    });
+    const result = await response.json().catch(() => ({ error: "Invalid server response" }));
+    if (!response.ok) throw new Error(result.error || "Vocal upload failed (" + response.status + ").");
+    const mixResponse = await fetch(result.final_mix_url, {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    if (!mixResponse.ok) throw new Error("The combined mix was created but could not be loaded for preview.");
+    const mixBlob = await mixResponse.blob();
+    releaseAudioUrl();
+    audioUrl = URL.createObjectURL(mixBlob);
+    $("preview").src = audioUrl;
+    lastBlob = mixBlob;
+    lastMode = "mixed";
+    $("download").disabled = false;
+    $("sendToMix").textContent = "Final mix created";
+    $("sendToMix").disabled = true;
+    setStatus("Fine China sung vocal and instrumental combined. Listen to the full mix above; download it for review. This is an audition mix, not a mastered release.");
+  } catch (error) {
+    $("sendToMix").disabled = false;
+    setStatus("Could not create the mix: " + error.message);
+  }
+});
+
 $("stop").addEventListener("click", () => {
   worker.postMessage({ type: "cancel" });
   setBusy(false);
@@ -240,7 +279,7 @@ $("download").addEventListener("click", () => {
   if (!player.src) return;
   const anchor = document.createElement("a");
   anchor.href = player.src;
-  anchor.download = lastMode === "sung" ? "genesis-sung-take.wav" : "genesis-spoken-take.wav";
+  anchor.download = lastMode === "mixed" ? "fine-china-vocal-instrumental-mix.wav" : (lastMode === "sung" ? "fine-china-sung-vocal.wav" : "genesis-spoken-take.wav");
   document.body.append(anchor);
   anchor.click();
   anchor.remove();
@@ -279,6 +318,7 @@ worker.addEventListener("message", async (event) => {
   } else if (data.type === "audio") {
     const samples = new Float32Array(data.samples);
     const blob = encodeWav(samples, data.sampleRateHz);
+    lastBlob = blob;
     releaseAudioUrl();
     audioUrl = URL.createObjectURL(blob);
     $("preview").src = audioUrl;
