@@ -37,6 +37,7 @@ audio{width:100%;margin:12px 0}.files a{display:block;color:#c4d7ff;padding:9px 
 const $=id=>document.getElementById(id);let token="",timer=null,currentJob="";
 const api=async(path,options={})=>{const response=await fetch(path,{...options,headers:{...(options.headers||{}),Authorization:"Bearer "+token,...(options.body?{"Content-Type":"application/json"}:{})}});const data=await response.json().catch(()=>({error:"Invalid server response"}));if(!response.ok)throw new Error(data.error||"Request failed ("+response.status+")");return data};
 $("token").addEventListener("input",e=>{token=e.target.value.trim();$("connection").textContent=token?"Token entered":"Not connected"});
+$("project").addEventListener("change",()=>{const fine=$("project").value==="fine-china";$("arrangement").innerHTML=fine?'<option value="soulful-bass-house">Soulful Bass House · Am–F–C–G</option>':'<option value="warehouse-rave-v3">Warehouse Rave V3 · evolving drops</option><option value="original">Original procedural arrangement</option>'});
 $("render").addEventListener("click",async()=>{if(!token){$("status").textContent="Enter the private token first.";return}
 const bpm=Number($("bpm").value);if(!Number.isInteger(bpm)||bpm<40||bpm>240){$("status").textContent="Tempo must be 40–240 BPM.";return}
 $("render").disabled=true;$("status").textContent="Submitting render…";
