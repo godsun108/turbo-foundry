@@ -33,7 +33,7 @@ function setBusy(value) {
   $("sing").disabled = busy || !ready || (!bundledScoreText && !$("score").files?.length);
   $("stop").disabled = !busy;
   $("model").disabled = busy || ready;
-  $("delegate").disabled = busy || ready;
+  $("delegate").disabled = true;
   $("score").disabled = busy;
 }
 
