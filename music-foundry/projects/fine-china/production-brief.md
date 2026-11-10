@@ -12,8 +12,15 @@ A finished, release-quality, approximately 3:45–3:55 soulful bass-house / funk
 - Bridge drops to bass pulse and intimate spoken delivery, then a full-energy final drop.
 - Human-feeling timing, confident groove, playful swagger, warm celebratory finish.
 
-## Vocal production
-Lead: expressive, conversational, slightly raspy/warm, adult voice; mostly spoken-sung verses and bridge, melodic chorus. Do not imitate any known performer. Double the hook; add tight 3-part harmonies on chorus tails; gang-response layers on shouted phrases. Clear diction and natural breaths. Keep spoken sections intelligible and upfront.
+## Approved vocal identity — hybrid D
+The user approved a hybrid performance direction:
+- **Verses and intro:** warm, deep, conversational spoken delivery with relaxed swagger, intimate and close-mic. Slight rasp is welcome, but diction stays clear.
+- **Pre-choruses:** transition from speech into rhythmic sung phrases; build anticipation and melodic lift.
+- **Chorus:** open into a big, soulful, expressive house-vocal melody. Confident, joyful and memorable, not over-sung.
+- **Hook responses:** layered group/gang shouts on “EAT ON IT!”, “DRINK ON IT!”, “LIVE ON IT!” and “THIS IS IT!”; energetic and human, like friends around a table rather than a stadium crowd.
+- **Bridge:** strip back to intimate spoken delivery over a bass pulse, then build into the final drop.
+- **Production:** selective lead doubles, tight three-part harmony on chorus tails, wide gang responses, controlled slap/short plate, natural breaths. Keep lead intelligible and centered.
+- Voice must be original and non-imitative. Do not clone or imitate a named artist or use an unlicensed reference voice.
 
 ## Arrangement map (126 BPM)
 - 1–8 bars: spoken intro, filtered keys, vinyl/room texture (no fake crowd ambience).
