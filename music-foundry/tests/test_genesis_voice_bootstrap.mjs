@@ -20,7 +20,7 @@ test("studio offers pinned Kokoro GPU and CPU bundles without a manual model pic
 test("MediaPipe receives the documented modelAssetPath URL", () => {
   assert.match(worker, /modelAssetPath:\s*data\.modelUrl/);
   assert.doesNotMatch(worker, /modelAssetBuffer/);
-  assert.ok(worker.includes("huggingface.co/litert-community/Kokoro-82M"));
+  assert.ok(studio.includes("https://huggingface.co/litert-community/Kokoro-82M"));
 });
 
 test("full-track spoken vocal button loads the canonical cue sheet", () => {
