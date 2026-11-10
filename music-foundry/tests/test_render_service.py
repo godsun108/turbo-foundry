@@ -32,6 +32,31 @@ class RenderServiceContractTests(unittest.TestCase):
         self.assertFalse(SERVICE.FILENAME.fullmatch("../secret.wav"))
         self.assertFalse(SERVICE.FILENAME.fullmatch("mix.mp3"))
 
+
+    def test_vocal_upload_mix_resamples_to_highest_source_rate(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            instrumental = root / "instrumental.wav"
+            vocal = root / "vocal.wav"
+            final_mix = root / "final_mix.wav"
+            for path, rate, seconds, amplitude in (
+                (instrumental, 22050, 2, 800),
+                (vocal, 48000, 1, 1200),
+            ):
+                with wave.open(str(path), "wb") as output:
+                    output.setnchannels(1)
+                    output.setsampwidth(2)
+                    output.setframerate(rate)
+                    output.writeframes((b"".join(
+                        int(amplitude).to_bytes(2, "little", signed=True)
+                        for _ in range(rate * seconds)
+                    )))
+            metadata = SERVICE.combine_vocal_with_instrumental(instrumental, vocal, final_mix)
+            self.assertEqual(metadata["sample_rate"], 48000)
+            self.assertEqual(metadata["channels"], 1)
+            self.assertEqual(metadata["duration_seconds"], 2.0)
+            self.assertGreater(metadata["bytes"], 4096)
+
     def test_project_and_job_limits_are_bounded(self):
         self.assertTrue(SERVICE.SLUG.fullmatch("somebodys-gotta-do-it"))
         self.assertFalse(SERVICE.SLUG.fullmatch("../private"))
