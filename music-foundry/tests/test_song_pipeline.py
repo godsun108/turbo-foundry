@@ -98,18 +98,35 @@ class SongPipelineTests(unittest.TestCase):
                 "start_beat": 128,
                 "duration_beats": 2,
                 "lyric_units": [
-                    {"text": "Fine", "onset_beats": 0, "duration_beats": 1,
-                     "midi_pitch": 69, "note_type": "normal"},
-                    {"text": "China", "onset_beats": 1, "duration_beats": 1,
-                     "midi_pitch": 67, "note_type": "normal"}
+                    {"text": "Hello", "onset_beats": 0, "duration_beats": 1,
+                     "midi_pitch": 69, "note_type": "normal"}
+                ],
+                "syllables": [
+                    {"word": "Hello", "text": "Hel", "onset_beats": 0,
+                     "duration_beats": 0.5, "midi_pitch": 69},
+                    {"word": "Hello", "text": "lo", "onset_beats": 0.5,
+                     "duration_beats": 0.5, "midi_pitch": 67}
                 ]
             }]
         }
         midi, report = vocal_score_midi.build_midi(score)
         self.assertTrue(midi.startswith(b"MThd"))
         self.assertEqual(report["status"], "draft_preview_only")
+        self.assertEqual(report["word_events"], 1)
+        self.assertEqual(report["syllable_events"], 2)
         self.assertEqual(report["note_events"], 2)
         self.assertEqual(report["duration_beats"], 2)
+        self.assertEqual(report["start_beat_in_source"], 128)
+
+    def test_fine_china_project_score_has_syllable_level_midi_preview(self):
+        score_path = Path(__file__).resolve().parents[1] / "projects" / "fine-china" / "vocal_score_draft.json"
+        score = json.loads(score_path.read_text(encoding="utf-8"))
+        midi, report = vocal_score_midi.build_midi(score)
+        self.assertTrue(midi.startswith(b"MThd"))
+        self.assertEqual(report["word_events"], 61)
+        self.assertEqual(report["syllable_events"], 73)
+        self.assertEqual(report["note_events"], 73)
+        self.assertEqual(report["duration_beats"], 60)
         self.assertEqual(report["start_beat_in_source"], 128)
 
     def test_midi_execution_calls_existing_generator(self):
