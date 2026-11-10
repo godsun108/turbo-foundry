@@ -52,10 +52,11 @@ button.secondary{background:#25344b}button.danger{background:#613642}
 <div class="panel">
 <h2>3 · Sing from a MIDI-aligned lyric score</h2>
 <p>Reuse the loaded Kokoro voice as the singer. Import a Music Foundry vocal-score JSON with placed syllables, MIDI pitches, onsets, durations, and tempo. The browser synthesizes each syllable locally, retunes its voiced vowel with PSOLA, and assembles the notes on the score timeline.</p>
-<label for="score">Music Foundry vocal score (.json)</label>
+<button id="fineChina" class="secondary" type="button">Load Fine China chorus draft</button>
+<label for="score">Or import another Music Foundry vocal score (.json)</label>
 <input id="score" type="file" accept=".json,application/json">
 <button id="sing" disabled>Generate sung take from score</button>
-<p class="note">No user recording or reference singer is needed. This is score-conditioned melodic TTS: the existing neural speech voice supplies the timbre, and local pitch-synchronous DSP creates the sung notes. It is a practical first singing renderer, not a separately trained human singing model. Unplaced scaffold scores are rejected rather than guessed.</p>
+<p class="note">No user recording or reference singer is needed. This is score-conditioned melodic TTS: the existing neural speech voice supplies the timbre, and local pitch-synchronous DSP creates the sung notes. It is a practical first singing renderer, not a separately trained human singing model. The bundled Fine China score is a composition draft and still needs listening and human approval. Unplaced scaffold scores are rejected rather than guessed.</p>
 </div>
 <div class="panel">
 <h2>4 · Preview and export</h2>
