@@ -1,10 +1,10 @@
 # Production brief — Fine China (Eat On It)
 
 ## Target
-A finished, release-quality, approximately 3:05–3:25 soulful bass-house / funky disco-house single. Club, warehouse, car and weekend energy. Strong groove, memorable hook, playful wisdom rather than a lecture.
+A finished, release-quality, approximately 3:45–3:55 soulful bass-house / funky disco-house single. At 126 BPM in 4/4, the existing 120-bar arrangement runs approximately 3:48.6 before any final tail edits. Club, warehouse, car and weekend energy. Strong groove, memorable hook, playful wisdom rather than a lecture.
 
 ## Musical spec
-- 126 BPM, 4/4, F minor (or compatible warm minor-key progression with uplifting major-color lifts).
+- 126 BPM, 4/4, A minor (the canonical project key; use F-major color in the harmonic loop where useful).
 - Tight four-on-the-floor kick; crisp clap/snare on 2 and 4; swung shuffled hats and hand percussion.
 - Deep rubbery syncopated bass-house bass, sidechain pump, tasteful sub support.
 - Chic disco rhythm guitar, warm Rhodes/clav stabs, bright string/brass accents, short vocal chops.
