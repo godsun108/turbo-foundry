@@ -1902,5 +1902,5 @@
       ]
     }
   ],
-  "notes": "Draft composition only. Vocal identity D was approved by the user; this note-level chorus proposal is not yet user-auditioned or approved. Phrase alignment_status remains composition_draft. Do not SoulX-export until the user approves the melody and human review confirms pronunciation, syllable timing, note choices and phrase placement. Word-level note events use explicit draft ARPABET and beat durations; adjust against the actual singer and groove."
+  "notes": "Draft composition only. Vocal identity D was approved by the user; the note-by-note chorus proposal still awaits listening and approval. The score keeps word-level lyric_units for the existing SoulX exporter and adds syllable-level subdivisions for the MIDI audition guide. Every phrase remains composition_draft. Do not SoulX-export until the user approves the melody and a human review confirms pronunciation, phoneme segmentation, syllable timing, note choices, stress and phrase placement."
 }
