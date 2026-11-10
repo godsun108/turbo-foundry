@@ -102,9 +102,9 @@ class SongPipelineTests(unittest.TestCase):
                      "midi_pitch": 69, "note_type": "normal"}
                 ],
                 "syllables": [
-                    {"word": "Hello", "text": "Hel", "phonemes": ["HH", "AH0", "L"], "onset_beats": 0,
+                    {"word": "Hello", "unit_index": 0, "text": "Hel", "phonemes": ["HH", "AH0", "L"], "onset_beats": 0,
                      "duration_beats": 0.5, "midi_pitch": 69},
-                    {"word": "Hello", "text": "lo", "phonemes": ["OW1"], "onset_beats": 0.5,
+                    {"word": "Hello", "unit_index": 0, "text": "lo", "phonemes": ["OW1"], "onset_beats": 0.5,
                      "duration_beats": 0.5, "midi_pitch": 67}
                 ]
             }]
