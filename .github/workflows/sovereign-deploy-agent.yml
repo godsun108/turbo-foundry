@@ -1,0 +1,27 @@
+name: Sovereign Deploy Agent
+
+on:
+  pull_request:
+    paths:
+      - "systems/sovereign-deploy/**"
+      - ".github/workflows/sovereign-deploy-agent.yml"
+  push:
+    branches: [main]
+    paths:
+      - "systems/sovereign-deploy/**"
+      - ".github/workflows/sovereign-deploy-agent.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run release verification tests
+        working-directory: systems/sovereign-deploy
+        run: npm test
