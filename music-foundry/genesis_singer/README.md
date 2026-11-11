@@ -12,9 +12,9 @@ One JSON object per line, with audio paths relative to the manifest directory. E
 
 ## Train
 
-From the repository root, install music-foundry/genesis_singer/requirements.txt into a dedicated Python environment, then run:
+From the repository root, install music-foundry/genesis_singer/requirements.txt into a dedicated Python environment. Then change directory into music-foundry and run:
 
-    python -m music_foundry.genesis_singer.train --manifest /private/data/train.jsonl --vocab /private/data/vocab.json --output /private/models/genesis-singer-v0 --speakers 1 --epochs 100 --device cuda
+    python -m genesis_singer.train --manifest /private/data/train.jsonl --vocab /private/data/vocab.json --output /private/models/genesis-singer-v0 --speakers 1 --epochs 100 --device cuda
 
 Use --device cpu if CUDA is unavailable. The trainer writes latest.pt, best.pt and training.json. Begin with a tiny consented dataset to validate alignment and the loop, not to claim production quality.
 
@@ -22,7 +22,7 @@ Use --device cpu if CUDA is unavailable. The trainer writes latest.pt, best.pt a
 
 Score JSON fields: phonemes (tokens in vocabulary), pitches (MIDI 0–127), note_types, durations_frames and optional speaker_id.
 
-    python -m music_foundry.genesis_singer.infer --checkpoint /private/models/genesis-singer-v0/best.pt --score /private/projects/song/score.json --output /private/projects/song/lead-vocal.wav --device cuda
+    python -m genesis_singer.infer --checkpoint /private/models/genesis-singer-v0/best.pt --score /private/projects/song/score.json --output /private/projects/song/lead-vocal.wav --device cuda
 
 ## Production quality gate
 
