@@ -22,6 +22,25 @@ let audioContext = null;
 let lastMode = "spoken";
 let lastBlob = null;
 let bundledScoreText = null;
+let oneTapFineChinaPending = false;
+async function startFineChinaOneTap(){
+  if(busy)return;
+  $("oneTapFineChina").disabled=true;
+  setStatus("Loading Fine China score and preparing the singer…");
+  try{
+    const response=await fetch("../fine-china/vocal_score_draft.json",{cache:"no-store"});
+    if(!response.ok)throw new Error("Fine China score could not be loaded.");
+    const scoreText=await response.text();
+    const parsed=JSON.parse(scoreText);
+    if(parsed.project_id!=="fine-china"||parsed.tempo_bpm!==126)throw new Error("Fine China score identity check failed.");
+    bundledScoreText=scoreText;
+    $("score").value="";
+    await resumeAudio();
+    if(!ready){oneTapFineChinaPending=true;setStatus("First-time setup: loading the on-device singer. Keep this page open while the model downloads…");$("load").click();}
+    else{setBusy(true);setStatus("Singer ready. Rendering the Fine China chorus…");worker.postMessage({type:"synthesize-score",scoreText:bundledScoreText,voiceId:$("voice").value});}
+  }catch(error){$("oneTapFineChina").disabled=false;setStatus("Could not start Fine China: "+error.message);}
+}
+$("oneTapFineChina").addEventListener("click",startFineChinaOneTap);
 
 function setStatus(message) {
   $("status").textContent = message;
@@ -311,6 +330,7 @@ worker.addEventListener("message", async (event) => {
     setBusy(false);
     $("load").disabled = true;
     setStatus("Model ready. " + data.voices.length + " voices available. Speech and singing inference stay in this browser.");
+    if(oneTapFineChinaPending){oneTapFineChinaPending=false;setBusy(true);setStatus("Singer ready. Rendering the Fine China chorus…");worker.postMessage({type:"synthesize-score",scoreText:bundledScoreText,voiceId:$("voice").value});}
   } else if (data.type === "progress") {
     setStatus("Generating speech locally… completed " + data.chunkCount + " audio chunk(s).");
   } else if (data.type === "singing-progress") {
@@ -337,6 +357,7 @@ worker.addEventListener("message", async (event) => {
     }
     setBusy(false);
     if (lastMode === "sung") {
+      $("oneTapFineChina").disabled=false;
       const meta = data.metadata || {};
       setStatus("Sung take rendered: " + (meta.syllableCount || "—") + " syllables · " +
         (meta.tempoBpm || "—") + " BPM · " + samples.length + " samples at " +
