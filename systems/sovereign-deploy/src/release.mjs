@@ -41,7 +41,9 @@ async function atomicJson(path, value) {
 }
 export async function verifyRelease(directory, {publicKey = process.env.SOVEREIGN_RELEASE_PUBLIC_KEY, allowUnsignedLocal = false} = {}) {
   const root = resolve(directory);
-  const manifestPath = join(root, 'release.json');
+  const rootStat = await lstat(root);
+  if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) fail('release_root_must_be_directory');
+  const {full:manifestPath} = await regularFile(root, 'release.json');
   const manifestBytes = await readFile(manifestPath);
   let manifest;
   try { manifest = JSON.parse(manifestBytes.toString('utf8')); } catch { fail('invalid_release_manifest'); }
@@ -63,7 +65,8 @@ export async function verifyRelease(directory, {publicKey = process.env.SOVEREIG
   if (!seen.has(manifest.entrypoint)) fail('release_entrypoint_not_listed');
   let signed = false;
   try {
-    const signature = (await readFile(join(root, 'manifest.sig'), 'utf8')).trim();
+    const {full:signaturePath} = await regularFile(root, 'manifest.sig');
+    const signature = (await readFile(signaturePath, 'utf8')).trim();
     if (!publicKey || !signature) fail('release_signature_key_missing');
     const key = createPublicKey(publicKey);
     signed = verifySignature(null, manifestBytes, key, Buffer.from(signature, 'base64'));
