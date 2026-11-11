@@ -33,7 +33,9 @@ export async function packRelease(sourceDirectory,releaseId,entrypoint,privateKe
   }
   await walk(source);
   if(!files.length||!files.some(file=>file.path===entrypoint))fail('release_entrypoint_not_found');
-  await mkdir(output,{recursive:true});
+  try{await lstat(output);fail('output_directory_already_exists')}catch(error){if(error.code!=='ENOENT')throw error}
+  await mkdir(resolve(output,'..'),{recursive:true});
+  await mkdir(output,{recursive:false});
   for(const file of files){const target=join(output,...file.path.split('/'));await mkdir(resolve(target,'..'),{recursive:true});await copyFile(file.source,target)}
   const manifest={schema:'sovereign.release.v1',releaseId,createdAt:new Date().toISOString(),entrypoint,healthPath,files:files.map(({path,sha256,size})=>({path,sha256,size}))};
   const bytes=Buffer.from(JSON.stringify(manifest));
