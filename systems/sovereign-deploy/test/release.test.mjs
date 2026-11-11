@@ -3,10 +3,19 @@ import assert from 'node:assert/strict';
 import {mkdtemp, mkdir, writeFile, readFile, rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {createServer as createNetServer} from 'node:net';
 import {createHash, generateKeyPairSync, sign} from 'node:crypto';
 import {verifyRelease, installRelease, rollback, readDeploymentStatus} from '../src/release.mjs';
 import {packRelease} from '../src/pack.mjs';
 import {startSupervisor} from '../src/supervisor.mjs';
+
+async function freePort(){
+  const server=createNetServer();
+  await new Promise((resolve,reject)=>server.once('error',reject).listen(0,'127.0.0.1',resolve));
+  const {port}=server.address();
+  await new Promise(resolve=>server.close(resolve));
+  return port;
+}
 
 async function fixture(t, {tamper=false, unsafePath=false}={}) {
   const root = await mkdtemp(join(tmpdir(),'sovereign-release-'));
