@@ -9,7 +9,7 @@ function inside(root,candidate){const rel=relative(root,candidate);return rel===
 export async function packRelease(sourceDirectory,releaseId,entrypoint,privateKeyPem,outputDirectory,{healthPath='/health'}={}){
   if(!/^[a-z0-9][a-z0-9._-]{0,79}$/.test(releaseId||''))fail('invalid_release_id');
   if(!safePath(entrypoint))fail('invalid_release_entrypoint');
-  if(typeof healthPath!=='string'||!healthPath.startsWith('/')||healthPath.startsWith('//')||healthPath.includes('..')||healthPath.includes('\\'))fail('invalid_release_health_path');
+  if(typeof healthPath!=='string'||!/^\\/[A-Za-z0-9/_-]*$/.test(healthPath)||healthPath.startsWith('//'))fail('invalid_release_health_path');
   const source=resolve(sourceDirectory),output=resolve(outputDirectory);
   const rootStat=await lstat(source);
   if(!rootStat.isDirectory()||rootStat.isSymbolicLink())fail('source_root_must_be_directory');
