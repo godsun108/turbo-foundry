@@ -5,6 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createHash, generateKeyPairSync, sign} from 'node:crypto';
 import {verifyRelease, installRelease, rollback, readDeploymentStatus} from '../src/release.mjs';
+import {packRelease} from '../src/pack.mjs';
 
 async function fixture(t, {tamper=false, unsafePath=false}={}) {
   const root = await mkdtemp(join(tmpdir(),'sovereign-release-'));
@@ -56,4 +57,19 @@ test('installs atomically and can roll back to the previous release',async t=>{
 test('unsigned releases fail closed by default',async t=>{
   const f=await fixture(t); await rm(join(f.source,'manifest.sig'));
   await assert.rejects(()=>verifyRelease(f.source),/unsigned_release_not_allowed/);
+});
+
+test('packs a source directory into a signed, verifiable release bundle',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'sovereign-pack-'));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const source=join(root,'app'),output=join(root,'bundle');
+  await mkdir(join(source,'assets'),{recursive:true});
+  await writeFile(join(source,'server.mjs'),'export default true;\\n');
+  await writeFile(join(source,'assets','style.css'),'body{}\\n');
+  const {privateKey,publicKey}=generateKeyPairSync('ed25519');
+  const packed=await packRelease(source,'packed-test','server.mjs',privateKey.export({type:'pkcs8',format:'pem'}),output);
+  const verified=await verifyRelease(output,{publicKey:publicKey.export({type:'spki',format:'pem'})});
+  assert.equal(verified.signed,true);
+  assert.equal(verified.fileCount,2);
+  assert.equal(packed.manifest.entrypoint,'server.mjs');
 });
