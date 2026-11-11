@@ -11,6 +11,7 @@ A provider-neutral deployment primitive for Sovereign and Turbo Foundry. It is d
 - File paths are constrained to the release root; symlinks, path traversal, oversized files, duplicate paths, and unlisted entrypoints are rejected.
 - Installation copies only verified files into a unique staging directory, re-verifies the copy, then atomically renames it into the immutable release store.
 - The active release pointer is atomically replaced. The previous release is retained for explicit rollback.
+- The local runtime supervisor launches signed releases on isolated loopback ports, waits for the configured health path, then switches proxied traffic only after a successful health response. Failed candidates are stopped and the state pointer is rolled back.
 - No provider SDK, shell execution, hosted database, or runtime package dependency is required.
 
 ## Commands
@@ -24,6 +25,7 @@ SOVEREIGN_RELEASE_PUBLIC_KEY="$(cat release-public.pem)" node src/cli.mjs verify
 SOVEREIGN_RELEASE_PUBLIC_KEY="$(cat release-public.pem)" node src/cli.mjs install ./release-bundle ./var/deploy
 node src/cli.mjs status ./var/deploy
 node src/cli.mjs rollback ./var/deploy
+SOVEREIGN_RELEASE_PUBLIC_KEY="$(cat release-public.pem)" node src/cli.mjs serve ./var/deploy 8080
 ```
 
 For isolated local development only, set `SOVEREIGN_ALLOW_UNSIGNED_LOCAL=1`. Never use that setting in staging or production.
@@ -50,8 +52,8 @@ This version verifies, stores, activates and rolls back immutable release direct
 
 ## Next integration gates
 
-1. Add a supervised Node runtime and health-gated traffic switch.
-2. Add a Railway adapter that deploys the same verified release contract (no Railway-only application code).
-3. Add a self-hosted Linux adapter and encrypted backup/restore.
-4. Add signed deployment authorization and append-only audit receipts.
+1. Add Railway and GitHub deployment adapters that consume the same verified release contract (no Railway-only application code).
+2. Add a self-hosted Linux bootstrap and encrypted backup/restore.
+3. Add signed deployment authorization and append-only audit receipts.
+4. Add process supervision for Windows/macOS and clustered host management.
 5. Prove portability by deploying one app to two different adapters and comparing identical release digests.
