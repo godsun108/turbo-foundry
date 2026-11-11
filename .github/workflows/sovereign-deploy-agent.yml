@@ -6,7 +6,7 @@ on:
       - "systems/sovereign-deploy/**"
       - ".github/workflows/sovereign-deploy-agent.yml"
   push:
-    branches: [main]
+    branches: [main, feature/sovereign-deployment-agent-v1]
     paths:
       - "systems/sovereign-deploy/**"
       - ".github/workflows/sovereign-deploy-agent.yml"
