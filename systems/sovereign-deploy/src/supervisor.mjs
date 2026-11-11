@@ -4,7 +4,7 @@ import {join} from 'node:path';
 import {readDeploymentStatus, verifyRelease, rollback} from './release.mjs';
 
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-function safeHealthPath(value){return typeof value==='string'&&/^\\/[A-Za-z0-9/_-]*$/.test(value)&&!value.startsWith('//')}
+function safeHealthPath(value){return typeof value==='string'&&/^\/[A-Za-z0-9/_-]*$/.test(value)&&!value.startsWith('//')}
 
 async function freePort(){
   const server=http.createServer();
