@@ -50,7 +50,7 @@ export async function verifyRelease(directory, {publicKey = process.env.SOVEREIG
   if (!manifest || manifest.schema !== SCHEMA || !/^[a-z0-9][a-z0-9._-]{0,79}$/.test(manifest.releaseId || '')) fail('invalid_release_manifest');
   if (!Array.isArray(manifest.files) || manifest.files.length < 1 || manifest.files.length > MAX_FILES) fail('invalid_release_file_list');
   if (typeof manifest.entrypoint !== 'string' || !safeRelativePath(manifest.entrypoint)) fail('invalid_release_entrypoint');
-  if (manifest.healthPath !== undefined && (typeof manifest.healthPath !== 'string' || !manifest.healthPath.startsWith('/') || manifest.healthPath.startsWith('//') || manifest.healthPath.includes('..') || manifest.healthPath.includes('\\\\'))) fail('invalid_release_health_path');
+  if (manifest.healthPath !== undefined && (typeof manifest.healthPath !== 'string' || !manifest.healthPath.startsWith('/') || manifest.healthPath.startsWith('//') || manifest.healthPath.includes('..') || manifest.healthPath.includes('\\'))) fail('invalid_release_health_path');
   const seen = new Set();
   let total = 0;
   for (const item of manifest.files) {
