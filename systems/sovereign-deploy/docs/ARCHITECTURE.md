@@ -22,7 +22,7 @@ A failure before step 7 leaves the active pointer unchanged. If state publicatio
 
 ## Deliberate non-goals in v0.1
 
-No arbitrary shell hooks, remote command execution, secrets in manifests, self-granted authority, automatic production promotion, or implicit minting/financial actions. The agent has no network listener and cannot grant itself permissions.
+No arbitrary shell hooks, remote command execution, secrets in manifests, self-granted authority, automatic production promotion, or implicit minting/financial actions. The local supervisor exposes only the app's configured HTTP surface; its control plane is a local filesystem contract, not a public admin API.
 
 ## Portability criterion
 
