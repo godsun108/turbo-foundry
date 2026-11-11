@@ -6,6 +6,7 @@ import {join} from 'node:path';
 import {createHash, generateKeyPairSync, sign} from 'node:crypto';
 import {verifyRelease, installRelease, rollback, readDeploymentStatus} from '../src/release.mjs';
 import {packRelease} from '../src/pack.mjs';
+import {startSupervisor} from '../src/supervisor.mjs';
 
 async function fixture(t, {tamper=false, unsafePath=false}={}) {
   const root = await mkdtemp(join(tmpdir(),'sovereign-release-'));
@@ -72,4 +73,51 @@ test('packs a source directory into a signed, verifiable release bundle',async t
   assert.equal(verified.signed,true);
   assert.equal(verified.fileCount,2);
   assert.equal(packed.manifest.entrypoint,'server.mjs');
+});
+
+test('supervisor routes traffic only after a signed release passes its healthcheck',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'sovereign-supervisor-'));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const source=join(root,'app'),bundle=join(root,'bundle'),state=join(root,'state');
+  await mkdir(source);
+  await writeFile(join(source,'server.mjs'),"import http from 'node:http';const s=http.createServer((q,r)=>{r.writeHead(q.url==='/health'?200:404);r.end('healthy-v1')});s.listen(Number(process.env.PORT),'0.0.0.0');");
+  const {privateKey,publicKey}=generateKeyPairSync('ed25519');
+  const privatePem=privateKey.export({type:'pkcs8',format:'pem'}),publicPem=publicKey.export({type:'spki',format:'pem'});
+  await packRelease(source,'runtime-v1','server.mjs',privatePem,bundle);
+  await installRelease(bundle,state,{publicKey:publicPem});
+  const port=await freePort();
+  const runtime=await startSupervisor({stateDirectory:state,port,host:'127.0.0.1',publicKey:publicPem,pollMs:100,startupTimeoutMs:4000});
+  t.after(()=>runtime.close());
+  const response=await fetch('http://127.0.0.1:'+port+'/health');
+  assert.equal(response.status,200);
+  assert.equal(await response.text(),'healthy-v1');
+});
+
+test('failed healthcheck rolls state back and keeps the prior release serving',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'sovereign-rollback-'));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const {privateKey,publicKey}=generateKeyPairSync('ed25519');
+  const privatePem=privateKey.export({type:'pkcs8',format:'pem'}),publicPem=publicKey.export({type:'spki',format:'pem'});
+  const state=join(root,'state'),port=await freePort();
+  async function build(id,body){
+    const source=join(root,id),bundle=join(root,id+'-bundle');await mkdir(source);
+    await writeFile(join(source,'server.mjs'),body);
+    await packRelease(source,id,'server.mjs',privatePem,bundle);
+    return bundle;
+  }
+  const good=await build('good-v1',"import http from 'node:http';const s=http.createServer((q,r)=>{r.writeHead(q.url==='/health'?200:404);r.end('good')});s.listen(Number(process.env.PORT),'0.0.0.0');");
+  await installRelease(good,state,{publicKey:publicPem});
+  const runtime=await startSupervisor({stateDirectory:state,port,host:'127.0.0.1',publicKey:publicPem,pollMs:50,startupTimeoutMs:4000});
+  t.after(()=>runtime.close());
+  assert.equal(await (await fetch('http://127.0.0.1:'+port+'/health')).text(),'good');
+  const bad=await build('bad-v2',"import http from 'node:http';const s=http.createServer((q,r)=>{r.writeHead(503);r.end('not-ready')});s.listen(Number(process.env.PORT),'0.0.0.0');");
+  await installRelease(bad,state,{publicKey:publicPem});
+  let rolledBack=false;
+  for(let i=0;i<50;i++){
+    const current=await readDeploymentStatus(state);
+    if(current.active==='good-v1'){rolledBack=true;break}
+    await new Promise(resolve=>setTimeout(resolve,50));
+  }
+  assert.equal(rolledBack,true,'failed release should restore the previous active pointer');
+  assert.equal(await (await fetch('http://127.0.0.1:'+port+'/health')).text(),'good');
 });
