@@ -18,7 +18,7 @@ jobs:
           python-version: '3.12'
       - name: Unit tests
         run: python3 -m unittest discover -s music-foundry/tests -v
-      - name: Generate Fine China full-length MIDI arrangement
+      - name: Compile Genesis Singer Python package\n        run: python3 -m compileall -q music-foundry/genesis_singer\n      - name: Generate Fine China full-length MIDI arrangement
         run: python3 music-foundry/generate.py --output music-foundry/output/fine-china --bpm 126 --bars 120
       - name: Generate Fine China chorus melody MIDI guide and run production preflight
         run: |
