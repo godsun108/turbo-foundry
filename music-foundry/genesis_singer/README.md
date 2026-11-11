@@ -24,6 +24,6 @@ Score JSON fields: phonemes (tokens in vocabulary), pitches (MIDI 0–127), note
 
     python -m genesis_singer.infer --checkpoint /private/models/genesis-singer-v0/best.pt --score /private/projects/song/score.json --output /private/projects/song/lead-vocal.wav --device cuda
 
-## Production quality gate
+## One-command score-to-WAV render\n\nAfter training, run from the music-foundry directory:\n\n    python -m genesis_singer.pipeline --checkpoint /private/models/genesis-singer-v0/best.pt --score /private/projects/song/score.json --output /private/projects/song/lead-vocal.wav --device cuda\n\nThe command writes a WAV plus a SHA-256 provenance manifest. It refuses to overwrite an existing WAV.\n\n## Production quality gate
 
 Before production, add a compatible neural vocoder, train and validate on a properly licensed multi-song corpus, evaluate held-out singers and songs, measure pitch and lyric alignment, test breath and phrase transitions, and audition on target devices. Speaker identity conditioning is explicit; do not clone a real person's voice without permission.
