@@ -15,11 +15,16 @@ async function freePort(){
 }
 async function waitHealthy(child,port,path,timeoutMs){
   const deadline=Date.now()+timeoutMs;
+  let spawnError=null;
+  child.once('error',error=>{spawnError=error});
   while(Date.now()<deadline){
+    if(spawnError)throw new Error('release_process_spawn_failed');
     if(child.exitCode!==null||child.signalCode!==null)throw new Error('release_process_exited_before_healthcheck');
     try{
       const response=await fetch('http://127.0.0.1:'+port+path,{signal:AbortSignal.timeout(900)});
-      if(response.ok)return;
+      const healthy=response.ok;
+      await response.body?.cancel();
+      if(healthy)return;
     }catch{}
     await sleep(200);
   }
