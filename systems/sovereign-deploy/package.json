@@ -1,0 +1,14 @@
+{
+  "name": "@sovereign/deploy-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "verify": "node src/cli.mjs verify",
+    "status": "node src/cli.mjs status"
+  }
+}
