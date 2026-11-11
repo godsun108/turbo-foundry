@@ -70,7 +70,7 @@ export async function verifyRelease(directory, {publicKey = process.env.SOVEREIG
     if (!signed) fail('release_signature_invalid');
   } catch (error) {
     if (error.message === 'release_signature_key_missing' || error.message === 'release_signature_invalid') throw error;
-    if (!allowUnsignedLocal || error.code !== 'ENOENT') throw error;
+    if (error.code === 'ENOENT') { if (!allowUnsignedLocal) fail('unsigned_release_not_allowed'); } else throw error;
   }
   if (!signed && !allowUnsignedLocal) fail('unsigned_release_not_allowed');
   return {manifest, signed, totalBytes:total, fileCount:manifest.files.length};
@@ -107,8 +107,10 @@ export async function installRelease(sourceDirectory, stateDirectory, options = 
 export async function rollback(stateDirectory) {
   const root = resolve(stateDirectory), statePath = join(root, 'state.json');
   const state = JSON.parse(await readFile(statePath, 'utf8'));
-  if (state.schema !== 'sovereign.deploy-state.v1' || !state.previous) fail('no_previous_release');
-  await lstat(join(root, 'releases', state.previous, 'release.json'));
+  if (state.schema !== 'sovereign.deploy-state.v1' || !/^[a-z0-9][a-z0-9._-]{0,79}$/.test(state.previous || '')) fail('no_previous_release');
+  const previousManifest = join(root, 'releases', state.previous, 'release.json');
+  const previousStat = await lstat(previousManifest);
+  if (!previousStat.isFile() || previousStat.isSymbolicLink()) fail('previous_release_invalid');
   await atomicJson(statePath, {schema:state.schema, active:state.previous, previous:state.active, updatedAt:new Date().toISOString()});
   return {active:state.previous, previous:state.active};
 }
