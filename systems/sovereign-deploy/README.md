@@ -19,6 +19,7 @@ Run from this directory:
 
 ```sh
 npm test
+node src/pack.mjs ./app portal-2026-11-11.1 server.mjs ./release-private.pem ./release-bundle
 SOVEREIGN_RELEASE_PUBLIC_KEY="$(cat release-public.pem)" node src/cli.mjs verify ./release-bundle
 SOVEREIGN_RELEASE_PUBLIC_KEY="$(cat release-public.pem)" node src/cli.mjs install ./release-bundle ./var/deploy
 node src/cli.mjs status ./var/deploy
@@ -29,7 +30,7 @@ For isolated local development only, set `SOVEREIGN_ALLOW_UNSIGNED_LOCAL=1`. Nev
 
 ## Release format
 
-A bundle contains `release.json`, `manifest.sig`, and exactly the files listed in the manifest. The detached signature is base64-encoded Ed25519 over the exact UTF-8 bytes of `release.json`. The public key is supplied out-of-band via `SOVEREIGN_RELEASE_PUBLIC_KEY`; private signing keys must never be committed or placed on an application host.
+The `pack.mjs` utility creates a bundle from a source directory using an Ed25519 private key supplied as a local file. It excludes pre-existing root-level manifest/signature files, rejects symlinks and special files, and writes a detached signature. Keep the private key offline or in a dedicated signing environment. A bundle contains `release.json`, `manifest.sig`, and exactly the files listed in the manifest. The detached signature is base64-encoded Ed25519 over the exact UTF-8 bytes of `release.json`. The public key is supplied out-of-band via `SOVEREIGN_RELEASE_PUBLIC_KEY`; private signing keys must never be committed or placed on an application host.
 
 ```json
 {
