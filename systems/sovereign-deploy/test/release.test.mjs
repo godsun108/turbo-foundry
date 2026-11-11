@@ -107,7 +107,7 @@ test('failed healthcheck rolls state back and keeps the prior release serving',a
   }
   const good=await build('good-v1',"import http from 'node:http';const s=http.createServer((q,r)=>{r.writeHead(q.url==='/health'?200:404);r.end('good')});s.listen(Number(process.env.PORT),'0.0.0.0');");
   await installRelease(good,state,{publicKey:publicPem});
-  const runtime=await startSupervisor({stateDirectory:state,port,host:'127.0.0.1',publicKey:publicPem,pollMs:50,startupTimeoutMs:4000});
+  const runtime=await startSupervisor({stateDirectory:state,port,host:'127.0.0.1',publicKey:publicPem,pollMs:50,startupTimeoutMs:1000});
   t.after(()=>runtime.close());
   assert.equal(await (await fetch('http://127.0.0.1:'+port+'/health')).text(),'good');
   const bad=await build('bad-v2',"import http from 'node:http';const s=http.createServer((q,r)=>{r.writeHead(503);r.end('not-ready')});s.listen(Number(process.env.PORT),'0.0.0.0');");
