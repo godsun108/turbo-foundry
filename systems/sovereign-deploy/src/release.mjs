@@ -1,6 +1,6 @@
 import {createHash, createPublicKey, verify as verifySignature, randomUUID} from 'node:crypto';
-import {lstat, mkdir, readFile, readdir, rename, rm, copyFile, writeFile} from 'node:fs/promises';
-import {join, resolve, relative, sep, posix} from 'node:path';
+import {lstat, mkdir, readFile, rename, rm, copyFile, writeFile} from 'node:fs/promises';
+import {join, resolve, relative, sep, posix, isAbsolute} from 'node:path';
 
 const SCHEMA = 'sovereign.release.v1';
 const MAX_FILES = 10000;
@@ -9,22 +9,29 @@ const MAX_TOTAL_BYTES = 512 * 1024 * 1024;
 
 function fail(code) { throw new Error(code); }
 function safeRelativePath(value) {
-  if (typeof value !== 'string' || !value || value.includes('\\\\') || value.startsWith('/') || value.includes('\\0')) return false;
+  if (typeof value !== 'string' || !value || value.includes('\\') || value.startsWith('/') || value.includes('\0')) return false;
   const normalized = posix.normalize(value);
   return normalized === value && normalized !== '.' && normalized !== '..' && !normalized.startsWith('../') && !value.split('/').some(part => !part || part === '.' || part === '..');
 }
 function inside(root, candidate) {
   const rel = relative(root, candidate);
-  return rel === '' || (rel !== '..' && !rel.startsWith('..' + sep) && !resolve(rel).startsWith(sep));
+  return rel === '' || (rel !== '..' && !rel.startsWith('..' + sep) && !isAbsolute(rel));
 }
 async function regularFile(root, relativePath) {
   if (!safeRelativePath(relativePath)) fail('unsafe_release_path');
-  const full = resolve(root, ...relativePath.split('/'));
+  const parts = relativePath.split('/');
+  let current = root;
+  for (let i = 0; i < parts.length; i++) {
+    current = join(current, parts[i]);
+    const stat = await lstat(current);
+    if (stat.isSymbolicLink()) fail('release_symlink_not_allowed');
+    if (i < parts.length - 1 && !stat.isDirectory()) fail('release_parent_not_directory');
+    if (i === parts.length - 1 && !stat.isFile()) fail('release_file_must_be_regular');
+    if (i === parts.length - 1 && stat.size > MAX_FILE_BYTES) fail('release_file_too_large');
+  }
+  const full = resolve(root, ...parts);
   if (!inside(root, full)) fail('unsafe_release_path');
-  const stat = await lstat(full);
-  if (!stat.isFile() || stat.isSymbolicLink()) fail('release_file_must_be_regular');
-  if (stat.size > MAX_FILE_BYTES) fail('release_file_too_large');
-  return {full, stat};
+  return {full, stat:await lstat(full)};
 }
 async function atomicJson(path, value) {
   await mkdir(resolve(path, '..'), {recursive:true});
