@@ -19,14 +19,17 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
+      # Sovereign self-hosted runner ships Python 3.13 + full venv stack;
+      # hosted runners get setup-python. Guard on runner OS.
       - uses: actions/setup-python@v5
+        if: runner.os == 'Linux'
         with:
           python-version: '3.12'
       - name: Run synthetic release lifecycle
-        run: python -m src.autopilot.gateway_release_rehearsal --json gateway-release-evidence.json
+        run: python3 -m src.autopilot.gateway_release_rehearsal --json gateway-release-evidence.json
       - name: Validate evidence is synthetic and fail closed
         run: |
-          python -c 'import json; d=json.load(open("gateway-release-evidence.json")); assert d["passed"] is True; assert d["production_ready"] is False; assert d["live_provider_connected"] is False; assert d["messages_sent"] == 0; assert d["payments_processed"] == 0; assert len(d["checks"]) >= 7'
+          python3 -c 'import json; d=json.load(open("gateway-release-evidence.json")); assert d["passed"] is True; assert d["production_ready"] is False; assert d["live_provider_connected"] is False; assert d["messages_sent"] == 0; assert d["payments_processed"] == 0; assert len(d["checks"]) >= 7'
       - uses: actions/upload-artifact@v4
         with:
           name: foundry-synthetic-gateway-evidence
