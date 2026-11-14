@@ -29,3 +29,11 @@ test("full-track spoken vocal button loads the canonical cue sheet", () => {
   assert.match(studio, /extractTrackLyrics/);
   assert.match(studio, /maxLength = 4000/);
 });
+
+test("WAV export offers the iPhone share sheet and a browser-download fallback", () => {
+  assert.match(studio, /navigator\\.canShare\\(\\{ files: \\[file\\] \\}\\)/);
+  assert.match(studio, /navigator\\.share\\(\\{ files: \\[file\\], title: filename \\}\\)/);
+  assert.match(studio, /somebodys-gotta-do-it-spoken-take\\.wav/);
+  assert.match(studio, /anchor\\.click\\(\\)/);
+  assert.match(studio, /Save to Files/);
+});
