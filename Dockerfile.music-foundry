@@ -1,0 +1,7 @@
+FROM python:3.12-slim
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PORT=8080 MUSIC_FOUNDRY_DATA=/data/music-foundry
+WORKDIR /app/music-foundry
+COPY music-foundry/ /app/music-foundry/
+RUN mkdir -p /data/music-foundry
+EXPOSE 8080
+CMD ["python3", "service/server.py"]

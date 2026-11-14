@@ -62,7 +62,7 @@ if not result.ok:
     raise ValueError(result.errors)
 ```
 
-This is deliberately **not an audio engine**. No provider is configured, no credentials are accepted in browser-facing descriptors, and request dispatch remains unauthorized until a local renderer is implemented and explicitly enabled. The shared contract keeps future sung output compatible with the same workflow without implying that singing or WAV rendering exists today.
+This Python contract remains a provider-neutral validation boundary; it does not itself dispatch browser renders. The separate Genesis Voice Studio now implements local spoken WAV generation and a prototype score-conditioned sung WAV path. The renderer verification gate remains pending until real model and target-device evidence is recorded.
 
 Run the contract tests with:
 
@@ -205,9 +205,18 @@ The preset uses light drum drive, bass saturation and low-pass shaping, animated
 
 ## Genesis local spoken-vocal synthesis
 
-The Genesis Voice Engine now has a local Piper CLI adapter in `music-foundry/genesis_voice_adapter.py`. It requires an operator-supplied Piper executable and local ONNX voice model; it performs no downloads or provider calls, and dispatch is explicitly denied unless authorized. It renders spoken text to normalized 16-bit WAV. Singing remains a separate, unimplemented engine. See [GENESIS_VOICE_ENGINE.md](GENESIS_VOICE_ENGINE.md) for configuration, usage, and verification limits. Automated tests use a fake local renderer; a real Piper/model render has not yet been verified.
+The Genesis Voice Engine retains a local Piper CLI adapter for controlled environments. The browser-first Kokoro studio is the iPhone-oriented path for on-device spoken vocals and prototype score-conditioned singing. See [GENESIS_KOKORO_SINGING.md](GENESIS_KOKORO_SINGING.md) for setup and verification limits. Automated tests use a fake local renderer; a real Piper/model render has not yet been verified.
 
 
 ## Browser-first neural voice studio
 
-The Somebody's Gotta Do It project now includes a browser-local Kokoro/MediaPipe TTS prototype at `projects/somebodys-gotta-do-it/genesis-voice-studio.html`. It loads a locally selected LiteRT-LM model, synthesizes speech in a Web Worker, and exports 24 kHz mono WAV for import into the vocal timeline. The MediaPipe JS/WASM runtime is currently loaded from a pinned CDN version; model weights are never auto-downloaded. iPhone/Safari and real-model audio tests remain pending. See [GENESIS_VOICE_ENGINE.md](GENESIS_VOICE_ENGINE.md).
+The Somebody's Gotta Do It project includes an iPhone-friendly Kokoro/MediaPipe TTS studio at `projects/somebodys-gotta-do-it/genesis-voice-studio.html`. It downloads the pinned Apache-2.0 LiteRT-LM model directly from its published release, loads the model in a Web Worker, and exports WAV for the vocal timeline. A one-tap cue-sheet loader prepares the complete spoken-led lyric pass. The first model/runtime install needs network access; browser storage may evict cached assets. iPhone/Safari and real-model audio tests remain pending.
+
+
+## Genesis local voice and singing studio
+
+The existing Genesis Voice Studio now includes a prototype score-conditioned singing lane. It reuses the local Kokoro/LiteRT neural speech voice already supported by the studio, retunes voiced syllables to Music Foundry MIDI pitches with local PSOLA processing, places notes on the score timeline, and exports a WAV for audition and timeline import.
+
+Open `projects/somebodys-gotta-do-it/genesis-voice-studio.html` from the Music Foundry workspace. Choose the Kokoro GPU or CPU model, load the Somebody's Gotta Do It lyrics for a spoken lead pass, or load a placed Music Foundry vocal-score JSON (or the bundled Fine China composition-draft fixture) for a pitched take. No user vocal recording or reference singer is required.
+
+This is melodic TTS, not a dedicated singing-trained neural checkpoint. The Fine China fixture remains a composition draft and needs human audition/approval. The prototype's pinned MediaPipe runtime/WASM is still fetched from jsDelivr; model inference and singing DSP are local after the runtime loads. See `GENESIS_KOKORO_SINGING.md` for the internal Sovereign-Offline runner path and limitations.

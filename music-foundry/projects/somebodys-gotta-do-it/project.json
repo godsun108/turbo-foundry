@@ -2,8 +2,8 @@
   "schema": "turbo.music-foundry.project.v1",
   "project": {
     "title": "Somebody's Gotta Do It",
-    "version": 1,
-    "status": "arrangement-spec",
+    "version": 2,
+    "status": "instrumental-render-validation",
     "lyrics_source": "user-original-draft",
     "genre": [
       "wonky bass house",
@@ -176,11 +176,11 @@
   "implementation_status": {
     "lyrics_and_arrangement_spec": "documented",
     "midi_generation": "track-specific 56-bar MIDI arrangement implemented; CI execution not yet verified",
-    "spoken_audio_rendering": "recorded spoken take assembly via offline assembler and browser timeline export; no speech synthesis",
-    "sung_audio_rendering": "not implemented; remains a separate future renderer",
-    "wav_export": "instrumental WAV mix and four stems implemented; vocal WAV export not implemented",
+    "spoken_audio_rendering": "Browser-local Kokoro TTS spoken-take generation and offline recorded-take assembly are implemented as separate paths; actual model load, audio quality and iPhone/Safari runtime remain unverified.",
+    "sung_audio_rendering": "Score-conditioned Kokoro TTS + PSOLA browser prototype implemented for imported, fully placed Music Foundry score JSON; not a separately trained singing model; real-model audio quality and iPhone/Safari runtime remain unverified.",
+    "wav_export": "Instrumental WAV mix and four stems implemented; Genesis Voice Studio exports spoken and sung prototype WAVs; automatic vocal/instrumental mix integration is currently Fine China-specific and not wired for this song.",
     "vocal_render_contract": "provider-neutral spoken/sung WAV request contract implemented; validation only",
-    "offline_instrumental_wav": "dependency-free procedural renderer implemented; CI generation configured; execution not yet verified",
+    "offline_instrumental_wav": "Dependency-free procedural renderer wired into PR CI; real PCM WAV size, sample format and duration validation plus downloadable artifact configured; execution pending runner",
     "spoken_vocal_timing": "section-level recording landmarks and take plan implemented; not a vocal renderer",
     "midi_tempo_meta_event": "binary MIDI tempo meta-event corrected and regression assertion added; CI execution not yet verified",
     "recorded_spoken_take_assembly": "offline 16-bit PCM WAV take placement, layer stems, and spoken mix implemented; manual offsets; no synthesis; CI execution not yet verified",
@@ -193,6 +193,28 @@
     "tempo_synced_loop_lab": "implemented two global loop regions A/B with visible timeline bands; selectable quarter/eighth/sixteenth/bar snapping at 127 BPM; A, B, and sequential A/B loop preview; adjustable 0–100 ms crossfades (12 ms default); source-offset automation alignment; manifest persistence; 15-minute playback cap; tests and CI pending",
     "production_direction": "updated to include dubstep-influenced bass-house and higher sound-quality targets; no polished mix or new audio engine claimed",
     "local_spoken_synthesis_adapter": "Local Piper CLI adapter implemented with explicit dispatch authorization, local-only execution, 16-bit WAV normalization, and mocked regression tests; actual Piper executable/model installation and audio quality not yet verified",
-    "kokoro_browser_voice_studio": "Browser-local MediaPipe TTS/Kokoro prototype with local model selection, worker synthesis, diagnostics and bounded spoken WAV export; static syntax checks only, real model/iPhone Safari runtime and audio quality unverified"
+    "kokoro_browser_voice_studio": "Browser-local MediaPipe TTS/Kokoro prototype supports spoken WAV generation from the project cue sheet and score-conditioned sung WAV generation from imported score JSON; model/runtime assets download on first use, warm-cache offline support is best-effort, and real iPhone/Safari model load/audio quality remain unverified.",
+    "private_render_api": "Implemented dependency-free authenticated render API with asynchronous jobs, persistent job manifests, path-bounded WAV downloads and real WAV header/duration validation; Railway staging configuration prepared but not deployed",
+    "iphone_production_control_room": "Implemented responsive phone-first control room served by the private render API; bearer token remains in page memory only; actual iPhone/Safari runtime verification pending",
+    "persistent_project_storage": "Railway 2 GB persistent volume and private renderer service staged in Foundry Staging; awaiting explicit deployment approval",
+    "audio_render_acceptance": "Existing V3 and original instrumental renderers wired into private API; CI now asserts non-placeholder WAV size, PCM format and duration; runner execution and audio audition pending",
+    "ci_audio_artifact": "Foundry CI now renders Warehouse Rave V3 for Somebody's Gotta Do It and uploads a seven-day WAV/stem artifact for review; run queued"
+  },
+  "vocal_workflow": {
+    "studio_path": "music-foundry/projects/somebodys-gotta-do-it/genesis-voice-studio.html",
+    "spoken_take_steps": [
+      "Open Genesis Voice Studio from the existing project interface.",
+      "Choose Load Somebody's Gotta Do It lyrics.",
+      "Load the on-device Kokoro model and select a voice.",
+      "Generate a spoken take, audition it, then download the WAV.",
+      "Import the WAV into the existing spoken vocal timeline for arrangement and effects."
+    ],
+    "current_limitations": [
+      "The first model install requires network access and downloads an approximately 295 MB model; browser storage may be evicted.",
+      "The spoken take is a standalone WAV and is not automatically mixed into this song's instrumental by the current Fine China-specific upload endpoint.",
+      "Score-conditioned singing requires an imported score with placed syllables, MIDI pitches and timing; this song's current cue sheet is not itself a sung score.",
+      "No iPhone/Safari runtime or final vocal-quality test is claimed."
+    ],
+    "status": "implemented_prototype_device_verification_pending"
   }
 }

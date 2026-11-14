@@ -1,0 +1,374 @@
+#!/usr/bin/env python3
+"""Private, dependency-free Music Foundry render API.
+
+Health is public for Railway. Every project/audio endpoint requires a bearer token.
+Rendered files and job state live under MUSIC_FOUNDRY_DATA (mount a persistent volume).
+"""
+from __future__ import annotations
+
+import array
+import json
+import mimetypes
+import os
+import re
+import subprocess
+import threading
+import uuid
+import wave
+from datetime import datetime, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import unquote, urlparse
+
+ROOT = Path(__file__).resolve().parents[1]
+DATA = Path(os.environ.get("MUSIC_FOUNDRY_DATA", "/data/music-foundry")).resolve()
+PROJECTS = DATA / "projects"
+JOBS = DATA / "jobs"
+TOKEN = os.environ.get("MUSIC_FOUNDRY_API_TOKEN", "")
+PORT = int(os.environ.get("PORT", "8080"))
+MAX_BODY = 16_384
+SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
+FILENAME = re.compile(r"^[a-z0-9][a-z0-9_.-]{0,100}\.(wav|json)$")
+LOCK = threading.Lock()
+
+
+def utc_now():
+    return datetime.now(timezone.utc).isoformat()
+
+
+def read_job(job_id):
+    path = JOBS / (job_id + ".json")
+    if not path.is_file():
+        return None
+    return json.loads(path.read_text())
+
+
+def write_job(job):
+    JOBS.mkdir(parents=True, exist_ok=True)
+    path = JOBS / (job["id"] + ".json")
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(job, indent=2))
+    tmp.replace(path)
+
+
+def valid_audio(path):
+    with wave.open(str(path), "rb") as audio:
+        return {
+            "bytes": path.stat().st_size,
+            "channels": audio.getnchannels(),
+            "sample_rate": audio.getframerate(),
+            "sample_width_bytes": audio.getsampwidth(),
+            "frames": audio.getnframes(),
+            "duration_seconds": round(audio.getnframes() / audio.getframerate(), 3),
+        }
+
+
+
+def read_mono_pcm(path):
+    with wave.open(str(path), "rb") as audio:
+        if audio.getnchannels() != 1 or audio.getsampwidth() != 2:
+            raise ValueError("Audio must be mono, 16-bit PCM WAV")
+        rate = audio.getframerate()
+        frames = audio.getnframes()
+        samples = array.array("h")
+        samples.frombytes(audio.readframes(frames))
+        return samples, rate
+
+
+def resample_pcm(samples, source_rate, target_rate):
+    if source_rate == target_rate:
+        return samples
+    output_length = round(len(samples) * target_rate / source_rate)
+    output = array.array("h")
+    for index in range(output_length):
+        position = index * source_rate / target_rate
+        left = min(len(samples) - 1, int(position))
+        right = min(len(samples) - 1, left + 1)
+        fraction = position - left
+        output.append(max(-32768, min(32767, round(
+            samples[left] * (1 - fraction) + samples[right] * fraction
+        ))))
+    return output
+
+
+def combine_vocal_with_instrumental(instrumental_path, vocal_path, output_path):
+    instrumental, instrumental_rate = read_mono_pcm(instrumental_path)
+    vocal, vocal_rate = read_mono_pcm(vocal_path)
+    target_rate = max(instrumental_rate, vocal_rate)
+    instrumental = resample_pcm(instrumental, instrumental_rate, target_rate)
+    vocal = resample_pcm(vocal, vocal_rate, target_rate)
+    length = max(len(instrumental), len(vocal))
+    mixed = array.array("i", [0]) * length
+    for index in range(length):
+        backing = instrumental[index] if index < len(instrumental) else 0
+        lead = vocal[index] if index < len(vocal) else 0
+        mixed[index] = round(backing * 0.82 + lead * 0.92)
+    peak = max((abs(value) for value in mixed), default=1)
+    gain = min(1.0, 30000 / peak) if peak else 1.0
+    pcm = array.array("h", (max(-32768, min(32767, round(value * gain))) for value in mixed))
+    with wave.open(str(output_path), "wb") as audio:
+        audio.setnchannels(1)
+        audio.setsampwidth(2)
+        audio.setframerate(target_rate)
+        audio.writeframes(pcm.tobytes())
+    return valid_audio(output_path)
+
+
+def render_job(job):
+    try:
+        project_dir = PROJECTS / job["project"]
+        output = project_dir / job["id"]
+        output.mkdir(parents=True, exist_ok=True)
+        if job["project"] == "fine-china":
+            script = ROOT / "render_fine_china.py"
+        elif job["arrangement"] == "warehouse-rave-v3":
+            script = ROOT / "render_warehouse_rave_v3.py"
+        else:
+            script = ROOT / "render_instrumental.py"
+        command = [
+            os.environ.get("PYTHON", "python3"), str(script),
+            "--output", str(output), "--bpm", str(job["bpm"]),
+        ]
+        completed = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, timeout=900)
+        if completed.returncode:
+            raise RuntimeError((completed.stderr or completed.stdout)[-5000:])
+        manifest_path = output / "audio_manifest.json"
+        if not manifest_path.is_file():
+            raise RuntimeError("Renderer completed without audio_manifest.json")
+        manifest = json.loads(manifest_path.read_text())
+        mix_name = manifest.get("mix", "instrumental_mix.wav")
+        mix_path = output / mix_name
+        if not mix_path.is_file() or mix_path.stat().st_size < 4096:
+            raise RuntimeError("Rendered mix is missing or too small to be valid audio")
+        audio = valid_audio(mix_path)
+        if audio["duration_seconds"] < 10 or audio["frames"] <= 0:
+            raise RuntimeError("Rendered mix failed duration validation")
+        files = {}
+        for item in output.iterdir():
+            if item.is_file() and item.suffix in (".wav", ".json"):
+                files[item.name] = {"bytes": item.stat().st_size}
+                if item.suffix == ".wav":
+                    files[item.name].update(valid_audio(item))
+        job.update({
+            "status": "succeeded", "completed_at": utc_now(),
+            "output_dir": str(output.relative_to(DATA)),
+            "manifest": manifest, "audio_validation": audio, "files": files,
+            "message": "Instrumental render complete. Vocals are not included in this render.",
+        })
+    except Exception as exc:
+        job.update({"status": "failed", "completed_at": utc_now(), "error": str(exc)[:5000]})
+    write_job(job)
+
+
+def json_response(handler, status, payload):
+    raw = json.dumps(payload).encode()
+    handler.send_response(status)
+    handler.send_header("Content-Type", "application/json; charset=utf-8")
+    handler.send_header("Content-Length", str(len(raw)))
+    handler.send_header("Cache-Control", "no-store")
+    handler.end_headers()
+    handler.wfile.write(raw)
+
+
+class Handler(BaseHTTPRequestHandler):
+    server_version = "MusicFoundry/1.0"
+
+    def log_message(self, fmt, *args):
+        print("%s - %s" % (self.address_string(), fmt % args), flush=True)
+
+    def _cors(self):
+        self.send_header("Access-Control-Allow-Origin", os.environ.get("MUSIC_FOUNDRY_ALLOWED_ORIGIN", "*"))
+        self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+
+    def end_headers(self):
+        self._cors()
+        super().end_headers()
+
+    def authorized(self):
+        if not TOKEN:
+            json_response(self, 503, {"error": "MUSIC_FOUNDRY_API_TOKEN is not configured"})
+            return False
+        supplied = self.headers.get("Authorization", "")
+        if supplied != "Bearer " + TOKEN:
+            json_response(self, 401, {"error": "Unauthorized"})
+            return False
+        return True
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
+
+    def serve_static(self, root, relative):
+        root = root.resolve()
+        target = (root / relative).resolve()
+        if not target.is_relative_to(root) or not target.is_file():
+            json_response(self, 404, {"error": "Asset not found"})
+            return
+        content_type = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
+        raw = target.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(raw)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(raw)
+
+    def do_GET(self):
+        path = unquote(urlparse(self.path).path)
+        if path == "/voice-studio" or path == "/voice-studio/":
+            self.send_response(302)
+            self.send_header("Location", "/voice-studio/genesis-voice-studio.html")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        if path.startswith("/voice-studio/"):
+            self.serve_static(ROOT / "projects" / "somebodys-gotta-do-it", path[len("/voice-studio/"):])
+            return
+        if path.startswith("/fine-china/"):
+            self.serve_static(ROOT / "projects" / "fine-china", path[len("/fine-china/"):])
+            return
+        if path.startswith("/voice/"):
+            self.serve_static(ROOT / "voice", path[len("/voice/"):])
+            return
+        if path in ("/", "/app"):
+            page = ROOT / "service" / "index.html"
+            if not page.is_file():
+                json_response(self, 404, {"error": "App not found"})
+                return
+            raw = page.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(raw)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(raw)
+            return
+        if path == "/health":
+            json_response(self, 200, {"ok": True, "service": "music-foundry", "renderer": "offline-procedural-v1"})
+            return
+        if not self.authorized():
+            return
+        if path == "/api/v1/projects":
+            json_response(self, 200, {"projects": [{"id": "somebodys-gotta-do-it", "title": "Somebody's Gotta Do It", "arrangements": ["warehouse-rave-v3", "original"]}, {"id": "fine-china", "title": "Fine China (Eat On It)", "arrangements": ["soulful-bass-house"]}]})
+            return
+        match = re.fullmatch(r"/api/v1/jobs/([0-9a-f-]{36})", path)
+        if match:
+            job = read_job(match.group(1))
+            json_response(self, 200 if job else 404, job or {"error": "Job not found"})
+            return
+        match = re.fullmatch(r"/api/v1/jobs/([0-9a-f-]{36})/files/([a-zA-Z0-9_.-]+)", path)
+        if match:
+            job = read_job(match.group(1))
+            name = match.group(2)
+            if not job or job.get("status") != "succeeded" or not FILENAME.fullmatch(name):
+                json_response(self, 404, {"error": "File not found"})
+                return
+            file_path = (DATA / job["output_dir"] / name).resolve()
+            if not file_path.is_relative_to(DATA) or not file_path.is_file():
+                json_response(self, 404, {"error": "File not found"})
+                return
+            content_type = "audio/wav" if file_path.suffix == ".wav" else "application/json"
+            size = file_path.stat().st_size
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(size))
+            self.send_header("Content-Disposition", 'attachment; filename="' + name + '"')
+            self.send_header("Cache-Control", "private, no-store")
+            self.end_headers()
+            with file_path.open("rb") as source:
+                while chunk := source.read(1024 * 1024):
+                    self.wfile.write(chunk)
+            return
+        json_response(self, 404, {"error": "Not found"})
+
+    def do_POST(self):
+        if not self.authorized():
+            return
+
+        vocal_match = re.fullmatch(r"/api/v1/jobs/([0-9a-f-]{36})/vocal", urlparse(self.path).path)
+        if vocal_match:
+            job = read_job(vocal_match.group(1))
+            if not job or job.get("status") != "succeeded":
+                json_response(self, 409, {"error": "Render the instrumental successfully before uploading vocals"})
+                return
+            content_type = self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
+            if content_type != "audio/wav":
+                json_response(self, 415, {"error": "Upload must be audio/wav"})
+                return
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                if length < 44 or length > 100 * 1024 * 1024:
+                    raise ValueError("Vocal WAV must be between 44 bytes and 100 MB")
+                output = (DATA / job["output_dir"]).resolve()
+                if not output.is_relative_to(DATA) or not output.is_dir():
+                    raise ValueError("Invalid render output directory")
+                vocal_path = output / "vocal_lead.wav"
+                vocal_path.write_bytes(self.rfile.read(length))
+                vocal_meta = valid_audio(vocal_path)
+                if vocal_meta["channels"] != 1 or vocal_meta["sample_width_bytes"] != 2:
+                    vocal_path.unlink(missing_ok=True)
+                    raise ValueError("Vocal must be mono, 16-bit PCM WAV")
+                if not 5 <= vocal_meta["duration_seconds"] <= 180:
+                    vocal_path.unlink(missing_ok=True)
+                    raise ValueError("Vocal duration must be between 5 and 180 seconds")
+                instrumental = output / job["manifest"].get("mix", "instrumental_mix.wav")
+                final_mix = output / "final_mix.wav"
+                mix_meta = combine_vocal_with_instrumental(instrumental, vocal_path, final_mix)
+                job["vocal_upload"] = vocal_meta
+                job["final_mix"] = mix_meta
+                job["files"]["vocal_lead.wav"] = vocal_meta
+                job["files"]["final_mix.wav"] = mix_meta
+                job["manifest"]["vocals_rendered"] = True
+                job["message"] = "Fine China vocal take combined with the instrumental audition. Review the performance and balance before release."
+                job["mixed_at"] = utc_now()
+                write_job(job)
+                json_response(self, 200, {
+                    "status": "succeeded",
+                    "vocal": vocal_meta,
+                    "final_mix": mix_meta,
+                    "final_mix_url": "/api/v1/jobs/" + job["id"] + "/files/final_mix.wav"
+                })
+            except (ValueError, OSError, wave.Error) as exc:
+                json_response(self, 400, {"error": str(exc)})
+            return
+
+        if urlparse(self.path).path != "/api/v1/render":
+            json_response(self, 404, {"error": "Not found"})
+            return
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            if length <= 0 or length > MAX_BODY:
+                raise ValueError("Request body must be between 1 and 16384 bytes")
+            payload = json.loads(self.rfile.read(length))
+            project = payload.get("project", "somebodys-gotta-do-it")
+            arrangement = payload.get("arrangement", "warehouse-rave-v3")
+            bpm = int(payload.get("bpm", 127))
+            if project not in ("somebodys-gotta-do-it", "fine-china") or not SLUG.fullmatch(project):
+                raise ValueError("Unknown project")
+            allowed = ("soulful-bass-house",) if project == "fine-china" else ("warehouse-rave-v3", "original")
+            if arrangement not in allowed:
+                raise ValueError("Unknown arrangement for selected project")
+            if not 40 <= bpm <= 240:
+                raise ValueError("BPM must be between 40 and 240")
+        except (ValueError, TypeError, json.JSONDecodeError) as exc:
+            json_response(self, 400, {"error": str(exc)})
+            return
+        job = {
+            "id": str(uuid.uuid4()), "project": project, "arrangement": arrangement,
+            "bpm": bpm, "status": "queued", "created_at": utc_now(),
+        }
+        write_job(job)
+        thread = threading.Thread(target=render_job, args=(job,), daemon=True)
+        thread.start()
+        json_response(self, 202, {"job_id": job["id"], "status": "queued", "status_url": "/api/v1/jobs/" + job["id"]})
+
+
+if __name__ == "__main__":
+    DATA.mkdir(parents=True, exist_ok=True)
+    PROJECTS.mkdir(parents=True, exist_ok=True)
+    JOBS.mkdir(parents=True, exist_ok=True)
+    print("Music Foundry API listening on port %d; persistent data at %s" % (PORT, DATA), flush=True)
+    ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()

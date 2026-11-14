@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111318"><title>Music Foundry</title>
+<style>
+:root{color-scheme:dark;font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;background:#111318;color:#f4f4f5}
+*{box-sizing:border-box}body{margin:0;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom);max-width:760px;margin-inline:auto}
+header{padding:28px 4px 20px}small,.muted{color:#a1a1aa}.eyebrow{letter-spacing:.16em;text-transform:uppercase;font-size:11px;color:#a1a1aa}
+h1{font-size:30px;margin:8px 0 4px}p{line-height:1.5}.panel{background:#1b1e25;border:1px solid #30343e;border-radius:18px;padding:18px;margin:14px 0}
+label{display:block;font-size:13px;color:#c4c7ce;margin:14px 0 7px}input,select,button{font:inherit;width:100%;border-radius:12px;padding:14px;background:#101217;border:1px solid #3b414d;color:#f4f4f5}
+button{background:#e7e7e7;color:#171717;font-weight:700;border:0;margin-top:16px;min-height:50px}button:disabled{opacity:.5}
+.row{display:flex;gap:10px;align-items:center}.row>*{flex:1}.status{padding:12px;border-radius:12px;background:#12151b;margin-top:12px;overflow-wrap:anywhere}
+audio{width:100%;margin:12px 0}.files a{display:block;color:#c4d7ff;padding:9px 0;text-decoration:none;border-bottom:1px solid #343943}
+.hidden{display:none}.notice{font-size:12px;color:#a1a1aa}.pill{display:inline-block;border:1px solid #454b58;border-radius:99px;padding:5px 10px;font-size:12px}
+</style>
+</head>
+<body>
+<header><div class="eyebrow">Sovereign · internal audio production</div><h1>Music Foundry</h1><div class="muted">Idea → arrangement → playable audio</div></header>
+<section class="panel">
+<div class="row"><strong>Private session</strong><span class="pill" id="connection">Not connected</span></div>
+<label for="token">Production access token</label><input id="token" type="password" autocomplete="off" placeholder="Paste internal API token">
+<div class="notice">Held in this page's memory only. It is not saved to your device.</div>
+<label for="project">Project</label><select id="project"><option value="fine-china">Fine China (Eat On It)</option><option value="somebodys-gotta-do-it">Somebody's Gotta Do It</option></select>
+<div class="row"><div><label for="arrangement">Arrangement</label><select id="arrangement"><option value="soulful-bass-house">Soulful Bass House · Am–F–C–G</option><option value="warehouse-rave-v3">Warehouse Rave V3 · evolving drops</option><option value="original">Original procedural arrangement</option></select></div><div><label for="bpm">Tempo</label><input id="bpm" type="number" min="40" max="240" value="126"></div></div>
+<button id="render">Render Fine China instrumental</button><p class="notice">After the instrumental render, open the <a href="/voice-studio/genesis-voice-studio.html">Genesis Voice Studio</a> to load the Fine China chorus score and create a local sung vocal take.</p>
+<div class="status" id="status">Fine China is the selected project: 126 BPM · A minor · Am–F–C–G. Enter your private token to render the instrumental.</div>
+</section>
+<section class="panel hidden" id="result">
+<div class="row"><strong>Render output</strong><span class="pill" id="jobstate">Queued</span></div>
+<p class="muted" id="details"></p>
+<audio id="player" controls preload="none"></audio>
+<div class="files" id="files"></div>
+</section>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);let token="",timer=null,currentJob="";
+const api=async(path,options={})=>{const response=await fetch(path,{...options,headers:{...(options.headers||{}),Authorization:"Bearer "+token,...(options.body?{"Content-Type":"application/json"}:{})}});const data=await response.json().catch(()=>({error:"Invalid server response"}));if(!response.ok)throw new Error(data.error||"Request failed ("+response.status+")");return data};
+$("token").addEventListener("input",e=>{token=e.target.value.trim();$("connection").textContent=token?"Token entered":"Not connected"});
+$("project").addEventListener("change",()=>{const fine=$("project").value==="fine-china";$("arrangement").innerHTML=fine?'<option value="soulful-bass-house">Soulful Bass House · Am–F–C–G</option>':'<option value="warehouse-rave-v3">Warehouse Rave V3 · evolving drops</option><option value="original">Original procedural arrangement</option>'});
+$("render").addEventListener("click",async()=>{if(!token){$("status").textContent="Enter the private token first.";return}
+const bpm=Number($("bpm").value);if(!Number.isInteger(bpm)||bpm<40||bpm>240){$("status").textContent="Tempo must be 40–240 BPM.";return}
+$("render").disabled=true;$("status").textContent="Submitting render…";
+try{const job=await api("/api/v1/render",{method:"POST",body:JSON.stringify({project:$("project").value,arrangement:$("arrangement").value,bpm})});currentJob=job.job_id;$("result").classList.remove("hidden");$("jobstate").textContent="Queued";$("details").textContent="Job "+currentJob;$("files").innerHTML="";$("status").textContent="Render queued. This page will update automatically.";poll()}catch(e){$("status").textContent=e.message;$("render").disabled=false}
+});
+async function poll(){if(!currentJob)return;try{const job=await api("/api/v1/jobs/"+currentJob);$("jobstate").textContent=job.status;$("details").textContent=job.message||job.error||("Tempo "+job.bpm+" BPM · "+job.arrangement);
+if(job.status==="succeeded"){const base="/api/v1/jobs/"+currentJob+"/files/";const mix=job.manifest.mix||"instrumental_mix.wav";const audioResponse=await fetch(base+encodeURIComponent(mix),{headers:{Authorization:"Bearer "+token}});if(!audioResponse.ok)throw new Error("Could not load the rendered mix");const audioBlob=await audioResponse.blob();$("player").src=URL.createObjectURL(audioBlob);$("files").innerHTML=Object.keys(job.files).sort().map(name=>'<button type="button" data-file="'+name+'" style="margin:6px 0;background:#252a34;color:#f4f4f5;text-align:left;font-weight:500">'+name+' · '+Math.round(job.files[name].bytes/1024)+' KB ↓</button>').join("");$("files").onclick=async event=>{const button=event.target.closest("button[data-file]");if(!button)return;button.disabled=true;try{const response=await fetch(base+encodeURIComponent(button.dataset.file),{headers:{Authorization:"Bearer "+token}});if(!response.ok)throw new Error("Download failed");const blob=await response.blob();const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=button.dataset.file;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)}catch(error){$("status").textContent=error.message}finally{button.disabled=false}};$("status").textContent="Instrumental rendered and WAV-validated. Vocals are not included yet.";$("render").disabled=false;return}
+if(job.status==="failed"){$("status").textContent="Render failed: "+job.error;$("render").disabled=false;return}
+timer=setTimeout(poll,1800)}catch(e){$("status").textContent=e.message;$("render").disabled=false}}
+})();
+</script>
+</body></html>

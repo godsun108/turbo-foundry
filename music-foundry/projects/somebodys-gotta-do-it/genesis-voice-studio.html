@@ -24,39 +24,61 @@ button.secondary{background:#25344b}button.danger{background:#613642}
 <p><a href="./vocal-timeline.html">← Back to vocal timeline</a></p>
 <p class="eyebrow">Music Foundry · Genesis Voice Engine</p>
 <h1>Kokoro Vocal Studio</h1>
-<p>Local-in-browser neural speech synthesis. Select a model file stored on your device, choose a voice, generate a spoken take, then download its WAV for the vocal timeline.</p>
+<p>On-device neural vocal generation. Install the voice model once, choose a voice, create spoken takes or score-conditioned sung takes, then audition and export WAV files into the vocal timeline.</p>
 <div class="panel">
-<h2>1 · Load a voice model</h2>
-<label for="model">Kokoro / LiteRT model bundle (.litertlm)</label>
-<input id="model" type="file" accept=".litertlm,application/octet-stream">
+<h2>Quick start</h2><button id="oneTapFineChina">Sing Fine China chorus</button><p class="note">One tap loads the approved draft score, initializes the on-device singer if needed, and starts the vocal render. First use downloads the model.</p><h2>1 · Load a voice model</h2>
+<label for="model">On-device voice model</label>
+<select id="model"><option value="gpu">Kokoro GPU · 295 MB · recommended</option><option value="cpu">Kokoro CPU · 295 MB · compatibility mode</option></select>
+<p class="note">The studio downloads the Apache-2.0 Kokoro model directly from its published Hugging Face release and runs inference on this device. The first install is about 295 MB. The model is cached by this browser when storage permits; no model upload or voice recording is involved.</p>
 <div class="grid">
-<div><label for="delegate">Compute</label><select id="delegate"><option value="GPU">GPU / WebGPU</option><option value="CPU">CPU</option></select></div>
+<div><label for="delegate">Compute selected by model</label><select id="delegate" disabled><option value="GPU">GPU / WebGPU</option><option value="CPU">CPU</option></select></div>
 <div><label for="rate">Speaking rate</label><select id="rate"><option value="0.8">0.80 · slower</option><option value="0.9">0.90</option><option value="1.0" selected>1.00 · natural</option><option value="1.1">1.10</option><option value="1.2">1.20 · faster</option></select></div>
 </div>
 <button id="load">Load selected model</button>
-<p class="note">No model is bundled or downloaded automatically. For Kokoro, the documented GPU bundle is about 295 MB; the CPU-compatible bundle has a larger memory footprint. Choose a model that matches the selected compute mode. <a href="https://huggingface.co/litert-community/Kokoro-82M" target="_blank" rel="noreferrer">Model source and files</a>.</p>
+<p class="note">The GPU bundle pairs the acoustic model on CPU with a GPU vocoder. The CPU-compatible bundle uses more memory. The model is downloaded directly from its published release; installation and inference stay on this device. <a href="https://huggingface.co/litert-community/Kokoro-82M" target="_blank" rel="noreferrer">Model source and files</a>.</p>
 </div>
 <div class="panel">
-<h2>2 · Create a spoken performance</h2>
+<h2>2 · Create spoken or sung performances</h2>
 <div class="grid">
 <div><label for="voice">Voice</label><select id="voice" disabled><option>Load a model first</option></select></div>
 <div><label for="locale">Voice locale</label><input id="locale" readonly value="—"></div>
 </div>
-<label for="text">Text to synthesize</label>
+<label for="text">Track lyrics or spoken performance</label>
+<button id="loadTrackLyrics" class="secondary" type="button">Load Somebody’s Gotta Do It lyrics</button>
 <textarea id="text" maxlength="4000" placeholder="Paste a line or passage from your approved lyric sheet…">Somebody's gotta do it.</textarea>
+<p class="note">The button loads the lyric lines from the project cue sheet, leaving out production notes. Generate a full spoken-led vocal pass, then download the WAV and place it on the vocal timeline.</p>
 <div class="actions">
 <button id="synthesize" disabled>Generate spoken take</button>
 <button id="stop" class="danger" disabled>Stop</button>
 </div>
 </div>
 <div class="panel">
-<h2>3 · Preview and export</h2>
-<p id="status" role="status" aria-live="polite">Ready. Choose a local model file to begin.</p>
-<audio id="preview" controls hidden style="width:100%;margin-top:12px"></audio>
-<button id="download" class="secondary" disabled>Download spoken WAV</button>
-<p class="note">Export is 24 kHz, mono, 16-bit PCM WAV. This is speech synthesis, not singing synthesis or voice cloning. Audio and text are processed in this browser worker; the model/runtime files are loaded locally or from the pinned open-source runtime CDN.</p>
+<h2>3 · Sing from a MIDI-aligned lyric score</h2>
+<p>Reuse the loaded Kokoro voice as the singer. Import a Music Foundry vocal-score JSON with placed syllables, MIDI pitches, onsets, durations, and tempo. The browser synthesizes each syllable locally, retunes its voiced vowel with PSOLA, and assembles the notes on the score timeline.</p>
+<button id="fineChina" class="secondary" type="button">Load Fine China chorus draft</button>
+<label for="score">Or import another Music Foundry vocal score (.json)</label>
+<input id="score" type="file" accept=".json,application/json">
+<button id="sing" disabled>Generate sung take from score</button>
+<p class="note">No user recording or reference singer is needed. This is score-conditioned melodic TTS: the existing neural speech voice supplies the timbre, and local pitch-synchronous DSP creates the sung notes. It is a practical first singing renderer, not a separately trained human singing model. The bundled Fine China score is a composition draft and still needs listening and human approval. Unplaced scaffold scores are rejected rather than guessed.</p>
 </div>
-<p class="note">Privacy and compatibility: the selected model is not uploaded by this page. The JavaScript runtime and WebAssembly files are fetched from jsDelivr at a pinned version. iPhone Safari/WebGPU performance and model memory use still require device testing. If GPU initialization fails, try a CPU-compatible model and CPU mode.</p>
+<div class="panel">
+<h2>4 · Preview and export</h2>
+<p id="status" role="status" aria-live="polite">Ready. Install the Kokoro model to begin.</p>
+<audio id="preview" controls hidden style="width:100%;margin-top:12px"></audio>
+<button id="download" class="secondary" disabled>Export WAV / Save to Files</button>
+<p class="note">On iPhone, the native share sheet lets you choose Save to Files. Other browsers use the standard WAV download.</p>
+<div class="panel">
+<h2>5 · Combine the sung take with Fine China</h2>
+<label for="apiToken">Private Music Foundry access token</label>
+<input id="apiToken" type="password" autocomplete="off" placeholder="Paste the token from your private production setup">
+<label for="renderJobId">Instrumental render job ID</label>
+<input id="renderJobId" type="text" autocomplete="off" placeholder="Paste the Fine China job ID from the control room">
+<button id="sendToMix" class="secondary" disabled>Send sung take to instrumental mix</button>
+<p class="note">This uploads only the WAV you just generated to your authenticated private Music Foundry job. The server aligns the score's beat offsets and creates a combined preview mix.</p>
+</div>
+<p class="note">Export is 48 kHz, mono, 16-bit PCM WAV. Spoken mode is neural TTS. Sung mode reuses the same local TTS voice and retunes score-aligned syllables. No voice cloning is performed. Audio and text are processed in this browser worker; the model/runtime files are loaded locally or from the pinned open-source runtime CDN.</p>
+</div>
+<p class="note">Privacy and compatibility: the model is fetched from the published Apache-2.0 release and used locally; it is not uploaded by this page. The app shell, runtime, and model are cached where browser storage permits, but iOS may evict large caches. The first install requires network access. iPhone Safari/WebGPU performance and memory use still need device validation. If GPU initialization fails, choose the CPU-compatible model.</p>
 <script type="module" src="./genesis-voice-studio.js"></script>
 </body>
 </html>
