@@ -293,15 +293,45 @@ $("stop").addEventListener("click", () => {
   setStatus("Cancellation requested.");
 });
 
-$("download").addEventListener("click", () => {
+$("download").addEventListener("click", async () => {
   const player = $("preview");
-  if (!player.src) return;
+  if (!lastBlob || !player.src) return setStatus("Generate a vocal take before exporting.");
+  const filename = lastMode === "mixed"
+    ? "fine-china-vocal-instrumental-mix.wav"
+    : (lastMode === "sung" ? "genesis-sung-take.wav" : "somebodys-gotta-do-it-spoken-take.wav");
+
+  // iPhone/iPad Safari supports sharing generated files into the native Files sheet.
+  // Keep the ordinary anchor download as a fallback for browsers without file sharing.
+  if (typeof File === "function" &&
+      typeof navigator.share === "function" &&
+      typeof navigator.canShare === "function") {
+    try {
+      const file = new File([lastBlob], filename, { type: "audio/wav" });
+      if (navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: filename });
+          setStatus("WAV shared. Choose Save to Files in the iPhone share sheet to keep a copy.");
+          return;
+        } catch (error) {
+          if (error?.name === "AbortError") {
+            setStatus("Share cancelled. Your WAV is still available in the preview.");
+            return;
+          }
+          setStatus("Native file sharing was unavailable; trying the browser download instead.");
+        }
+      }
+    } catch (error) {
+      setStatus("Could not prepare the iPhone file share; trying the browser download instead.");
+    }
+  }
+
   const anchor = document.createElement("a");
-  anchor.href = player.src;
-  anchor.download = lastMode === "mixed" ? "fine-china-vocal-instrumental-mix.wav" : (lastMode === "sung" ? "fine-china-sung-vocal.wav" : "genesis-spoken-take.wav");
+  anchor.href = audioUrl || player.src;
+  anchor.download = filename;
   document.body.append(anchor);
   anchor.click();
   anchor.remove();
+  setStatus("WAV export requested. If Safari opens the audio instead of saving it, use Share → Save to Files.");
 });
 
 $("voice").addEventListener("change", () => {
