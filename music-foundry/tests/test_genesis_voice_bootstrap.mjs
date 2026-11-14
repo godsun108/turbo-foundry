@@ -31,9 +31,9 @@ test("full-track spoken vocal button loads the canonical cue sheet", () => {
 });
 
 test("WAV export offers the iPhone share sheet and a browser-download fallback", () => {
-  assert.match(studio, /navigator\\.canShare\\(\\{ files: \\[file\\] \\}\\)/);
-  assert.match(studio, /navigator\\.share\\(\\{ files: \\[file\\], title: filename \\}\\)/);
-  assert.match(studio, /somebodys-gotta-do-it-spoken-take\\.wav/);
-  assert.match(studio, /anchor\\.click\\(\\)/);
+  assert.ok(studio.includes("navigator.canShare({ files: [file] })"));
+  assert.ok(studio.includes("navigator.share({ files: [file], title: filename })"));
+  assert.ok(studio.includes("somebodys-gotta-do-it-spoken-take.wav"));
+  assert.ok(studio.includes("anchor.click()"));
   assert.match(studio, /Save to Files/);
 });
