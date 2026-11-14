@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   package-preview:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64, sovereign]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
