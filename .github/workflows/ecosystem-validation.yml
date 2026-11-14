@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64, sovereign]
     steps:
       - uses: actions/checkout@v4
       - name: Check out ecosystem siblings

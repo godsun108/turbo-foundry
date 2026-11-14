@@ -11,7 +11,7 @@ on:
       - 'tests/test_*.py'
 jobs:
   unit:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64, sovereign]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

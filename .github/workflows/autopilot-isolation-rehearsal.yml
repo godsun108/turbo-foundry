@@ -15,7 +15,7 @@ permissions:
 jobs:
   isolated-posix-test:
     if: ${{ inputs.confirmation == 'RUN_DISPOSABLE_ISOLATION' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64, sovereign]
     timeout-minutes: 5
     steps:
       - name: Checkout exact selected revision
