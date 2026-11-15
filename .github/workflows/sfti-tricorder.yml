@@ -1,0 +1,39 @@
+name: SFTI TRICORDER validation
+
+on:
+  pull_request:
+    paths:
+      - "research/sfti/tools/tricorder/**"
+      - ".github/workflows/sfti-tricorder.yml"
+  push:
+    branches:
+      - main
+      - "sfti/**"
+    paths:
+      - "research/sfti/tools/tricorder/**"
+      - ".github/workflows/sfti-tricorder.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  tricorder:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    defaults:
+      run:
+        working-directory: research/sfti/tools/tricorder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run unit tests
+        run: python -m unittest -v
+      - name: Generate and validate synthetic observations
+        run: |
+          python tricorder.py simulate --count 100 --seed 7 --output /tmp/tricorder-sample.jsonl
+          python tricorder.py validate /tmp/tricorder-sample.jsonl
