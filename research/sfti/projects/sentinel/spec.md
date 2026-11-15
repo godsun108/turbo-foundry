@@ -33,4 +33,11 @@ One indoor or sheltered node measuring temperature, relative humidity, light, an
 Monitoring-only initial release. No irrigation, heating, ventilation, or other physical control. Avoid collecting audio, images, personal identifiers, or unrelated location data. Network credentials are stored securely and never committed to source control.
 
 ## Reuse from TRICORDER
-SENTINEL should reuse the observation schema, sensor driver interface, calibration record format, and parser tests. It should not fork these definitions without a documented compatibility reason.
+SENTINEL should reuse the observation schema, sensor driver interface, calibration record format, parser tests, append-only local store, and read-only sensor-health summary. The shared Python reference implementation currently lives in `research/sfti/tools/tricorder/`:
+
+- `observation.schema.json` — versioned observation contract.
+- `tricorder.py` — simulator and validator.
+- `tricorder_store.py` — single-writer JSONL store with sequence numbers, SHA-256 record checksums, fsync on append, and recovery of an incomplete trailing write.
+- `sensor_health.py` — advisory per-sensor health summary.
+
+SENTINEL should import these shared modules rather than fork them. The present store is a prototype: it is not a multi-process database, signed audit log, or certified safety system. Any future change to storage semantics must preserve the original observation and provenance fields or introduce a documented schema migration.
