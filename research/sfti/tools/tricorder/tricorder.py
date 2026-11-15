@@ -48,7 +48,7 @@ def validate_observation(record: dict[str, Any]) -> list[str]:
     if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
         errors.append("value must be a finite number")
     status = record.get("quality_status")
-    if status not in QUALITY:
+    if not isinstance(status, str) or status not in QUALITY:
         errors.append("quality_status is not a supported status")
     calibration = record.get("calibration_id")
     if calibration is not None and (
