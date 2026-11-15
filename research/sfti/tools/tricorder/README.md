@@ -1,46 +1,45 @@
-# TRICORDER local data tool
+# TRICORDER / SENTINEL local data foundation
 
-A dependency-free Python standard-library tool for generating clearly labelled
-synthetic observations and validating newline-delimited JSON (JSONL) records.
+Dependency-free Python standard-library modules shared by both projects.
 
 ## Requirements
+- Python 3.10+
+- No third-party packages or network access
 
-- Python 3.10 or newer
-- No third-party packages
-- No network access
-
-## Generate a sample dataset
-
-From this directory:
-
+## Simulate and validate observations
 ```sh
 python tricorder.py simulate --count 100 --seed 7 --output sample.jsonl
 python tricorder.py validate sample.jsonl
 ```
 
-The simulator creates synthetic temperature, humidity, pressure, and light
-records. Every record is marked `uncalibrated`, has a null calibration ID,
-and states that it is synthetic. Do not use it as a substitute for sensor data.
+## Append to the durable local store
+```sh
+python -c "from tricorder import simulated_records; from tricorder_store import ObservationStore; s=ObservationStore('data/observations.jsonl'); [s.append(x) for x in simulated_records(20)]; print(s.last_sequence)"
+```
 
-## Run tests
+Each stored line is a JSON envelope containing a monotonically increasing
+sequence number, the unchanged observation, and a SHA-256 checksum over the
+canonical envelope payload. Appends call fsync before acknowledging success.
 
+## Recovery and integrity
+- A non-newline-terminated final fragment is treated as an interrupted write
+  and truncated to the last complete record on startup.
+- A malformed complete line, invalid observation, sequence gap, or checksum
+  mismatch fails closed with StoreCorruptionError.
+- This is a single-writer local store. It does not claim safe concurrent
+  multi-process writers, power-loss guarantees beyond the filesystem's
+  documented behavior, or protection against a privileged attacker rewriting
+  both data and checksums.
+- Back up the data file; checksum chains and signed provenance are future work.
+
+## Sensor health
+`sensor_health.summarize_sensor_health` derives an advisory status from the
+latest observation per sensor. It distinguishes online, stale, out_of_range,
+sensor_fault, and uncalibrated. It is not a certified alarm or safety system.
+
+## Tests
 ```sh
 python -m unittest -v
 ```
 
-## Contract
-
-The normative field shape is in `observation.schema.json`. The Python
-validator additionally enforces timezone-aware timestamps, finite numeric
-values, supported quality states, and rejection of unknown fields.
-
-## Data and safety boundaries
-
-- JSONL is append-friendly and easy to inspect or process offline.
-- This tool has no device-control functionality.
-- It does not calibrate sensors or certify accuracy.
-- It makes no air-quality, medical, potable-water, or life-safety claims.
-- Physical sensor adapters must preserve device/sensor identity, units,
-  timestamp, quality status, and calibration provenance.
-- Keep exported records read-only when passing them to Genesis in the
-  initial integration phase.
+All Genesis ingestion remains read-only. No device actuation is implemented.
