@@ -1,0 +1,25 @@
+{
+  "schema": "turbo.music-foundry.vocal-direction.v1",
+  "project_id": "fine-china",
+  "profile_name": "spoken-swagger-to-soulful-house",
+  "approval_status": "user-approved",
+  "voice_identity": "Original warm, deep, charismatic voice; conversational swagger with a soulful melodic lift. Slight rasp welcome, never an imitation of a named performer.",
+  "verse_delivery": "Close-mic, intimate, warm spoken delivery with relaxed confidence and clear diction.",
+  "pre_chorus_delivery": "Speech-shaped rhythmic singing; gradually open the vowels and build anticipation.",
+  "chorus_delivery": "Big expressive soulful house-vocal melody; joyful, memorable, confident, and emotionally open.",
+  "bridge_delivery": "Return to intimate spoken delivery over a stripped bass pulse; build energy into the final drop.",
+  "gang_response": "Layered, energetic, human group shouts on EAT ON IT, DRINK ON IT, LIVE ON IT, and THIS IS IT; friends-around-the-table energy rather than stadium crowd.",
+  "arrangement_layers": {
+    "lead": "Center, mostly dry, intelligible; selective double on hook phrases.",
+    "harmonies": "Tight three-part harmony on selected chorus tails, not every line.",
+    "gang_vocals": "Wide layered responses with slight human variation; avoid synthetic mass-crowd wash.",
+    "effects": "Short plate or slap delay; restrained reverb; natural breaths preserved."
+  },
+  "rights": {
+    "original_voice_only": true,
+    "imitate_named_artist": false,
+    "clone_unlicensed_voice": false,
+    "reference_audio_requires_rights_clearance": true
+  },
+  "note": "Performance direction approved by user. Exact melody, note pitches, phoneme sequence and syllable timing remain subject to separate human review."
+}

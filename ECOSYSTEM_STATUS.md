@@ -14,7 +14,7 @@ Canonical registry: **20 systems**
 | `oracle-options` | market-research | godsun108/-oracle-options-lab | 1 | registered |
 | `seldon` | world-state-research | godsun108/Seldon | 1 | registered |
 | `base-one` | property-analysis | godsun108/turbo-foundry | 1 | registered |
-| `victory` | identity-governance-impact | godsun108/victorychain_stack | 2 | registered |
+| `victory` | identity-governance-impact | godsun108/victorychain_stack | 0 | source-not-located |
 | `soul-key` | presence-research | godsun108/soul-key | 0 | registered |
 | `turbo-turtle` | game-recovery | not recovered | 0 | source-not-located |
 | `ryln-ai` | legacy-ai | godsun108/ryln-ai | 0 | legacy-preserve-review |
@@ -41,7 +41,7 @@ Canonical registry: **20 systems**
 - **oracle-options** — registered: research system; no public prediction API is claimed
 - **seldon** — registered: research library; no public forecasting service is claimed
 - **base-one** — registered: engine/workflows; no public browser API is claimed
-- **victory** — registered: legacy trading code is not the canonical Victory protocol
+- **victory** — source-not-located: legacy trading code is not the canonical Victory protocol
 - **soul-key** — registered: research output must never authorize funds
 - **turbo-turtle** — source-not-located: Do not treat a new implementation as the recovered original. Locate original source/artifact first, then migrate deliberately.
 - **ryln-ai** — legacy-preserve-review: Small older Python implementation. Preserve until functionality is reviewed for deliberate migration; do not assume it is current.

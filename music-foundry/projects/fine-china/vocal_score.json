@@ -1,0 +1,211 @@
+{
+  "schema": "turbo.music-foundry.vocal-score.v1",
+  "project_id": "fine-china",
+  "source_ref": "lyrics.md",
+  "tempo_bpm": 126,
+  "tempo_status": "provisional",
+  "meter": "4/4",
+  "ppq": 480,
+  "score_status": "scaffold",
+  "phrases": [
+    {
+      "id": "chorus_lead_1",
+      "text": "Don't save the fine China",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "chorus_gang_1",
+      "text": "EAT ON IT",
+      "delivery": "gang_shout",
+      "layer": "gang_vocals",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "chorus_lead_2",
+      "text": "Pour the good wine",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "chorus_gang_2",
+      "text": "DRINK ON IT",
+      "delivery": "gang_shout",
+      "layer": "gang_vocals",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "chorus_line_3",
+      "text": "Wear your Sunday shoes on a Tuesday night",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "chorus_line_4",
+      "text": "If you got a little love you got a reason to celebrate life",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "chorus_line_5",
+      "text": "Don't save it for later don't wait in line",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "chorus_line_6",
+      "text": "The world's too beautiful to leave it behind",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "chorus_lead_7",
+      "text": "Don't save the fine China",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "chorus_gang_7",
+      "text": "EAT ON IT",
+      "delivery": "gang_shout",
+      "layer": "gang_vocals",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "final_drop_1",
+      "text": "Don't save the fine China",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "final_drop_shout_1",
+      "text": "EAT ON IT",
+      "delivery": "gang_shout",
+      "layer": "gang_vocals",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "final_drop_2",
+      "text": "Don't save the good wine",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "final_drop_shout_2",
+      "text": "DRINK ON IT",
+      "delivery": "gang_shout",
+      "layer": "gang_vocals",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "final_drop_3",
+      "text": "Don't save your best days",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "final_drop_shout_3",
+      "text": "LIVE ON IT",
+      "delivery": "gang_shout",
+      "layer": "gang_vocals",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "final_drop_4",
+      "text": "Don't wait for the right time",
+      "delivery": "sung",
+      "layer": "dry_lead",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    },
+    {
+      "id": "final_drop_shout_4",
+      "text": "THIS IS IT",
+      "delivery": "gang_shout",
+      "layer": "gang_vocals",
+      "alignment_status": "unaligned",
+      "start_beat": null,
+      "duration_beats": null,
+      "syllables": [],
+      "lyric_units": []
+    }
+  ],
+  "notes": "Scaffold only. No note pitches, syllable timing, phonemes, or reviewed alignment have been invented. Complete and human-review before SoulX export."
+}
