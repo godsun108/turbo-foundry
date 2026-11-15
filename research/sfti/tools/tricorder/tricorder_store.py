@@ -7,6 +7,7 @@ is discarded on recovery; complete corruption fails closed.
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import os
 import threading
@@ -71,7 +72,7 @@ class ObservationStore:
                 raise StoreCorruptionError(f"line {line_number}: invalid observation: {'; '.join(errors)}")
             payload = {"sequence": sequence, "observation": observation}
             actual = hashlib.sha256(_canonical_bytes(payload)).hexdigest()
-            if not hashlib.compare_digest(actual, digest):
+            if not hmac.compare_digest(actual, digest):
                 raise StoreCorruptionError(f"line {line_number}: checksum mismatch")
             expected += 1
         self._sequence = expected - 1
