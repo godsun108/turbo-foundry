@@ -102,8 +102,9 @@ Integration is staged. No repository, service, device, or agent is considered co
 1. Establish this charter and machine-readable portfolio.
 2. Start TRICORDER as the first hardware-adjacent flagship because sensor modules are modular, testable, and useful across agriculture, ecology, field science, and environmental monitoring.
 3. Start SENTINEL as the first distributed subsystem, sharing sensor, power, calibration, and telemetry patterns with TRICORDER.
-4. Build reusable experiment records, test plans, risk reviews, and bill-of-materials templates.
-5. Map existing Genesis, Alfred, Sovereign, and EarthChain interfaces before implementing integrations.
+4. Build reusable experiment records, test plans, risk reviews, and bill-of-materials templates. (Initial experiment and risk templates are in place.)
+5. Build and validate the shared TRICORDER observation contract and offline simulator before selecting physical sensor modules. (Schema, simulator, validator, unit tests, and CI workflow are now scaffolded.)
+6. Map existing Genesis, Alfred, Sovereign, and EarthChain interfaces before implementing integrations.
 
 ## Definition of done for the foundation
 
