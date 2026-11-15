@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sovereign.example/sfti/tricorder/observation.schema.json",
+  "title": "SFTI sensor observation",
+  "description": "A single timestamped, quality-labelled sensor observation. The schema defines data shape; it does not certify sensor accuracy or safety.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "device_id",
+    "sensor_id",
+    "sensor_model",
+    "measurement",
+    "value",
+    "unit",
+    "observed_at",
+    "quality_status",
+    "calibration_id",
+    "accuracy_statement",
+    "firmware_version"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "device_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "sensor_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "sensor_model": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "measurement": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "value": { "type": "number" },
+    "unit": { "type": "string", "minLength": 1, "maxLength": 32 },
+    "observed_at": { "type": "string", "format": "date-time" },
+    "quality_status": {
+      "enum": ["valid", "stale", "out_of_range", "sensor_fault", "uncalibrated"]
+    },
+    "calibration_id": { "type": ["string", "null"], "maxLength": 128 },
+    "accuracy_statement": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "firmware_version": { "type": "string", "minLength": 1, "maxLength": 64 }
+  }
+}
