@@ -42,6 +42,10 @@ class ObservationTests(unittest.TestCase):
         self.record["quality_status"] = "probably_fine"
         self.assertIn("quality_status is not a supported status", validate_observation(self.record))
 
+    def test_malformed_quality_type_fails_without_crashing(self):
+        self.record["quality_status"] = ["valid"]
+        self.assertIn("quality_status is not a supported status", validate_observation(self.record))
+
 
 if __name__ == "__main__":
     unittest.main()
