@@ -14,7 +14,7 @@ Canonical registry: **20 systems**
 | `oracle-options` | market-research | godsun108/-oracle-options-lab | 1 | registered |
 | `seldon` | world-state-research | godsun108/Seldon | 1 | registered |
 | `base-one` | property-analysis | godsun108/turbo-foundry | 1 | registered |
-| `victory` | identity-governance-impact | godsun108/victorychain_stack | 2 | registered |
+| `victory` | identity-governance-impact | godsun108/victorychain-stack | 0 | registered |
 | `soul-key` | presence-research | godsun108/soul-key | 0 | registered |
 | `turbo-turtle` | game-recovery | not recovered | 0 | source-not-located |
 | `ryln-ai` | legacy-ai | godsun108/ryln-ai | 0 | legacy-preserve-review |

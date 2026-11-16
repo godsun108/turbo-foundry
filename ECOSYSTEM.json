@@ -254,7 +254,7 @@
     },
     {
       "id": "victory",
-      "repo": "godsun108/victorychain_stack",
+      "repo": "godsun108/victorychain-stack",
       "role": "identity-governance-impact",
       "owns": [
         "Victory Impact application foundation",
@@ -265,7 +265,7 @@
       ],
       "contracts": [],
       "boundary": "legacy trading code is not the canonical Victory protocol",
-      "status": "source-not-located",
+      "status": "registered",
       "source": "local filesystem: ~/victorychain_stack_launchd (GitHub repo is chain code only; declared contract docs live in local OMNIS_LOCAL_AUDIT/)",
       "contract_note": "VICTORY_ARCHITECTURE.md / FONZI.md declared historically but not present in any checkout; re-declare when docs are committed."
     },
