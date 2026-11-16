@@ -298,6 +298,18 @@
         "status": "UNVERIFIED",
         "evidence": []
       }
+    },
+    {
+      "id": "genesis-one",
+      "name": "Genesis ONE",
+      "owner": "genesis-one",
+      "state": "EXPERIMENTAL",
+      "north_star": "Develop reproducible, evidence-grounded local intelligence experiments with independently verified behavior and performance",
+      "next_proof": "Independently replay the frozen v29 versus v35 task-level inference and submit a fingerprinted synthetic proof receipt for review",
+      "proof": {
+        "status": "UNVERIFIED",
+        "evidence": []
+      }
     }
   ]
 }

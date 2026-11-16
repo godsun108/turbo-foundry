@@ -2,13 +2,13 @@
 
 > Generated deterministically from `NORTH_STARS.json`. Maturity is a declared evidence state; proof status is separate and never inferred from repository activity.
 
-Tracked North Stars: **24**
+Tracked North Stars: **25**
 
 ## Maturity distribution
 
 - **DEMONSTRATED**: 2
 - **OPERATIONALIZING**: 7
-- **EXPERIMENTAL**: 5
+- **EXPERIMENTAL**: 6
 - **ROADMAP**: 4
 - **RECOVERY**: 1
 - **LEGACY**: 1
@@ -42,6 +42,7 @@ Tracked North Stars: **24**
 | **SacredChainX** | `sacredchainx` | PLACEHOLDER | UNVERIFIED | No proof event scheduled |
 | **Victory Trust Registry** | `victory-trust-registry` | PLACEHOLDER | UNVERIFIED | No proof event scheduled |
 | **Old Mint** | `mint-placeholder` | PLACEHOLDER | UNVERIFIED | No proof event scheduled |
+| **Genesis ONE** | `genesis-one` | EXPERIMENTAL | UNVERIFIED | Independently replay the frozen v29 versus v35 task-level inference and submit a fingerprinted synthetic proof receipt for review |
 
 ## North Stars
 
@@ -212,6 +213,13 @@ Tracked North Stars: **24**
 - **Maturity:** PLACEHOLDER
 - **Proof status:** UNVERIFIED
 - **Next proof:** No proof event scheduled
+
+### Genesis ONE
+- **North Star:** Develop reproducible, evidence-grounded local intelligence experiments with independently verified behavior and performance
+- **Canonical owner:** `genesis-one`
+- **Maturity:** EXPERIMENTAL
+- **Proof status:** UNVERIFIED
+- **Next proof:** Independently replay the frozen v29 versus v35 task-level inference and submit a fingerprinted synthetic proof receipt for review
 
 ## Truth rules
 
