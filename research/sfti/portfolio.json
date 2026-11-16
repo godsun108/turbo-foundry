@@ -1,0 +1,304 @@
+{
+  "schema_version": "1.0.0",
+  "initiative": {
+    "id": "SFTI",
+    "name": "Sovereign Future Technologies Initiative",
+    "status": "foundation",
+    "ambition": "all",
+    "primary_focus": "physical_technologies",
+    "development_approach": "hybrid_open_and_proprietary"
+  },
+  "maturity_scale": [
+    "M0 concept",
+    "M1 research validated",
+    "M2 bench demonstrator",
+    "M3 integrated prototype",
+    "M4 field validated",
+    "M5 product candidate"
+  ],
+  "domains": [
+    {
+      "id": "D01",
+      "name": "Embodied intelligence and human-machine systems",
+      "topics": [
+        "on-device AI",
+        "voice interfaces",
+        "machine vision",
+        "human-supervised autonomy"
+      ]
+    },
+    {
+      "id": "D02",
+      "name": "Robotics and mobility assistance",
+      "topics": [
+        "mobile robots",
+        "robotic manipulation",
+        "assistive exoskeletons",
+        "teleoperation"
+      ]
+    },
+    {
+      "id": "D03",
+      "name": "Scientific instruments and sensing",
+      "topics": [
+        "environmental sensing",
+        "multisensor fusion",
+        "calibration",
+        "field instruments"
+      ]
+    },
+    {
+      "id": "D04",
+      "name": "Spatial computing and interfaces",
+      "topics": [
+        "AR",
+        "spatial visualization",
+        "gesture interfaces",
+        "simulation environments"
+      ]
+    },
+    {
+      "id": "D05",
+      "name": "Energy systems",
+      "topics": [
+        "solar",
+        "storage",
+        "power electronics",
+        "microgrids",
+        "fusion research review"
+      ]
+    },
+    {
+      "id": "D06",
+      "name": "Materials and fabrication",
+      "topics": [
+        "additive manufacturing",
+        "composites",
+        "self-healing materials research",
+        "metamaterials"
+      ]
+    },
+    {
+      "id": "D07",
+      "name": "Biotechnology and biofabrication",
+      "topics": [
+        "biosensors",
+        "bioprinting research",
+        "synthetic biology review",
+        "regenerative systems"
+      ]
+    },
+    {
+      "id": "D08",
+      "name": "Ecological and closed-loop systems",
+      "topics": [
+        "water treatment",
+        "atmospheric water harvesting",
+        "controlled environment agriculture",
+        "nutrient cycling"
+      ]
+    },
+    {
+      "id": "D09",
+      "name": "Transportation and propulsion",
+      "topics": [
+        "electric mobility",
+        "autonomous navigation",
+        "electric flight research",
+        "space propulsion"
+      ]
+    },
+    {
+      "id": "D10",
+      "name": "Advanced computing hardware",
+      "topics": [
+        "edge computing",
+        "neuromorphic computing",
+        "photonics",
+        "quantum computing"
+      ]
+    },
+    {
+      "id": "D11",
+      "name": "Space systems",
+      "topics": [
+        "autonomous exploration",
+        "habitats",
+        "in-situ resource utilization",
+        "surface power"
+      ]
+    },
+    {
+      "id": "D12",
+      "name": "Medical, assistive, and protective systems",
+      "topics": [
+        "assistive devices",
+        "wearable exposure monitoring",
+        "prosthetics research",
+        "non-invasive sensing"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "id": "SFTI-TRI-001",
+      "name": "TRICORDER",
+      "domain": "D03",
+      "maturity": "M0",
+      "priority": "P0",
+      "first_demonstrator": "Modular portable environmental sensor platform measuring temperature, humidity, pressure, light, and selected air-quality indicators.",
+      "acceptance": [
+        "Sensor readings include units, timestamps, device identity, and calibration metadata.",
+        "Readings are compared against a reference instrument with error documented.",
+        "Missing, stale, and out-of-range readings are explicitly flagged.",
+        "Core acquisition and local display function without internet access."
+      ],
+      "safety": "Use low-voltage modules; gas and water quality claims require sensor-specific validation and must not be represented as certified safety measurements."
+    },
+    {
+      "id": "SFTI-ALF-002",
+      "name": "ALFRED FIELD SYSTEM",
+      "domain": "D01",
+      "maturity": "M0",
+      "priority": "P1",
+      "first_demonstrator": "Human-supervised voice and mobile interface for approved sensor and robot workflows.",
+      "acceptance": [
+        "Explicit user confirmation for consequential actions.",
+        "Offline-safe fallback and visible connectivity status.",
+        "Audit log of commands and device responses."
+      ],
+      "safety": "No autonomous hazardous actuation; authentication and authorization required."
+    },
+    {
+      "id": "SFTI-SEN-003",
+      "name": "SENTINEL",
+      "domain": "D03",
+      "maturity": "M0",
+      "priority": "P0",
+      "first_demonstrator": "Low-power environmental sensor node with local buffering and dashboard.",
+      "acceptance": [
+        "Documented sampling interval and power budget.",
+        "Store-and-forward behavior during network loss.",
+        "Sensor calibration and health status visible."
+      ],
+      "safety": "Monitoring only; alerts are advisory until validated."
+    },
+    {
+      "id": "SFTI-ATL-004",
+      "name": "ATLAS",
+      "domain": "D02",
+      "maturity": "M0",
+      "priority": "P2",
+      "first_demonstrator": "Small indoor mobile robot with teleoperation, obstacle detection, emergency stop, and bounded test area.",
+      "acceptance": [
+        "Emergency stop halts motion reliably in test conditions.",
+        "Speed and operating area are bounded.",
+        "Manual override remains available."
+      ],
+      "safety": "No public-road operation or unsupervised operation around people."
+    },
+    {
+      "id": "SFTI-AEG-005",
+      "name": "AEGIS",
+      "domain": "D12",
+      "maturity": "M0",
+      "priority": "P2",
+      "first_demonstrator": "Wearable environmental exposure logger with non-medical status display.",
+      "acceptance": [
+        "Sensor limits and uncertainty are displayed.",
+        "No medical diagnosis or protective certification claims.",
+        "Alerts are traceable to sensor readings."
+      ],
+      "safety": "Not personal protective equipment certification or a substitute for approved monitors."
+    },
+    {
+      "id": "SFTI-HOL-006",
+      "name": "HOLODECK",
+      "domain": "D04",
+      "maturity": "M0",
+      "priority": "P2",
+      "first_demonstrator": "Interactive 3D visualization and simulation workstation.",
+      "acceptance": [
+        "Scene data and units are documented.",
+        "Simulation assumptions are visible.",
+        "Visual output is distinguished from measured physical reality."
+      ],
+      "safety": "No safety-critical decisions from unvalidated simulation."
+    },
+    {
+      "id": "SFTI-PRO-007",
+      "name": "PROMETHEUS",
+      "domain": "D05",
+      "maturity": "M0",
+      "priority": "P3",
+      "first_demonstrator": "Instrumented low-voltage solar and battery monitoring demonstrator.",
+      "acceptance": [
+        "Power, energy, and efficiency calculations independently checked.",
+        "Battery protection and safe operating limits documented.",
+        "No grid connection in initial prototype."
+      ],
+      "safety": "Qualified review required before high-voltage, mains, or grid-connected work."
+    },
+    {
+      "id": "SFTI-EDN-008",
+      "name": "EDEN",
+      "domain": "D08",
+      "maturity": "M0",
+      "priority": "P1",
+      "first_demonstrator": "Small automated growing enclosure with temperature, humidity, light, and soil-moisture sensing.",
+      "acceptance": [
+        "Environmental data logged.",
+        "Control outputs have safe bounds and manual override.",
+        "Plant outcomes measured against a baseline."
+      ],
+      "safety": "Water/electrical separation and food-safety requirements reviewed."
+    },
+    {
+      "id": "SFTI-FRG-009",
+      "name": "FORGE",
+      "domain": "D06",
+      "maturity": "M0",
+      "priority": "P2",
+      "first_demonstrator": "AI-assisted CAD review, fabrication planning, and dimensional inspection workflow.",
+      "acceptance": [
+        "Human approves machine instructions before execution.",
+        "Design files and material settings are versioned.",
+        "Inspection uncertainty and tolerances documented."
+      ],
+      "safety": "No autonomous machine operation without guarding, interlocks, and risk assessment."
+    },
+    {
+      "id": "SFTI-ORB-010",
+      "name": "ORBIT",
+      "domain": "D11",
+      "maturity": "M0",
+      "priority": "P3",
+      "first_demonstrator": "Simulation of autonomous exploration, resource mapping, and power-constrained mission planning.",
+      "acceptance": [
+        "Physics and environmental assumptions documented.",
+        "Simulation outputs reproducible from versioned inputs.",
+        "Simulated performance never represented as flight-qualified."
+      ],
+      "safety": "Simulation-first; no launch or flight hardware implied."
+    }
+  ],
+  "governance": {
+    "human_authority_required": true,
+    "ai_may_self_grant_authority": false,
+    "required_artifacts": [
+      "requirements",
+      "evidence_review",
+      "risk_assessment",
+      "design_review",
+      "experiment_record",
+      "test_report",
+      "decision_log"
+    ],
+    "prohibited_shortcuts": [
+      "uncalibrated safety claims",
+      "unreviewed hazardous experiments",
+      "unverified capability claims",
+      "silent changes to acceptance criteria"
+    ]
+  }
+}
