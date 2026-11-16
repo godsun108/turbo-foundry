@@ -26,15 +26,15 @@ jobs:
           echo "Turbo Foundry core verified."
       - name: Verify ecosystem registry
         run: |
-          python ecosystem_status.py
+          python3 ecosystem_status.py
           git diff --exit-code -- ECOSYSTEM_STATUS.md
       - name: Verify North Star mission command
         run: |
-          python north_star_status.py
+          python3 north_star_status.py
           git diff --exit-code -- NORTH_STAR_STATUS.md
       - name: Verify proof receipts
-        run: python proof_receipts.py
+        run: python3 proof_receipts.py
       - name: Test project generator
-        run: python -m unittest discover -s tests -v
+        run: python3 -m unittest discover -s tests -v
       - name: Test Base One Engine
-        run: python -m unittest discover -s projects/base-one-engine/tests -v
+        run: python3 -m unittest discover -s projects/base-one-engine/tests -v
