@@ -19,7 +19,7 @@ body{padding-bottom:env(safe-area-inset-bottom)}a{color:var(--acid);text-decorat
 <section class="panel">
 <div class="track-head"><h2>SESSION</h2><span class="hint" id="sessionInfo">48 kHz · browser-local</span></div>
 <div class="toolbar"><button class="primary" id="addAudio">＋ ADD AUDIO</button><button id="addDemo">＋ DEMO TRACK</button><button id="exportMix">EXPORT WAV MIX</button><button class="ghost" id="clearSession">CLEAR SESSION</button></div><div class="toolbar" style="margin-top:10px">
-<button id="newProject">NEW PROJECT</button>
+<input id="projectName" type="text" maxlength="128" value="Untitled Session" aria-label="Project name" style="flex:2;min-width:150px;min-height:42px;background:#0b1017;color:white;border:1px solid var(--line);border-radius:10px;padding:8px"><button id="newProject">NEW PROJECT</button>
 <button id="saveProject" class="primary">SAVE PROJECT</button>
 <select id="projectList" aria-label="Saved projects" style="flex:2;min-width:160px;min-height:42px;background:#0b1017;color:white;border:1px solid var(--line);border-radius:10px;padding:8px"><option value="">OPEN SAVED PROJECT…</option></select>
 <button id="openProject">OPEN</button>
@@ -139,6 +139,7 @@ async function saveProject(){
   if(saving||loading)return;
   saving=true;$("saveProject").disabled=true;
   try{
+    project.name=$("projectName").value.trim().slice(0,128)||"Untitled Session";
     const session=makeSession(),payloads=[];
     for(const track of app.state.tracks){
       const blob=track.sourceBlob||new Blob([app.writeWav(track.buffer)],{type:"audio/wav"});
@@ -181,6 +182,7 @@ async function openProject(){
     app.recalc();
     if(app.state.selected)document.getElementById("selectedControls").hidden=false;
     project={id:result.session.id,name:result.session.name,createdAt:result.session.createdAt};
+    $("projectName").value=project.name;
     await refreshProjects(project.id);
     status("Opened “"+project.name+"” · "+restored.length+" track(s) · offline/local");
   }catch(error){status("Open failed: "+(error?.message||String(error)));}
@@ -198,12 +200,13 @@ $("newProject").addEventListener("click",()=>{
   if(!confirm("Start a new project? Save the current project first if you want to keep it."))return;
   app.stop();app.state.tracks=[];app.state.selected=null;app.state.playhead=0;app.recalc();
   project={id:"project-"+newId(),name:"Untitled Session",createdAt:new Date().toISOString()};
+  $("projectName").value=project.name;
   status("New project ready. Add tracks, then save.");
 });
 window.addEventListener("earthstudio:change",scheduleAutosave);
 document.addEventListener("input",event=>{
   if(event.target.closest("#projectList")||event.target.closest("#projectStatus"))return;
-  if(event.target.matches("#bpm,#gain,#pan,#offset,#trackLabel"))scheduleAutosave();
+  if(event.target.matches("#bpm,#gain,#pan,#offset,#trackLabel,#projectName"))scheduleAutosave();
 });
 document.addEventListener("change",event=>{
   if(event.target.matches("#fileInput,#bpm,#trackLabel"))scheduleAutosave();
