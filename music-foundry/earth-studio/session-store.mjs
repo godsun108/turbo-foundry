@@ -130,12 +130,12 @@ export class EarthStudioStore {
   }
   async load(projectId) {
     const db = await this.open();
-    const tx = db.transaction([PROJECTS, ASSETS], "readonly");
-    const project = await requestResult(tx.objectStore(PROJECTS).get(projectId));
+    const project = await requestResult(db.transaction(PROJECTS, "readonly").objectStore(PROJECTS).get(projectId));
     if (!project) return null;
+    const assetTx = db.transaction(ASSETS, "readonly");
     const assetRequests = project.assets.map(descriptor => ({
       descriptor,
-      request:tx.objectStore(ASSETS).get(projectId + ":" + descriptor.storageKey)
+      request:assetTx.objectStore(ASSETS).get(projectId + ":" + descriptor.storageKey)
     }));
     const storedAssets = await Promise.all(assetRequests.map(async entry => ({
       descriptor:entry.descriptor,
@@ -146,6 +146,8 @@ export class EarthStudioStore {
       return {id:descriptor.id, blob:stored.blob, descriptor};
     });
     const {savedAt,...session} = project;
+    const errors = validateSession(session);
+    if (errors.length) throw new TypeError("Stored project is invalid: " + errors.join("; "));
     return {session, assets};
   }
   async list() {
