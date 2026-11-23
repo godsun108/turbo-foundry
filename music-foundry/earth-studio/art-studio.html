@@ -18,7 +18,13 @@ body{padding-bottom:env(safe-area-inset-bottom)}a{color:var(--acid);text-decorat
 <section class="hero"><div><div class="eyebrow">LOCAL-FIRST MUSIC WORKSPACE</div><h1>ART<br>STUDIO.</h1><p class="sub">A browser adapter for the canonical EARTH STUDIO project. Import audio, arrange clips, shape levels and stereo placement, audition your session, and export a stereo WAV mix. Your audio stays on this device.</p></div><span class="tag">FOUNDATION BUILD · V1</span></section>
 <section class="panel">
 <div class="track-head"><h2>SESSION</h2><span class="hint" id="sessionInfo">48 kHz · browser-local</span></div>
-<div class="toolbar"><button class="primary" id="addAudio">＋ ADD AUDIO</button><button id="addDemo">＋ DEMO TRACK</button><button id="exportMix">EXPORT WAV MIX</button><button class="ghost" id="clearSession">CLEAR SESSION</button></div>
+<div class="toolbar"><button class="primary" id="addAudio">＋ ADD AUDIO</button><button id="addDemo">＋ DEMO TRACK</button><button id="exportMix">EXPORT WAV MIX</button><button class="ghost" id="clearSession">CLEAR SESSION</button></div><div class="toolbar" style="margin-top:10px">
+<button id="newProject">NEW PROJECT</button>
+<button id="saveProject" class="primary">SAVE PROJECT</button>
+<select id="projectList" aria-label="Saved projects" style="flex:2;min-width:160px;min-height:42px;background:#0b1017;color:white;border:1px solid var(--line);border-radius:10px;padding:8px"><option value="">OPEN SAVED PROJECT…</option></select>
+<button id="openProject">OPEN</button>
+</div>
+<div class="hint" id="projectStatus">Projects are stored locally in this browser. Save before clearing site data or changing devices.</div>
 <input id="fileInput" type="file" accept="audio/*" multiple hidden>
 <div class="status" id="status" role="status" aria-live="polite">Ready. Add audio files to begin.</div>
 </section>
@@ -43,8 +49,8 @@ body{padding-bottom:env(safe-area-inset-bottom)}a{color:var(--acid);text-decorat
 </section>
 <section class="panel">
 <div class="track-head"><h2>PROJECT NOTES</h2><span class="tag">NO UPLOADS</span></div>
-<p class="foot">This first studio foundation supports imported audio tracks, clip start offsets, per-track gain and pan, mute/solo, synchronized playback, and offline stereo WAV rendering. It does not yet provide MIDI instruments, time-stretching, plugin hosting, persistent project files, or Genesis-controlled editing. Use the existing Recording Booth for microphone capture and Vocal Timeline for the established spoken-take workflow.</p>
-<p class="foot">Audio files remain in memory for this browser session. Export your mix before refreshing or closing the page. iPhone/Safari performance and file-export behavior still need real-device testing.</p>
+<p class="foot">This first studio foundation supports imported audio tracks, clip start offsets, per-track gain and pan, mute/solo, synchronized playback, and offline stereo WAV rendering. It does not yet provide MIDI instruments, time-stretching, plugin hosting, MIDI instruments, time-stretching, plugin hosting, or Genesis-controlled editing. Use the existing Recording Booth for microphone capture and Vocal Timeline for the established spoken-take workflow.</p>
+<p class="foot">Projects and imported audio can now be saved locally in this browser. Browser storage can still be cleared by the operating system or user; export backups for important work. iPhone/Safari behavior and quota need real-device testing.</p>
 </section>
 </main>
 <script>
@@ -70,10 +76,10 @@ function select(id){state.selected=id;const t=state.tracks.find(x=>x.id===id);if
 function syncControls(t){$('selectedTitle').textContent=t.name;$('gain').value=Math.round(t.gain*100);$('gainValue').textContent=Math.round(t.gain*100)+'%';$('pan').value=Math.round(t.pan*100);$('panValue').textContent=t.pan===0?'CENTER':(t.pan<0?'L ':'R ')+Math.abs(Math.round(t.pan*100));$('offset').value=Math.round(t.offset);$('offsetValue').textContent=t.offset.toFixed(1)+' s';$('trackLabel').value=t.name;$('mute').textContent=t.muted?'UNMUTE':'MUTE';$('solo').textContent=t.solo?'UNSOLO':'SOLO'}
 function stop(){if(state.raf)cancelAnimationFrame(state.raf);state.raf=0;state.playing=false;state.nodes.forEach(n=>{try{n.stop()}catch(e){}});state.nodes=[];if(state.ctx){state.ctx.close().catch(()=>{});state.ctx=null}$('play').textContent='▶ PLAY';$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration)}
 async function play(){if(!state.tracks.length){say('Add an audio file first.');return}stop();const AC=window.AudioContext||window.webkitAudioContext;if(!AC){say('Web Audio is not available in this browser.');return}const ctx=new AC();state.ctx=ctx;await ctx.resume();const start=ctx.currentTime+.08;const anySolo=state.tracks.some(t=>t.solo);state.tracks.forEach(t=>{if(t.muted||(anySolo&&!t.solo))return;const source=ctx.createBufferSource();source.buffer=t.buffer;const gain=ctx.createGain();gain.gain.value=t.gain;const pan=ctx.createStereoPanner?ctx.createStereoPanner():null;if(pan)pan.pan.value=t.pan;source.connect(gain);if(pan){gain.connect(pan);pan.connect(ctx.destination)}else gain.connect(ctx.destination);const when=start+Math.max(0,t.offset-state.playhead);const skip=Math.max(0,state.playhead-t.offset);if(skip<t.buffer.duration){source.start(when,skip);state.nodes.push(source)}});state.startedAt=start-state.playhead;state.playing=true;$('play').textContent='Ⅱ PAUSE';say('Playing session.');const tick=()=>{if(!state.playing)return;state.playhead=clamp(ctx.currentTime-state.startedAt,0,state.duration);$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration);$('seek').value=state.duration?Math.round(state.playhead/state.duration*1000):0;if(state.playhead>=state.duration){state.playhead=0;stop();recalc();return}state.raf=requestAnimationFrame(tick)};state.raf=requestAnimationFrame(tick)}
-function addTrack(name,buffer){const id='t'+Date.now()+Math.random().toString(36).slice(2,7);state.tracks.push({id,name:name.slice(0,64),buffer,offset:0,gain:1,pan:0,muted:false,solo:false});state.selected=id;recalc();select(id)}
+function addTrack(name,buffer,sourceBlob=null){const id='t'+Date.now()+Math.random().toString(36).slice(2,7);state.tracks.push({id,name:name.slice(0,64),buffer,sourceBlob,offset:0,gain:1,pan:0,muted:false,solo:false});state.selected=id;recalc();select(id)}
 $('addAudio').onclick=()=>$('fileInput').click();
 $('fileInput').onchange=async e=>{const files=Array.from(e.target.files||[]);if(!files.length)return;say('Decoding '+files.length+' audio file(s)…');const AC=window.AudioContext||window.webkitAudioContext;if(!AC){say('Web Audio is unavailable.');return}const ctx=new AC();for(const f of files){try{const buf=await ctx.decodeAudioData(await f.arrayBuffer());addTrack(f.name.replace(/\.[^.]+$/,''),buf)}catch(err){say('Could not decode '+f.name+'. Try WAV, MP3, M4A or AAC.')}}await ctx.close();$('fileInput').value='';say('Loaded audio locally. Export your work before leaving this page.')};
-$('addDemo').onclick=()=>{const sr=48000,len=sr*4,buf=new AudioBuffer({length:len,numberOfChannels:2,sampleRate:sr});for(let c=0;c<2;c++){const d=buf.getChannelData(c);for(let i=0;i<len;i++){const t=i/sr;d[i]=.22*Math.sin(2*Math.PI*(c?110:110)*t)*Math.exp(-t*.12)+.07*Math.sin(2*Math.PI*220*t)}}addTrack('Demo bass tone',buf);say('Added a generated demo tone. Import your own audio to build a real session.')};
+$('addDemo').onclick=()=>{const sr=48000,len=sr*4,buf=new AudioBuffer({length:len,numberOfChannels:2,sampleRate:sr});for(let c=0;c<2;c++){const d=buf.getChannelData(c);for(let i=0;i<len;i++){const t=i/sr;d[i]=.22*Math.sin(2*Math.PI*(c?110:110)*t)*Math.exp(-t*.12)+.07*Math.sin(2*Math.PI*220*t)}}addTrack('Demo bass tone',buf,new Blob([writeWav(buf)],{type:'audio/wav'}));say('Added a generated demo tone. Import your own audio to build a real session.')};
 $('play').onclick=()=>{if(state.playing){state.playhead=clamp(state.ctx.currentTime-state.startedAt,0,state.duration);stop();recalc()}else play()};
 $('stop').onclick=()=>{stop();state.playhead=0;recalc()};
 $('seek').oninput=e=>{state.playhead=state.duration*Number(e.target.value)/1000;$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration)};
@@ -90,7 +96,122 @@ function writeWav(buffer){const channels=2,sr=buffer.sampleRate,frames=buffer.le
 $('exportMix').onclick=async()=>{if(!state.tracks.length){say('Nothing to export. Add audio tracks first.');return}stop();const Offline=window.OfflineAudioContext||window.webkitOfflineAudioContext;if(!Offline){say('Offline rendering is not supported in this browser.');return}const dur=Math.max(1,state.duration),sr=48000,frames=Math.ceil(dur*sr);if(frames>sr*60*20){say('This first version limits a mix to 20 minutes.');return}say('Rendering stereo WAV mix…');$('exportMix').disabled=true;try{const ctx=new Offline(2,frames,sr);const anySolo=state.tracks.some(t=>t.solo);state.tracks.forEach(t=>{if(t.muted||(anySolo&&!t.solo))return;const src=ctx.createBufferSource();src.buffer=t.buffer;const g=ctx.createGain();g.gain.value=t.gain;const p=ctx.createStereoPanner?ctx.createStereoPanner():null;if(p)p.pan.value=t.pan;src.connect(g);if(p){g.connect(p);p.connect(ctx.destination)}else g.connect(ctx.destination);src.start(Math.max(0,t.offset))});const rendered=await ctx.startRendering();const wav=writeWav(rendered);const url=URL.createObjectURL(new Blob([wav],{type:'audio/wav'}));const a=document.createElement('a');a.href=url;a.download='earth-studio-mix.wav';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);say('WAV mix rendered and download started.')}catch(err){say('Render failed: '+(err&&err.message||'unknown error'))}finally{$('exportMix').disabled=false}};
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&state.playing){state.playhead=clamp(state.ctx.currentTime-state.startedAt,0,state.duration);stop();recalc();say('Playback paused when Portal left the foreground.')}});
 recalc();
+window.__earthStudio={state,addTrack,recalc,stop,writeWav,say};
 })();
+</script>
+
+<script type="module">
+import {EarthStudioStore} from "./session-store.mjs";
+const $=id=>document.getElementById(id);
+const store=new EarthStudioStore();
+const app=window.__earthStudio;
+let project={id:"project-"+crypto.randomUUID(),name:"Untitled Session",createdAt:new Date().toISOString()};
+let saving=false,loading=false,dirtyTimer=0;
+const status=(message)=>{$("projectStatus").textContent=message};
+const digest=async blob=>{
+  if(!crypto.subtle) throw new Error("Secure-context SHA-256 is unavailable; open EARTH STUDIO over HTTPS.");
+  const bytes=await blob.arrayBuffer();
+  const hash=await crypto.subtle.digest("SHA-256",bytes);
+  return Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,"0")).join("");
+};
+const newId=()=>crypto.randomUUID();
+function makeSession(){
+  const now=new Date().toISOString();
+  return {
+    format:"earthsession",schemaVersion:1,id:project.id,name:project.name,
+    createdAt:project.createdAt,updatedAt:now,tempo:Math.max(40,Math.min(240,Number($("bpm").value)||120)),
+    meter:{numerator:4,denominator:4},sampleRate:48000,
+    tracks:app.state.tracks.map(t=>({
+      id:t.id,name:t.name,kind:"audio",gain:t.gain,pan:t.pan,muted:t.muted,solo:t.solo,
+      clips:[{id:"clip-"+t.id,assetId:"asset-"+t.id,startSeconds:t.offset,sourceStartSeconds:0,durationSeconds:t.buffer.duration}]
+    })),
+    assets:[]
+  };
+}
+async function refreshProjects(selectId=""){
+  const rows=await store.list();
+  const list=$("projectList");list.replaceChildren(new Option("OPEN SAVED PROJECT…",""));
+  rows.sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));
+  for(const row of rows) list.add(new Option(row.name+" · "+new Date(row.savedAt||row.updatedAt).toLocaleString(),row.id));
+  if(selectId) list.value=selectId;
+}
+async function saveProject(){
+  if(saving||loading)return;
+  saving=true;$("saveProject").disabled=true;
+  try{
+    const session=makeSession(),payloads=[];
+    for(const track of app.state.tracks){
+      const blob=track.sourceBlob||new Blob([app.writeWav(track.buffer)],{type:"audio/wav"});
+      const id="asset-"+track.id;
+      const storageKey="audio/"+track.id+".bin";
+      const sha256=await digest(blob);
+      session.assets.push({id,storageKey,mediaType:blob.type||"application/octet-stream",sizeBytes:blob.size,sha256});
+      payloads.push({id,blob});
+    }
+    await store.save(session,payloads);
+    project={id:session.id,name:session.name,createdAt:session.createdAt};
+    await refreshProjects(project.id);
+    status("Saved locally · "+session.tracks.length+" track(s) · "+new Date().toLocaleTimeString());
+  }catch(error){status("Save failed: "+(error?.message||String(error)));}
+  finally{saving=false;$("saveProject").disabled=false;}
+}
+async function openProject(){
+  const id=$("projectList").value;
+  if(!id){status("Choose a saved project first.");return;}
+  loading=true;
+  try{
+    app.stop();
+    const result=await store.load(id);
+    if(!result){status("That project could not be found.");return;}
+    const context=new (window.AudioContext||window.webkitAudioContext)();
+    const restored=[];
+    for(const track of result.session.tracks){
+      const clip=track.clips[0];
+      const item=result.assets.find(asset=>asset.id===clip.assetId);
+      if(!item)throw new Error("Missing audio asset for "+track.name);
+      const bytes=await item.blob.arrayBuffer();
+      const actual=await digest(item.blob);
+      if(actual!==item.descriptor.sha256)throw new Error("Audio integrity check failed for "+track.name);
+      const buffer=await context.decodeAudioData(bytes);
+      restored.push({...track,buffer,sourceBlob:item.blob,offset:clip.startSeconds});
+    }
+    await context.close();
+    app.state.tracks=restored;app.state.selected=restored[0]?.id||null;app.state.playhead=0;
+    $("bpm").value=result.session.tempo;$("tempo").textContent=result.session.tempo+" BPM";
+    app.recalc();
+    if(app.state.selected)document.getElementById("selectedControls").hidden=false;
+    project={id:result.session.id,name:result.session.name,createdAt:result.session.createdAt};
+    await refreshProjects(project.id);
+    status("Opened “"+project.name+"” · "+restored.length+" track(s) · offline/local");
+  }catch(error){status("Open failed: "+(error?.message||String(error)));}
+  finally{loading=false;}
+}
+function scheduleAutosave(){
+  if(loading||saving)return;
+  clearTimeout(dirtyTimer);
+  dirtyTimer=setTimeout(()=>saveProject(),1200);
+}
+$("saveProject").addEventListener("click",saveProject);
+$("openProject").addEventListener("click",openProject);
+$("newProject").addEventListener("click",()=>{
+  if(!confirm("Start a new project? Save the current project first if you want to keep it."))return;
+  app.stop();app.state.tracks=[];app.state.selected=null;app.state.playhead=0;app.recalc();
+  project={id:"project-"+newId(),name:"Untitled Session",createdAt:new Date().toISOString()};
+  status("New project ready. Add tracks, then save.");
+});
+document.addEventListener("input",event=>{
+  if(event.target.closest("#projectList")||event.target.closest("#projectStatus"))return;
+  if(event.target.matches("#bpm,#gain,#pan,#offset,#trackLabel"))scheduleAutosave();
+});
+document.addEventListener("change",event=>{
+  if(event.target.matches("#fileInput,#bpm,#trackLabel"))scheduleAutosave();
+});
+document.addEventListener("click",event=>{
+  if(event.target.closest("#saveProject,#openProject,#newProject,#exportMix,#play,#stop,#seek"))return;
+  if(event.target.closest("#addAudio,#addDemo,#clearSession,#mute,#solo,#removeTrack,.track-actions button"))scheduleAutosave();
+});
+try{await refreshProjects();status("Local project storage ready. Changes autosave after edits; use SAVE PROJECT for a manual checkpoint.");}
+catch(error){status("Local project storage unavailable: "+(error?.message||String(error)));}
 </script>
 </body>
 </html>
