@@ -23,7 +23,7 @@ export function validateSession(session) {
   for (const asset of session.assets || []) {
     if (!asset || typeof asset.id !== "string" || ids.has(asset.id)) errors.push("asset IDs must be unique strings");
     else ids.add(asset.id);
-    if (!asset || typeof asset.storageKey !== "string" || !asset.storageKey || asset.storageKey.includes("..") || asset.storageKey.startsWith("/") || asset.storageKey.includes("\\\\")) errors.push("asset storageKey must be a safe relative key");
+    if (!asset || typeof asset.storageKey !== "string" || !asset.storageKey || asset.storageKey.includes("..") || asset.storageKey.startsWith("/") || asset.storageKey.includes("\\")) errors.push("asset storageKey must be a safe relative key");
     if (!asset || !Number.isInteger(asset.sizeBytes) || asset.sizeBytes < 0) errors.push("asset sizeBytes must be a non-negative integer");
     if (!asset || typeof asset.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(asset.sha256)) errors.push("asset sha256 must be a lowercase SHA-256 digest");
   }
@@ -35,6 +35,7 @@ export function validateSession(session) {
     if (!track || !["audio","midi","instrument"].includes(track.kind)) errors.push("track kind is invalid");
     if (!track || typeof track.gain !== "number" || !Number.isFinite(track.gain) || track.gain < 0 || track.gain > 2) errors.push("track gain is outside 0..2");
     if (!track || typeof track.pan !== "number" || !Number.isFinite(track.pan) || track.pan < -1 || track.pan > 1) errors.push("track pan is outside -1..1");
+    if (!track || typeof track.muted !== "boolean" || typeof track.solo !== "boolean") errors.push("track mute and solo flags must be boolean");
     if (!track || !Array.isArray(track.clips)) errors.push("track clips must be an array");
     for (const clip of (track && track.clips) || []) {
       if (!clip || !assetIds.has(clip.assetId)) errors.push("clip references a missing asset");
@@ -121,13 +122,20 @@ export class EarthStudioStore {
     const tx = db.transaction([PROJECTS, ASSETS], "readonly");
     const project = await requestResult(tx.objectStore(PROJECTS).get(projectId));
     if (!project) return null;
-    const assets = [];
-    for (const descriptor of project.assets) {
-      const stored = await requestResult(tx.objectStore(ASSETS).get(projectId + ":" + descriptor.storageKey));
+    const assetRequests = project.assets.map(descriptor => ({
+      descriptor,
+      request:tx.objectStore(ASSETS).get(projectId + ":" + descriptor.storageKey)
+    }));
+    const storedAssets = await Promise.all(assetRequests.map(async entry => ({
+      descriptor:entry.descriptor,
+      stored:await requestResult(entry.request)
+    })));
+    const assets = storedAssets.map(({descriptor,stored}) => {
       if (!stored || stored.assetId !== descriptor.id || !stored.blob || stored.blob.size !== descriptor.sizeBytes) throw new Error("A project asset is missing or has an unexpected size: " + descriptor.id);
-      assets.push({id:descriptor.id, blob:stored.blob, descriptor});
-    }
-    return {session:project, assets};
+      return {id:descriptor.id, blob:stored.blob, descriptor};
+    });
+    const {savedAt,...session} = project;
+    return {session, assets};
   }
   async list() {
     const db = await this.open();
