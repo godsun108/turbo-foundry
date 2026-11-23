@@ -96,17 +96,28 @@ export class EarthStudioStore {
     const totalBytes = assets.reduce((sum, item) => sum + (item && item.blob ? item.blob.size : 0), 0);
     if (totalBytes > MAX_PROJECT_BYTES) throw new RangeError("Project assets exceed the 512 MiB browser-adapter limit");
     const declared = new Map(manifest.assets.map(a => [a.id, a]));
+    const supplied = new Set();
     for (const item of assets) {
-      const descriptor = declared.get(item.id);
-      if (!descriptor || !item.blob || item.blob.size !== descriptor.sizeBytes) throw new TypeError("Asset payload does not match its manifest descriptor");
+      const descriptor = item && declared.get(item.id);
+      if (!descriptor || supplied.has(item.id) || !item.blob || item.blob.size !== descriptor.sizeBytes) throw new TypeError("Asset payload does not match its manifest descriptor");
+      supplied.add(item.id);
     }
-    if (assets.length !== manifest.assets.length) throw new TypeError("Every declared asset must be supplied for a complete save");
+    if (supplied.size !== manifest.assets.length) throw new TypeError("Every declared asset must be supplied exactly once for a complete save");
     const db = await this.open();
     await new Promise((resolve, reject) => {
       const tx = db.transaction([PROJECTS, ASSETS], "readwrite");
       const projectStore = tx.objectStore(PROJECTS);
       const assetStore = tx.objectStore(ASSETS);
       projectStore.put({...manifest, savedAt:new Date().toISOString()});
+      const keepKeys = new Set(manifest.assets.map(descriptor => manifest.id + ":" + descriptor.storageKey));
+      const cursor = assetStore.openCursor();
+      cursor.onsuccess = () => {
+        const row = cursor.result;
+        if (!row) return;
+        if (row.value.projectId === manifest.id && !keepKeys.has(row.value.key)) row.delete();
+        row.continue();
+      };
+      cursor.onerror = () => { try { tx.abort(); } catch {} };
       for (const descriptor of manifest.assets) {
         const item = assets.find(candidate => candidate.id === descriptor.id);
         assetStore.put({key:manifest.id + ":" + descriptor.storageKey, projectId:manifest.id, assetId:item.id, blob:item.blob, descriptor});
