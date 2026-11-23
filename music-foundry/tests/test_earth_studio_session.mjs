@@ -52,3 +52,11 @@ test("decode rejects malformed JSON and structurally invalid sessions", () => {
   assert.throws(() => decodeSession("{"), SyntaxError);
   assert.throws(() => decodeSession(JSON.stringify({...valid(),tempo:0})), TypeError);
 });
+
+test("rejects missing mute and solo flags", () => {
+  const session = valid();
+  delete session.tracks[0].muted;
+  delete session.tracks[0].solo;
+  const errors = validateSession(session);
+  assert.ok(errors.some(error => error.includes("mute and solo")));
+});
