@@ -1,0 +1,46 @@
+name: EARTH STUDIO browser foundation
+
+on:
+  pull_request:
+    paths:
+      - "music-foundry/earth-studio/**"
+      - "music-foundry/tests/test_earth_studio_session.mjs"
+      - ".github/workflows/earth-studio.yml"
+  push:
+    branches:
+      - "earth-studio/**"
+    paths:
+      - "music-foundry/earth-studio/**"
+      - "music-foundry/tests/test_earth_studio_session.mjs"
+      - ".github/workflows/earth-studio.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  browser-foundation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate versioned session schema JSON
+        run: node -e "JSON.parse(require('node:fs').readFileSync('music-foundry/earth-studio/session-schema-v1.json','utf8'))"
+      - name: Test session validation and serialization
+        run: node --test music-foundry/tests/test_earth_studio_session.mjs
+      - name: Syntax-check browser scripts
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path("music-foundry/earth-studio/art-studio.html").read_text(encoding="utf-8")
+          classic = re.findall(r'<script>(.*?)</script>', html, re.S)
+          module = re.findall(r'<script type="module">(.*?)</script>', html, re.S)
+          if len(classic) != 1 or len(module) != 1:
+              raise SystemExit(f"Expected one classic and one module script; found {len(classic)} and {len(module)}")
+          Path("/tmp/earth-studio-classic.js").write_text("\n".join(classic), encoding="utf-8")
+          Path("/tmp/earth-studio-module.js").write_text("\n".join(module), encoding="utf-8")
+          PY
+          node --check /tmp/earth-studio-classic.js
+          node --check --input-type=module < /tmp/earth-studio-module.js
