@@ -29,18 +29,24 @@ jobs:
         run: node -e "JSON.parse(require('node:fs').readFileSync('music-foundry/earth-studio/session-schema-v1.json','utf8'))"
       - name: Test session validation and serialization
         run: node --test music-foundry/tests/test_earth_studio_session.mjs music-foundry/tests/test_earth_studio_project_package.mjs
-      - name: Syntax-check browser scripts
+      - name: Syntax-check all inline browser scripts
         run: |
           python3 - <<'PY'
           import re
           from pathlib import Path
           html = Path("music-foundry/earth-studio/art-studio.html").read_text(encoding="utf-8")
-          classic = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', html, re.S)
-          module = re.findall(r'<script\s+type=["\']module["\']\s*>(.*?)</script>', html, re.S)
-          if not classic or not module:
-              raise SystemExit(f"Expected at least one classic and one module script; found {len(classic)} and {len(module)}")
-          Path("/tmp/earth-studio-classic.js").write_text("\n".join(classic), encoding="utf-8")
-          Path("/tmp/earth-studio-module.js").write_text("\n".join(module), encoding="utf-8")
+          classic = re.findall(r'<script(?![^>]*\\btype=["\\']module["\\'])[^>]*>(.*?)</script>', html, re.S)
+          modules = re.findall(r'<script[^>]*\\btype=["\\']module["\\'][^>]*>(.*?)</script>', html, re.S)
+          if not classic or not modules:
+              raise SystemExit(f"Expected classic and module scripts; found {len(classic)} and {len(modules)}")
+          for index, source in enumerate(classic):
+              Path(f"/tmp/earth-classic-{index}.js").write_text(source, encoding="utf-8")
+          for index, source in enumerate(modules):
+              Path(f"/tmp/earth-module-{index}.js").write_text(source, encoding="utf-8")
           PY
-          node --check /tmp/earth-studio-classic.js
-          node --check --input-type=module < /tmp/earth-studio-module.js
+          for file in /tmp/earth-classic-*.js; do node --check "$file"; done
+          for file in /tmp/earth-module-*.js; do node --check --input-type=module < "$file"; done
+      - name: Syntax-check external ES modules
+        run: |
+          node --check --input-type=module < music-foundry/earth-studio/instrument-adapter.mjs
+          node --check --input-type=module < music-foundry/earth-studio/earth-studio-audio-worklet.mjs
