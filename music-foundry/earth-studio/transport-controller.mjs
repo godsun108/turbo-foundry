@@ -4,9 +4,13 @@ import {
 } from "./midi-sequencer.mjs";
 
 const app = window.__earthStudio;
-const instrument = window.__earthInstrument;
-const midi = window.__earthStudioMidi;
-if (!app || !instrument || !midi) throw new Error("EARTH STUDIO shared transport could not find its host modules.");
+if (!app) throw new Error("EARTH STUDIO shared transport could not find the studio host.");
+async function waitForGlobal(key,eventName) {
+  if (window[key]) return window[key];
+  return await new Promise(resolve=>window.addEventListener(eventName,()=>resolve(window[key]),{once:true}));
+}
+const instrument = await waitForGlobal("__earthInstrument","earthstudio:instrument-ready");
+const midi = await waitForGlobal("__earthStudioMidi","earthstudio:midi-ready");
 
 const $ = id => document.getElementById(id);
 const now = () => performance.now() / 1000;
