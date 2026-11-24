@@ -198,9 +198,9 @@ test("scene-based MIDI loop scheduling uses a nonzero launch origin", () => {
   assert.deepEqual(events.map(event=>[event.type,event.tick]),[
     ["noteOn",3840],["noteOff",4080],["noteOn",4800],["noteOff",5040],["noteOn",5760]
   ]);
-  now = .5;
+  now = .25;
   assert.equal(transport.snapshot(now).tick,4320);
-  now = 1;
+  now = .5;
   assert.equal(transport.snapshot(now).tick,3840);
 });
 
