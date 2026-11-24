@@ -1,4 +1,4 @@
-import {MidiRecorder, MIDI_PPQ} from "./midi-sequencer.mjs";
+import {MidiRecorder, MIDI_PPQ, nextQuantizedTick} from "./midi-sequencer.mjs";
 
 const app = window.__earthStudio;
 const instrument = window.__earthInstrument;
@@ -42,6 +42,8 @@ let activeTrackId = null;
 let unsubscribe = null;
 let selectedNoteRef = null;
 let loopEnabled = false;
+let activeScene = 0;
+let pendingScene = null;
 let midiAccess = null;
 const midiInputs = new Set();
 
@@ -195,12 +197,14 @@ function stopRecording() {
     track.midiClips[track.midiClips.length-1] = {...previous,notes,lengthTicks};
   } else {
     track.midiClips.push(take);
+    if (activeScene === null) activeScene = 0;
   }
   recording = false;
   recorder = null;
   $("midiRecord").disabled = false;
   $("midiStop").disabled = true;
   window.dispatchEvent(new Event("earthstudio:change"));
+  window.dispatchEvent(new Event("earthstudio:scenechange"));
   app.recalc();
   render();
   status("Take saved in the project · " + (overdub ? "overdub complete." : "recording complete."));
@@ -258,6 +262,7 @@ async function connectHardwareMidi(){
       input.onmidimessage=event=>{
         const [statusByte,data1,data2]=event.data;
         const command=statusByte&0xf0,channel=statusByte&0x0f;
+        if(command===0xb0){window.dispatchEvent(new CustomEvent("earthstudio:controlchange",{detail:{controller:data1,value:data2,channel}}));return;}
         const audioTime=instrument.getAudioContextTime()+((event.timeStamp-performance.now())/1000);
         if(command===0x90&&data2>0)receive({type:"noteOn",note:data1,velocity:data2,channel,audioTime});
         else if(command===0x80||(command===0x90&&data2===0))receive({type:"noteOff",note:data1,channel,audioTime});
@@ -278,6 +283,29 @@ $("stop").addEventListener("click",stopPlayback);
 $("clearSession").addEventListener("click",()=>{app.state.midiTracks=[];activeTrackId=null;render();stopPlayback();});
 $("newProject").addEventListener("click",()=>{app.state.midiTracks=[];activeTrackId=null;render();stopPlayback();});
 window.addEventListener("earthstudio:change",()=>{render();updateSelectionControls();});
-window.__earthStudioMidi = {render,stopRecording,getTracks:()=>app.state.midiTracks,getClips:()=>{const tracks=app.state.midiTracks;const anySolo=tracks.some(track=>track.solo);return tracks.flatMap(track=>(track.muted||(anySolo&&!track.solo))?[]:(track.midiClips||[]).map(clip=>({...clip,trackId:track.id})));},isLoopEnabled:()=>loopEnabled,onTransportStart:()=>{},onTransportStop:stopPlayback,dispose:()=>{unsubscribe?.();for(const input of midiAccess?.inputs.values()||[])input.onmidimessage=null;}};
+function sceneCount(){return Math.max(0,...app.state.midiTracks.map(track=>(track.midiClips||[]).length));}
+function launchScene(index,absoluteTick=window.__earthStudioTransport?.snapshot?.().absoluteTick||0,playing=!!window.__earthStudioTransport?.snapshot?.().playing){
+  if(!Number.isInteger(index)||index<0||index>=sceneCount())return false;
+  pendingScene=playing?{index,tick:nextQuantizedTick(absoluteTick,4*MIDI_PPQ)}:null;
+  if(!playing){activeScene=index;window.dispatchEvent(new Event("earthstudio:scenechange"));}
+  else status("Scene "+(index+1)+" queued for the next bar.");
+  return true;
+}
+function advanceScene(absoluteTick){
+  if(!pendingScene||absoluteTick<pendingScene.tick)return false;
+  activeScene=pendingScene.index;pendingScene=null;
+  window.dispatchEvent(new Event("earthstudio:scenechange"));
+  status("Scene "+(activeScene+1)+" launched.");
+  return true;
+}
+function stopScene(){pendingScene=null;activeScene=null;stopPlayback();window.dispatchEvent(new Event("earthstudio:scenechange"));}
+window.__earthStudioMidi = {
+  render,stopRecording,getTracks:()=>app.state.midiTracks,
+  getClips:()=>{const tracks=app.state.midiTracks;const anySolo=tracks.some(track=>track.solo);return activeScene===null?[]:tracks.flatMap(track=>(track.muted||(anySolo&&!track.solo))?[]:((track.midiClips||[])[activeScene]?[{...(track.midiClips||[])[activeScene],startTick:0,trackId:track.id}]:[]));},
+  getSceneInfo:()=>({count:sceneCount(),active:activeScene,pending:pendingScene?{index:pendingScene.index,tick:pendingScene.tick}:null}),
+  launchScene,advanceScene,stopScene,isLoopEnabled:()=>loopEnabled,
+  onTransportStart:()=>{},onTransportStop:stopPlayback,
+  dispose:()=>{unsubscribe?.();for(const input of midiAccess?.inputs.values()||[])input.onmidimessage=null;}
+};
 render();
 window.dispatchEvent(new Event("earthstudio:midi-ready"));
