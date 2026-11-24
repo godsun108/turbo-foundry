@@ -10,6 +10,18 @@
 :root{color-scheme:dark;--bg:#090b10;--panel:#151a23;--line:#303948;--ink:#f4f6fb;--muted:#a4adbd;--acid:#c8ff4d;--violet:#b69cff;--cyan:#8ce6ed}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 body{padding-bottom:env(safe-area-inset-bottom)}a{color:var(--acid);text-decoration:none}button,input,select{font:inherit}button{min-height:42px;padding:9px 13px;border:1px solid var(--line);border-radius:10px;background:#252d39;color:var(--ink);font-weight:700}button:disabled{opacity:.4}button.primary{background:var(--acid);border-color:var(--acid);color:#11170a}button.ghost{background:transparent}.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(10px + env(safe-area-inset-top)) 15px 10px;background:#090b10ed;border-bottom:1px solid var(--line);backdrop-filter:blur(14px)}.top small{color:var(--acid);font-size:10px;font-weight:800;letter-spacing:.16em}.top a{color:var(--muted);font-size:12px}main{max-width:1180px;margin:auto;padding:18px 12px 36px}.hero{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap}.hero h1{font-size:clamp(34px,8vw,58px);line-height:.9;letter-spacing:-.065em;margin:10px 0}.eyebrow{font-size:10px;letter-spacing:.18em;color:var(--acid);font-weight:800}.sub{color:var(--muted);max-width:580px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin:14px 0}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.toolbar button{flex:1;min-width:90px}.transport{display:grid;grid-template-columns:auto auto minmax(100px,1fr) auto;gap:9px;align-items:center}.time{font-variant-numeric:tabular-nums;color:var(--acid);font-size:12px;white-space:nowrap}.range{width:100%;accent-color:var(--acid)}.track-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.track-head h2{font-size:15px;margin:0}.hint{font-size:11px;color:var(--muted)}.timeline-scroll{overflow-x:auto;overscroll-behavior-x:contain;border:1px solid var(--line);border-radius:12px;background:#0e1219}.timeline{min-width:700px}.ruler{height:30px;position:relative;border-bottom:1px solid var(--line);background:repeating-linear-gradient(90deg,transparent 0,transparent 99px,#29313d 100px)}.ruler span{position:absolute;top:6px;color:#929bad;font-size:10px}.track{display:grid;grid-template-columns:140px minmax(0,1fr);min-height:82px;border-bottom:1px solid #28313d}.track:last-child{border-bottom:0}.track-meta{padding:8px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:6px;justify-content:center}.track-name{font-size:12px;font-weight:800;overflow-wrap:anywhere}.track-actions{display:flex;gap:4px}.track-actions button{min-height:28px;padding:3px 7px;font-size:10px}.track-lane{position:relative;min-height:82px;background:repeating-linear-gradient(90deg,transparent 0,transparent 99px,#222b37 100px)}.clip{position:absolute;top:14px;height:54px;min-width:4px;border:1px solid #d9ff91;border-radius:7px;background:linear-gradient(135deg,#536d2c,#26391f);overflow:hidden;padding:5px 7px;color:#f2ffd9}.clip:nth-child(4n+2){background:linear-gradient(135deg,#554778,#2d2448);border-color:#c7b3ff}.clip:nth-child(4n+3){background:linear-gradient(135deg,#285e6b,#173944);border-color:#8ce6ed}.clip:nth-child(4n+4){background:linear-gradient(135deg,#7c4936,#45271f);border-color:#ffbd92}.clip b{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.clip small{font-size:9px;color:#e4e9ef}.empty{padding:20px;text-align:center;color:var(--muted);font-size:12px}.track-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.control{background:#10151d;border:1px solid var(--line);border-radius:10px;padding:10px}.control label{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-bottom:6px}.control input{width:100%;accent-color:var(--acid)}.control select,.control input[type=text],.control input[type=number]{width:100%;min-height:38px;border:1px solid var(--line);border-radius:8px;background:#0b1017;color:var(--ink);padding:7px}.status{min-height:20px;color:var(--acid);font-size:12px;margin-top:8px}.foot{font-size:11px;color:var(--muted);line-height:1.6}.tag{display:inline-block;border:1px solid #46513a;border-radius:999px;color:var(--acid);font-size:9px;padding:3px 7px;letter-spacing:.1em}@media(min-width:760px){main{padding:28px 22px 50px}.panel{padding:18px}.track-controls{grid-template-columns:repeat(4,minmax(0,1fr))}}@media(max-width:480px){.transport{grid-template-columns:auto auto 1fr}.transport .time:last-child{grid-column:1/-1}.top{padding-left:12px;padding-right:12px}}
+
+.instrument-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.instrument-grid .control{min-width:0}
+.instrument-grid select,.instrument-grid input{width:100%;accent-color:var(--acid)}
+.keyboard{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:4px;margin-top:14px;touch-action:none;user-select:none}
+.key{min-width:0;min-height:92px;padding:8px 2px;background:linear-gradient(#f5f6f8,#c9ced6);color:#171b22;border:1px solid #9299a4;border-radius:0 0 7px 7px;display:flex;align-items:end;justify-content:center;font-size:10px}
+.key.black{background:linear-gradient(#39414d,#11151c);color:#f4f6fb;min-height:66px;transform:scale(.78);transform-origin:top center;border-color:#080a0d}
+.key:active,.key.active{background:var(--acid);color:#10150a}
+.instrument-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.instrument-actions button{flex:1}
+@media(max-width:600px){.instrument-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.keyboard{gap:2px}.key{min-height:78px;font-size:8px;padding:5px 0}.key.black{min-height:56px}}
+
 </style>
 </head>
 <body>
@@ -48,6 +60,33 @@ body{padding-bottom:env(safe-area-inset-bottom)}a{color:var(--acid);text-decorat
 <div class="toolbar" style="margin-top:10px"><button id="mute">MUTE</button><button id="solo">SOLO</button><button id="removeTrack">REMOVE TRACK</button></div>
 </div>
 </section>
+
+<section class="panel" id="instrumentPanel">
+  <div class="track-head"><h2>PERFORMANCE INSTRUMENT</h2><span class="tag">PLAYABLE BROWSER PROTOTYPE</span></div>
+  <p class="hint">Play notes directly. This Web Audio adapter is a working browser instrument prototype; it is not yet running the native C++ engine.</p>
+  <div class="toolbar" style="margin:12px 0">
+    <label class="hint" for="instrumentPreset">PRESET</label>
+    <select id="instrumentPreset" style="min-height:40px;flex:1;min-width:150px;background:#0b1017;color:white;border:1px solid var(--line);border-radius:8px;padding:7px">
+      <option value="warm">Warm Sine</option><option value="bright">Bright Saw</option><option value="soft">Soft Triangle</option><option value="deep">Deep Square</option>
+    </select>
+    <button id="saveInstrumentPreset">SAVE PRESET</button>
+  </div>
+  <div class="instrument-grid">
+    <div class="control"><label for="oscillator">OSCILLATOR</label><select id="oscillator"><option value="sine">Sine</option><option value="sawtooth">Saw</option><option value="square">Square</option><option value="triangle">Triangle</option></select></div>
+    <div class="control"><label for="attack">ATTACK <output id="attackValue">20 ms</output></label><input id="attack" type="range" min="1" max="1000" value="20"></div>
+    <div class="control"><label for="decay">DECAY <output id="decayValue">180 ms</output></label><input id="decay" type="range" min="1" max="2000" value="180"></div>
+    <div class="control"><label for="sustain">SUSTAIN <output id="sustainValue">70%</output></label><input id="sustain" type="range" min="0" max="100" value="70"></div>
+    <div class="control"><label for="release">RELEASE <output id="releaseValue">300 ms</output></label><input id="release" type="range" min="10" max="4000" value="300"></div>
+    <div class="control"><label for="cutoff">FILTER <output id="cutoffValue">8.0 kHz</output></label><input id="cutoff" type="range" min="80" max="18000" value="8000"></div>
+    <div class="control"><label for="vibrato">VIBRATO <output id="vibratoValue">0.0 Hz</output></label><input id="vibrato" type="range" min="0" max="20" value="0"></div>
+    <div class="control"><label for="bend">PITCH BEND <output id="bendValue">0 st</output></label><input id="bend" type="range" min="-12" max="12" value="0"></div>
+  </div>
+  <div class="keyboard" id="instrumentKeyboard" aria-label="One octave plus keyboard">
+    <button class="key" data-note="60">C</button><button class="key black" data-note="61">C♯</button><button class="key" data-note="62">D</button><button class="key black" data-note="63">D♯</button><button class="key" data-note="64">E</button><button class="key" data-note="65">F</button><button class="key black" data-note="66">F♯</button><button class="key" data-note="67">G</button><button class="key black" data-note="68">G♯</button><button class="key" data-note="69">A</button><button class="key black" data-note="70">A♯</button><button class="key" data-note="71">B</button><button class="key" data-note="72">C</button>
+  </div>
+  <div class="instrument-actions"><button id="allNotesOff">ALL NOTES OFF</button><span class="hint" id="instrumentStatus" role="status" aria-live="polite">Tap or hold a key to play.</span></div>
+</section>
+
 <section class="panel">
 <div class="track-head"><h2>PROJECT NOTES</h2><span class="tag">LOCAL ONLY</span></div>
 <p class="foot">This first studio foundation supports imported audio tracks, clip start offsets, per-track gain and pan, mute/solo, synchronized playback, and offline stereo WAV rendering. It does not yet provide MIDI instruments, time-stretching, plugin hosting, MIDI instruments, time-stretching, plugin hosting, or Genesis-controlled editing. Use the existing Recording Booth for microphone capture and Vocal Timeline for the established spoken-take workflow.</p>
@@ -98,6 +137,114 @@ $('exportMix').onclick=async()=>{if(!state.tracks.length){say('Nothing to export
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&state.playing){state.playhead=clamp(state.ctx.currentTime-state.startedAt,0,state.duration);stop();recalc();say('Playback paused when Portal left the foreground.')}});
 recalc();
 window.__earthStudio={state,addTrack,recalc,stop,writeWav,say};
+})();
+</script>
+
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const defaults={oscillator:"sine",attack:20,decay:180,sustain:70,release:300,cutoff:8000,vibrato:0,bend:0};
+const presets={
+ warm:{...defaults},
+ bright:{...defaults,oscillator:"sawtooth",attack:5,decay:260,sustain:58,release:220,cutoff:12500},
+ soft:{...defaults,oscillator:"triangle",attack:120,decay:420,sustain:48,release:900,cutoff:5200},
+ deep:{...defaults,oscillator:"square",attack:8,decay:300,sustain:82,release:500,cutoff:900}
+};
+let settings={...defaults},ctx=null,voices=new Map(),custom=[];
+const status=s=>{$("instrumentStatus").textContent=s};
+const read=()=>({
+ oscillator:$("oscillator").value,attack:Number($("attack").value),decay:Number($("decay").value),
+ sustain:Number($("sustain").value),release:Number($("release").value),cutoff:Number($("cutoff").value),
+ vibrato:Number($("vibrato").value),bend:Number($("bend").value)
+});
+function paint(){
+ settings=read();
+ $("attackValue").textContent=settings.attack+" ms";
+ $("decayValue").textContent=settings.decay+" ms";
+ $("sustainValue").textContent=settings.sustain+"%";
+ $("releaseValue").textContent=settings.release+" ms";
+ $("cutoffValue").textContent=settings.cutoff>=1000?(settings.cutoff/1000).toFixed(1)+" kHz":settings.cutoff+" Hz";
+ $("vibratoValue").textContent=settings.vibrato.toFixed(1)+" Hz";
+ $("bendValue").textContent=settings.bend+" st";
+ for(const voice of voices.values())updateVoice(voice);
+}
+function apply(value){
+ const v={...defaults,...value};
+ $("oscillator").value=v.oscillator;
+ for(const key of ["attack","decay","sustain","release","cutoff","vibrato","bend"])$(key).value=v[key];
+ paint();
+}
+function audio(){
+ const AC=window.AudioContext||window.webkitAudioContext;
+ if(!AC)throw new Error("Web Audio is not available in this browser");
+ if(!ctx)ctx=new AC();
+ return ctx;
+}
+function updateVoice(v){
+ if(!ctx||!v)return;
+ const now=ctx.currentTime;
+ v.filter.frequency.setTargetAtTime(settings.cutoff,now,.025);
+ v.osc.frequency.setTargetAtTime(v.baseFrequency*Math.pow(2,settings.bend/12),now,.02);
+ if(v.lfoGain)v.lfoGain.gain.setTargetAtTime(v.baseFrequency*settings.vibrato/1200,now,.03);
+}
+async function noteOn(id,midi){
+ try{
+  const ac=audio();await ac.resume();noteOff(id);
+  const now=ac.currentTime,osc=ac.createOscillator(),filter=ac.createBiquadFilter(),amp=ac.createGain();
+  const base=440*Math.pow(2,(midi-69)/12);
+  osc.type=settings.oscillator;osc.frequency.value=base*Math.pow(2,settings.bend/12);
+  filter.type="lowpass";filter.frequency.value=settings.cutoff;filter.Q.value=.0001;
+  amp.gain.setValueAtTime(.0001,now);
+  amp.gain.exponentialRampToValueAtTime(.22,now+Math.max(.001,settings.attack/1000));
+  amp.gain.exponentialRampToValueAtTime(Math.max(.0001,.22*settings.sustain/100),now+Math.max(.002,(settings.attack+settings.decay)/1000));
+  let lfo=null,lfoGain=null;
+  if(settings.vibrato>0){lfo=ac.createOscillator();lfo.type="sine";lfo.frequency.value=5;lfoGain=ac.createGain();lfoGain.gain.value=base*settings.vibrato/1200;lfo.connect(lfoGain);lfoGain.connect(osc.frequency);lfo.start(now)}
+  osc.connect(filter);filter.connect(amp);amp.connect(ac.destination);osc.start(now);
+  const voice={osc,filter,amp,lfo,lfoGain,baseFrequency:base};
+  voices.set(id,voice);$("instrumentKeyboard").querySelectorAll("[data-note='"+midi+"']").forEach(k=>k.classList.add("active"));
+  status("Playing MIDI "+midi+" · "+settings.oscillator);
+ }catch(error){status(error.message||"Could not start audio");}
+}
+function noteOff(id){
+ const v=voices.get(id);if(!v)return;
+ const now=ctx.currentTime;
+ v.amp.gain.cancelScheduledValues(now);v.amp.gain.setTargetAtTime(.0001,now,Math.max(.01,settings.release/3500));
+ v.osc.stop(now+Math.max(.06,settings.release/1000+.04));
+ if(v.lfo){v.lfo.stop(now+Math.max(.06,settings.release/1000+.04))}
+ voices.delete(id);
+ const midi=Number(String(id).split(":")[0]);
+ $("instrumentKeyboard").querySelectorAll("[data-note='"+midi+"']").forEach(k=>k.classList.remove("active"));
+}
+$("instrumentKeyboard").querySelectorAll("[data-note]").forEach(key=>{
+ const midi=Number(key.dataset.note);
+ key.addEventListener("pointerdown",e=>{e.preventDefault();key.setPointerCapture(e.pointerId);noteOn(" "+midi+":"+e.pointerId,midi)});
+ const release=e=>noteOff(" "+midi+":"+e.pointerId);
+ key.addEventListener("pointerup",release);key.addEventListener("pointercancel",release);key.addEventListener("lostpointercapture",release);
+});
+for(const id of ["oscillator","attack","decay","sustain","release","cutoff","vibrato","bend"])$(id).addEventListener("input",paint);
+$("allNotesOff").addEventListener("click",()=>{for(const id of [...voices.keys()])noteOff(id);status("All notes off.");});
+function fillPresets(){
+ const select=$("instrumentPreset");
+ for(const option of [...select.options])if(option.dataset.custom==="true")option.remove();
+ custom.forEach((p,i)=>{const o=new Option(p.name,"custom:"+i);o.dataset.custom="true";select.add(o)});
+}
+$("instrumentPreset").addEventListener("change",e=>{
+ const v=e.target.value;
+ if(v.startsWith("custom:")){const p=custom[Number(v.slice(7))];if(p)apply(p.settings);}
+ else if(presets[v])apply(presets[v]);
+});
+$("saveInstrumentPreset").addEventListener("click",()=>{
+ const name=window.prompt("Name this instrument preset:");
+ if(!name||!name.trim())return;
+ custom.push({name:name.trim().slice(0,40),settings:read()});
+ try{localStorage.setItem("earth-studio-instrument-presets-v1",JSON.stringify(custom));fillPresets();$("instrumentPreset").value="custom:"+(custom.length-1);status("Preset saved on this device.");}
+ catch(error){custom.pop();status("Could not save preset in this browser.");}
+});
+try{const saved=JSON.parse(localStorage.getItem("earth-studio-instrument-presets-v1")||"[]");if(Array.isArray(saved))custom=saved.filter(p=>p&&typeof p.name==="string"&&p.settings&&typeof p.settings==="object").slice(0,32);fillPresets();}catch{}
+apply(defaults);
+window.__earthInstrument={getSettings:()=>({...settings}),setSettings:apply,allNotesOff:()=>{for(const id of [...voices.keys()])noteOff(id)}};
 })();
 </script>
 
