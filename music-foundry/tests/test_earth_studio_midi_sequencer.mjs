@@ -186,7 +186,7 @@ test("standalone transport can cancel a look-ahead window and reschedule from th
   const cursor = transport.snapshot(now).absoluteTick;
   transport.seek(cursor,now);
   const restarted = transport.scheduleAhead(clips,{clockTimeSeconds:now,audioTimeSeconds:8.1,lookAheadSeconds:.5});
-  assert.deepEqual(restarted.map(event=>[event.type,event.tick]),[["noteOff",960]]);
+  assert.deepEqual(restarted.map(event=>[event.type,event.tick]),[["noteOn",480],["noteOff",960]]);
 });
 
 test("standalone look-ahead scheduler never emits duplicate events across overlapping polls", () => {
