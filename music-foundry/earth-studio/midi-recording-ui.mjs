@@ -14,6 +14,8 @@ panel.innerHTML = `
     <button class="primary" id="midiRecord">● RECORD</button>
     <button id="midiStop" disabled>■ STOP TAKE</button>
     <button id="midiOverdub">OVERDUB: OFF</button>
+    <button id="midiLoop">MIDI LOOP ×4: OFF</button>
+    <button id="midiConnect">CONNECT MIDI DEVICE</button>
     <label class="hint" for="midiQuantize">QUANTIZE</label>
     <select id="midiQuantize" style="min-height:40px;background:#0b1017;color:white;border:1px solid var(--line);border-radius:8px;padding:7px">
       <option value="0">OFF</option><option value="240">1/16</option><option value="480">1/8</option><option value="960">1/4</option>
@@ -23,6 +25,8 @@ panel.innerHTML = `
     <input id="midiTrackName" type="text" maxlength="64" value="Instrument 1" aria-label="MIDI track name" style="flex:1;min-width:140px;min-height:40px;background:#0b1017;color:white;border:1px solid var(--line);border-radius:8px;padding:8px">
     <span class="hint" id="midiRecordStatus" role="status" aria-live="polite">Ready to record the performance keyboard.</span>
   </div>
+  <div class="toolbar" style="margin-top:10px"><label class="hint" for="midiVelocity">SELECTED NOTE VELOCITY</label><input id="midiVelocity" type="range" min="1" max="127" value="100" disabled style="flex:1;min-width:120px"><output id="midiVelocityValue" class="tag">—</output><button id="midiDeleteNote" disabled>DELETE NOTE</button></div>
+  <div class="hint" id="midiDeviceStatus" style="margin-top:6px">Hardware MIDI: not connected.</div>
   <div id="midiTrackList" style="margin-top:12px"></div>
   <div class="hint" style="margin-top:8px">Recorded notes are saved inside the .earthsession project. Quantization is applied on capture; overdub preserves the selected take's existing notes.</div>
 `;
@@ -37,6 +41,10 @@ let recordStartTime = 0;
 let activeTrackId = null;
 let unsubscribe = null;
 let playbackGeneration = 0;
+let selectedNoteRef = null;
+let loopEnabled = false;
+let midiAccess = null;
+const midiInputs = new Set();
 
 const id = prefix => prefix + "-" + crypto.randomUUID();
 const status = message => { $("midiRecordStatus").textContent = message; };
@@ -92,12 +100,14 @@ function render() {
           block.style.top = Math.max(0,Math.min(246,246-note.note*2)) + "px";
           block.title = "MIDI " + note.note + " · velocity " + note.velocity + " · " + note.durationTicks + " ticks";
         };
-        block.style.cssText = "position:absolute;height:9px;min-width:3px;padding:0;border-radius:3px;background:var(--acid);border:1px solid #efffc2;opacity:" + (.45 + note.velocity / 230) + ";touch-action:none;";
+        block.style.cssText = "position:absolute;height:9px;min-width:3px;padding:0;border-radius:3px;background:var(--acid);border:" + (selectedNoteRef?.noteId===note.id ? "2px solid #ffffff" : "1px solid #efffc2") + ";opacity:" + (.45 + note.velocity / 230) + ";touch-action:none;";
         block.style.left = left + "%";
         block.style.width = width + "%";
         block.style.top = Math.max(0,Math.min(246,246-note.note*2)) + "px";
         block.addEventListener("pointerdown",event=>{
           event.preventDefault();
+          selectedNoteRef={trackId:track.id,clipId:clip.id,noteId:note.id};
+          updateSelectionControls();
           block.setPointerCapture(event.pointerId);
           const rect=roll.getBoundingClientRect();
           const originX=event.clientX,originY=event.clientY;
@@ -129,6 +139,20 @@ function render() {
     }
     root.append(card);
   }
+}
+function selectedNote() {
+  if (!selectedNoteRef) return null;
+  const track=app.state.midiTracks.find(item=>item.id===selectedNoteRef.trackId);
+  const clip=track?.midiClips?.find(item=>item.id===selectedNoteRef.clipId);
+  const note=clip?.notes?.find(item=>item.id===selectedNoteRef.noteId);
+  return note ? {track,clip,note} : null;
+}
+function updateSelectionControls() {
+  const selected=selectedNote();
+  $("midiVelocity").disabled=!selected;
+  $("midiDeleteNote").disabled=!selected;
+  $("midiVelocity").value=selected?.note.velocity||100;
+  $("midiVelocityValue").textContent=selected?String(selected.note.velocity):"—";
 }
 function ensureTrack() {
   let track = selectedTrack();
@@ -200,8 +224,10 @@ async function schedulePlayback() {
     if (generation !== playbackGeneration || !app.state.playing) return;
     const clips = app.state.midiTracks.flatMap(track => (track.muted || (app.state.midiTracks.some(item=>item.solo) && !track.solo)) ? [] : (track.midiClips||[]).map(clip=>({...clip,trackId:track.id})));
     if (!clips.length) return;
-    const toTick = Math.max(currentDurationTicks(),...clips.map(clip=>clip.startTick+clip.lengthTicks))+1;
-    const events = collectMidiEvents(clips,{tempo:currentTempo(),fromTick:0,toTick,originTime:originTime+.08});
+    const loopEnd = Math.max(1,...clips.map(clip=>clip.startTick+clip.lengthTicks));
+    const repeats = loopEnabled ? 4 : 1;
+    const toTick = loopEnd*repeats+1;
+    const events = collectMidiEvents(clips,{tempo:currentTempo(),fromTick:0,toTick,originTime:originTime+.08,loop:loopEnabled?{startTick:0,endTick:loopEnd}:null});
     if (events.length > 512) { status("Playback event limit reached (512 scheduled events). Split the arrangement into shorter sections."); return; }
     dispatchMidiEvents(events,createAudioWorkletMidiSink(instrument.port));
     status("MIDI playback scheduled · " + events.length + " events.");
@@ -212,11 +238,62 @@ async function schedulePlayback() {
 $("midiRecord").addEventListener("click",startRecording);
 $("midiStop").addEventListener("click",stopRecording);
 $("midiOverdub").addEventListener("click",()=>{overdub=!overdub;$("midiOverdub").textContent="OVERDUB: "+(overdub?"ON":"OFF");});
+$("midiLoop").addEventListener("click",()=>{
+  loopEnabled=!loopEnabled;
+  app.state.midiLoopRepeats=loopEnabled?4:1;
+  $("midiLoop").textContent="MIDI LOOP ×4: "+(loopEnabled?"ON":"OFF");
+  app.recalc();
+  status(loopEnabled?"MIDI clips will repeat for four cycles on playback.":"MIDI loop playback disabled.");
+});
+$("midiVelocity").addEventListener("input",event=>{
+  const selected=selectedNote();
+  if(!selected)return;
+  selected.note.velocity=Number(event.target.value);
+  $("midiVelocityValue").textContent=String(selected.note.velocity);
+  window.dispatchEvent(new Event("earthstudio:change"));
+  render();
+});
+$("midiDeleteNote").addEventListener("click",()=>{
+  const selected=selectedNote();
+  if(!selected)return;
+  selected.clip.notes=selected.clip.notes.filter(note=>note.id!==selected.note.id);
+  selectedNoteRef=null;
+  updateSelectionControls();
+  window.dispatchEvent(new Event("earthstudio:change"));
+  render();
+  app.recalc();
+});
+async function connectHardwareMidi(){
+  if(!navigator.requestMIDIAccess){
+    $("midiDeviceStatus").textContent="Web MIDI is unavailable in this browser. Use a supported desktop browser or the on-screen keyboard.";
+    return;
+  }
+  try{
+    midiAccess=await navigator.requestMIDIAccess({sysex:false});
+    for(const input of midiAccess.inputs.values()){
+      if(midiInputs.has(input.id))continue;
+      input.onmidimessage=event=>{
+        const [statusByte,data1,data2]=event.data;
+        const command=statusByte&0xf0,channel=statusByte&0x0f;
+        const audioTime=instrument.getAudioContextTime()+((event.timeStamp-performance.now())/1000);
+        if(command===0x90&&data2>0)receive({type:"noteOn",note:data1,velocity:data2,channel,audioTime});
+        else if(command===0x80||(command===0x90&&data2===0))receive({type:"noteOff",note:data1,channel,audioTime});
+      };
+      midiInputs.add(input.id);
+    }
+    const names=[...midiAccess.inputs.values()].map(input=>input.name||input.id);
+    $("midiDeviceStatus").textContent=names.length?"Connected MIDI input(s): "+names.join(", "):"MIDI permission granted. Connect a device and refresh the connection.";
+    status("Hardware MIDI access ready.");
+  }catch(error){
+    $("midiDeviceStatus").textContent="MIDI connection failed: "+(error?.message||String(error));
+  }
+}
+$("midiConnect").addEventListener("click",connectHardwareMidi);
 if (typeof instrument.onMidiEvent === "function") unsubscribe = instrument.onMidiEvent(receive);
 
 $("stop").addEventListener("click",stopPlayback);
 $("clearSession").addEventListener("click",()=>{app.state.midiTracks=[];activeTrackId=null;render();stopPlayback();});
 $("newProject").addEventListener("click",()=>{app.state.midiTracks=[];activeTrackId=null;render();stopPlayback();});
-window.addEventListener("earthstudio:change",render);
-window.__earthStudioMidi = {render,stopRecording,getTracks:()=>app.state.midiTracks,onTransportStart:schedulePlayback,onTransportStop:stopPlayback,dispose:()=>unsubscribe?.()};
+window.addEventListener("earthstudio:change",()=>{render();updateSelectionControls();});
+window.__earthStudioMidi = {render,stopRecording,getTracks:()=>app.state.midiTracks,onTransportStart:schedulePlayback,onTransportStop:stopPlayback,dispose:()=>{unsubscribe?.();for(const input of midiAccess?.inputs.values()||[])input.onmidimessage=null;}};
 render();
