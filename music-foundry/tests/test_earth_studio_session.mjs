@@ -60,3 +60,9 @@ test("rejects missing mute and solo flags", () => {
   const errors = validateSession(session);
   assert.ok(errors.some(error => error.includes("mute and solo")));
 });
+
+test("rejects duplicate asset storage keys", () => {
+  const session = valid();
+  session.assets.push({...session.assets[0],id:"asset-2"});
+  assert.ok(validateSession(session).some(error => error.includes("storageKeys must be unique")));
+});
