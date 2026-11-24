@@ -173,10 +173,10 @@ $("midiRecord").addEventListener("click",startRecording);
 $("midiStop").addEventListener("click",stopRecording);
 $("midiOverdub").addEventListener("click",()=>{overdub=!overdub;$("midiOverdub").textContent="OVERDUB: "+(overdub?"ON":"OFF");});
 if (typeof instrument.onMidiEvent === "function") unsubscribe = instrument.onMidiEvent(receive);
-$("play").addEventListener("click",()=>{setTimeout(()=>{if(app.state.playing)schedulePlayback();else stopPlayback();},120);});
+
 $("stop").addEventListener("click",stopPlayback);
 $("clearSession").addEventListener("click",()=>{app.state.midiTracks=[];activeTrackId=null;render();stopPlayback();});
 $("newProject").addEventListener("click",()=>{app.state.midiTracks=[];activeTrackId=null;render();stopPlayback();});
 window.addEventListener("earthstudio:change",render);
-window.__earthStudioMidi = {render,stopRecording,getTracks:()=>app.state.midiTracks,dispose:()=>unsubscribe?.()};
+window.__earthStudioMidi = {render,stopRecording,getTracks:()=>app.state.midiTracks,onTransportStart:schedulePlayback,onTransportStop:stopPlayback,dispose:()=>unsubscribe?.()};
 render();
