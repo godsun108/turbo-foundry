@@ -263,7 +263,7 @@ async function openProject(){
       restored.push({...track,buffer,sourceBlob:item.blob,offset:clip.startSeconds});
     }
     await context.close();
-    app.state.tracks=restored;app.state.midiTracks=restoredMidi;app.state.selected=restored[0]?.id||null;app.state.playhead=0;window.__earthStudioMidi?.render();
+    app.state.tracks=restored;app.state.midiTracks=restoredMidi;app.state.selected=restored[0]?.id||null;app.state.playhead=0;window.__earthStudioMidi?.resetSceneSelection?.();window.__earthStudioMidi?.render();
     window.__earthInstrument?.setSettings(result.session.instrument||{oscillator:"sine",attack:20,decay:180,sustain:70,release:300,cutoff:8000,vibrato:0,bend:0});
     $("bpm").value=result.session.tempo;$("tempo").textContent=result.session.tempo+" BPM";
     app.recalc();
@@ -312,6 +312,7 @@ try{await refreshProjects();status("Local project storage ready. Changes autosav
 catch(error){status("Local project storage unavailable: "+(error?.message||String(error)));}
 </script>
 <script type="module" src="./midi-recording-ui.mjs"></script>
+<script type="module" src="./performance-surface.mjs"></script>
 <script type="module" src="./transport-controller.mjs"></script>
 </body>
 </html>

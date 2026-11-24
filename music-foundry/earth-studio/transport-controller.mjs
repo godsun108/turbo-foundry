@@ -30,7 +30,7 @@ function loopEndTick(items = clips()) {
   return Math.max(1,...items.map(clip=>clip.startTick+clip.lengthTicks));
 }
 function loopConfig(items = clips()) {
-  return midi.isLoopEnabled() && items.length ? {startTick:0,endTick:loopEndTick(items)} : null;
+  return midi.isLoopEnabled() && items.length ? {startTick:items[0].startTick,endTick:loopEndTick(items)} : null;
 }
 function cancelMidi() {
   instrument.cancelScheduledMidi?.();
@@ -76,8 +76,12 @@ function playAudioFrom(positionSeconds) {
   }
 }
 function updateClock(snapshot = transport.snapshot()) {
+  const items=clips();
+  const sceneEnd=Math.max(0,...items.map(clip=>clip.startTick+clip.lengthTicks));
+  const duration=Math.max(app.state.duration,ticksToSeconds(sceneEnd,transport.tempo,transport.ppq));
+  app.state.duration=duration;
   const seconds = ticksToSeconds(snapshot.absoluteTick,transport.tempo,transport.ppq);
-  app.state.playhead = Math.min(app.state.duration,seconds);
+  app.state.playhead = Math.min(duration,seconds);
   $("clock").textContent = app.formatTime ? app.formatTime(app.state.playhead)+" / "+app.formatTime(app.state.duration) : formatTime(app.state.playhead)+" / "+formatTime(app.state.duration);
   $("seek").value = app.state.duration ? Math.round(app.state.playhead/app.state.duration*1000) : 0;
 }
@@ -90,8 +94,9 @@ function refreshLoop() {
   const current = transport.snapshot().loop;
   if (JSON.stringify(next) !== JSON.stringify(current)) {
     transport.setLoop(next,now());
-    cancelMidi();
+    return true;
   }
+  return false;
 }
 function scheduleMidi() {
   if (!transport.playing) return;
@@ -112,7 +117,7 @@ function scheduleMidi() {
     });
     if (events.length) {
       const loop = transport.loop;
-      const finalTick = loop ? loop.endTick*4 : Number.POSITIVE_INFINITY;
+      const finalTick = loop ? loop.startTick+(loop.endTick-loop.startTick)*4 : Number.POSITIVE_INFINITY;
       const bounded = events.filter(event=>event.tick<finalTick || (event.tick===finalTick && event.type==="noteOff"));
       dispatchMidiEvents(bounded,createAudioWorkletMidiSink(instrument.port));
     }
@@ -124,7 +129,11 @@ function frame() {
   if (!transport.playing) return;
   const snapshot = transport.snapshot(now());
   updateClock(snapshot);
-  const endTick = transport.loop ? transport.loop.endTick*4 : secondsToTicks(app.state.duration,transport.tempo,transport.ppq);
+  midi.advanceScene(snapshot.absoluteTick);
+  const activeClips=clips();
+  const endTick=transport.loop
+    ? transport.loop.startTick+(transport.loop.endTick-transport.loop.startTick)*4
+    : Math.max(secondsToTicks(app.state.duration,transport.tempo,transport.ppq),...activeClips.map(clip=>clip.startTick+clip.lengthTicks));
   if (snapshot.absoluteTick >= endTick) {
     stop();
     return;
@@ -205,6 +214,10 @@ $("bpm").addEventListener("change",()=>{
   if (transport.playing) app.state.playhead=ticksToSeconds(snapshot.absoluteTick,transport.tempo,transport.ppq);
 });
 window.addEventListener("earthstudio:transport-config",()=>{
+  refreshLoop();
+  if (transport.playing) cancelMidi();
+});
+window.addEventListener("earthstudio:scenechange",()=>{
   refreshLoop();
   if (transport.playing) cancelMidi();
 });

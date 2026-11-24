@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   MIDI_PPQ, ticksToSeconds, secondsToTicks, quantizeTick, createMidiClip,
-  validateMidiClip, MidiRecorder, MidiSequencer, collectMidiEvents, createAudioWorkletMidiSink,
+  validateMidiClip, MidiRecorder, MidiSequencer, collectMidiEvents, createAudioWorkletMidiSink, nextQuantizedTick,
   dispatchMidiEvents, MusicalTransport
 } from "../earth-studio/midi-sequencer.mjs";
 
@@ -12,6 +12,14 @@ test("musical clock converts ticks and seconds at the configured tempo",()=>{
   assert.equal(secondsToTicks(.5,120),960);
   assert.equal(secondsToTicks(1,60),960);
 });
+test("scene launch quantization advances to the next bar boundary",()=>{
+  assert.equal(nextQuantizedTick(0,3840),0);
+  assert.equal(nextQuantizedTick(1,3840),3840);
+  assert.equal(nextQuantizedTick(3840,3840),3840);
+  assert.equal(nextQuantizedTick(3841,3840),7680);
+  assert.throws(()=>nextQuantizedTick(-1,3840),RangeError);
+});
+
 test("quantization supports grid snapping and partial strength",()=>{
   assert.equal(quantizeTick(470,120),480);
   assert.equal(quantizeTick(470,120,.5),475);
@@ -176,6 +184,24 @@ test("standalone transport schedules look-ahead events against a host audio cloc
   assert.equal(events.length,2);
   assert.equal(events[0].when,12);
   assert.equal(events[1].when,12.25);
+});
+
+test("scene-based MIDI loop scheduling uses a nonzero launch origin", () => {
+  let now = 0;
+  const transport = new MusicalTransport({tempo:120,now:()=>now,loop:{startTick:3840,endTick:4800}});
+  const clips = [{id:"scene-2",startTick:3840,lengthTicks:960,notes:[
+    {id:"scene-note",note:64,startTick:0,durationTicks:240,velocity:100,channel:0}
+  ]}];
+  transport.seek(3840,now);
+  transport.play(now);
+  const events = transport.scheduleAhead(clips,{clockTimeSeconds:0,audioTimeSeconds:30,lookAheadSeconds:1.1});
+  assert.deepEqual(events.map(event=>[event.type,event.tick]),[
+    ["noteOn",3840],["noteOff",4080],["noteOn",4800],["noteOff",5040],["noteOn",5760]
+  ]);
+  now = .25;
+  assert.equal(transport.snapshot(now).tick,4320);
+  now = .5;
+  assert.equal(transport.snapshot(now).tick,3840);
 });
 
 test("standalone transport repeats scheduled notes inside a loop window", () => {
