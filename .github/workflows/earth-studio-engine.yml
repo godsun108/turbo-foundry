@@ -39,6 +39,8 @@ jobs:
         run: |
           test -s build/earth-studio-wasm/web/earth_studio_engine_wasm.mjs
           test -s build/earth-studio-wasm/web/earth_studio_engine_wasm.wasm
+      - name: Run WASM C ABI smoke test under Node
+        run: node music-foundry/earth-studio/engine/tests/wasm_smoke_test.mjs build/earth-studio-wasm/web/earth_studio_engine_wasm.mjs build/earth-studio-wasm/web/earth_studio_engine_wasm.wasm
       - name: Upload uncommitted WASM build artifacts
         uses: actions/upload-artifact@v4
         with:
