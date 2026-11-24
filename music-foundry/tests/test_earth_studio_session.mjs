@@ -8,7 +8,8 @@ const valid = () => ({
   tempo:124, meter:{numerator:4,denominator:4}, sampleRate:48000,
   tracks:[{id:"track-1",name:"Drums",kind:"audio",gain:1,pan:0,muted:false,solo:false,
     clips:[{id:"clip-1",assetId:"asset-1",startSeconds:2,sourceStartSeconds:0,durationSeconds:4}]}],
-  assets:[{id:"asset-1",storageKey:"audio/asset-1.wav",mediaType:"audio/wav",sizeBytes:128,sha256:"a".repeat(64)}]
+  assets:[{id:"asset-1",storageKey:"audio/asset-1.wav",mediaType:"audio/wav",sizeBytes:128,sha256:"a".repeat(64)}],
+  instrument:{oscillator:"sine",attack:20,decay:180,sustain:70,release:300,cutoff:8000,vibrato:0,bend:0}
 });
 
 test("valid v1 session round-trips without losing project data", () => {
@@ -65,4 +66,11 @@ test("rejects duplicate asset storage keys", () => {
   const session = valid();
   session.assets.push({...session.assets[0],id:"asset-2"});
   assert.ok(validateSession(session).some(error => error.includes("storageKeys must be unique")));
+});
+
+test("validates and round-trips portable instrument settings", () => {
+  const session = valid();
+  assert.deepEqual(decodeSession(encodeSession(session)).instrument, session.instrument);
+  session.instrument.cutoff = 50000;
+  assert.ok(validateSession(session).some(error => error.includes("instrument cutoff")));
 });

@@ -19,6 +19,16 @@ export function validateSession(session) {
   if (!session.meter || !Number.isInteger(session.meter.numerator) || session.meter.numerator < 1 || session.meter.numerator > 32 || ![1,2,4,8,16,32].includes(session.meter.denominator)) errors.push("meter is invalid");
   if (![44100,48000,88200,96000,176400,192000].includes(session.sampleRate)) errors.push("sampleRate is unsupported");
   if (!Array.isArray(session.tracks) || !Array.isArray(session.assets)) errors.push("tracks and assets must be arrays");
+  if (session.instrument !== undefined) {
+    const p = session.instrument;
+    if (!p || typeof p !== "object" || Array.isArray(p)) errors.push("instrument settings must be an object");
+    else {
+      if (!["sine","sawtooth","square","triangle"].includes(p.oscillator)) errors.push("instrument oscillator is invalid");
+      for (const [key,min,max] of [["attack",1,1000],["decay",1,2000],["sustain",0,100],["release",10,4000],["cutoff",80,18000],["vibrato",0,20],["bend",-12,12]]) {
+        if (typeof p[key] !== "number" || !Number.isFinite(p[key]) || p[key] < min || p[key] > max) errors.push("instrument " + key + " is outside its supported range");
+      }
+    }
+  }
   const ids = new Set();
   const storageKeys = new Set();
   for (const asset of session.assets || []) {

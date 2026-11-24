@@ -211,6 +211,65 @@
           }
         }
       }
+    },
+    "instrument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "oscillator",
+        "attack",
+        "decay",
+        "sustain",
+        "release",
+        "cutoff",
+        "vibrato",
+        "bend"
+      ],
+      "properties": {
+        "oscillator": {
+          "enum": [
+            "sine",
+            "sawtooth",
+            "square",
+            "triangle"
+          ]
+        },
+        "attack": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "decay": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 2000
+        },
+        "sustain": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "release": {
+          "type": "number",
+          "minimum": 10,
+          "maximum": 4000
+        },
+        "cutoff": {
+          "type": "number",
+          "minimum": 80,
+          "maximum": 18000
+        },
+        "vibrato": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "bend": {
+          "type": "number",
+          "minimum": -12,
+          "maximum": 12
+        }
+      }
     }
   }
 }
