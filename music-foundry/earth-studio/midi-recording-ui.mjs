@@ -196,8 +196,9 @@ function stopRecording() {
     const lengthTicks = Math.max(previous.lengthTicks,takeOffset+take.lengthTicks,...notes.map(note=>note.startTick+note.durationTicks));
     track.midiClips[track.midiClips.length-1] = {...previous,notes,lengthTicks};
   } else {
+    const sceneIndex=track.midiClips.length;
     track.midiClips.push(take);
-    if (activeScene === null) activeScene = 0;
+    if (activeScene === null) activeScene = sceneIndex;
   }
   recording = false;
   recorder = null;
