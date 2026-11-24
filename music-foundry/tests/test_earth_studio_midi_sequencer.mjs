@@ -174,3 +174,21 @@ test("standalone transport repeats scheduled notes inside a loop window", () => 
   assert.deepEqual(events.map(event=>event.type),["noteOn","noteOff","noteOn","noteOff","noteOn"]);
   assert.equal(events[2].when,4.5);
 });
+
+test("standalone look-ahead scheduler never emits duplicate events across overlapping polls", () => {
+  let now = 0;
+  const transport = new MusicalTransport({tempo:120,now:()=>now});
+  const clips = [{id:"clip-1",startTick:0,lengthTicks:1920,notes:[
+    {id:"n1",note:60,startTick:480,durationTicks:480,velocity:100,channel:0},
+    {id:"n2",note:62,startTick:960,durationTicks:240,velocity:100,channel:0}
+  ]}];
+  transport.play(now);
+  const first = transport.scheduleAhead(clips,{clockTimeSeconds:0,audioTimeSeconds:20,lookAheadSeconds:.3});
+  now = .1;
+  const second = transport.scheduleAhead(clips,{clockTimeSeconds:now,audioTimeSeconds:20.1,lookAheadSeconds:.3});
+  const combined = [...first,...second];
+  assert.deepEqual(combined.map(event=>[event.type,event.tick]),[
+    ["noteOn",480],["noteOff",960],["noteOn",960]
+  ]);
+  assert.equal(new Set(combined.map(event=>event.type+":"+event.tick+":"+event.note)).size,combined.length);
+});
