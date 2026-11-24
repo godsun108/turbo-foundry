@@ -20,3 +20,15 @@ Configure parameters before rendering and do not mutate/read engine state concur
 
 ## DSP note
 The first filter is intentionally a stable one-pole low-pass without resonance. Oscillator shapes are naive band-limitedness-wise (no anti-aliasing); V2 establishes the instrument parameter contract, not a final high-quality synth. Next priorities: band-limited wavetable/PolyBLEP oscillators, resonant filter, modulation matrix, parameter automation and C ABI.
+
+## Shared C ABI and WebAssembly target
+
+`include/earth_studio/c_api.h` is the stable boundary for browser/WASM and future platform audio hosts. It exposes opaque engine ownership, bounded stereo rendering, MIDI event batches and instrument parameters without exposing C++ object layout.
+
+- Create/destroy and parameter changes are control-thread operations.
+- Render accepts up to 2048 frames and at most 64 sorted sample-offset events per call; invalid blocks/events are rejected.
+- Output is interleaved stereo float32.
+- Regular CMake builds include a C ABI test executable.
+- With Emscripten installed: `emcmake cmake -S music-foundry/earth-studio/engine -B build/earth-studio-wasm`, then `cmake --build build/earth-studio-wasm --target earth_studio_engine_wasm`.
+
+The WASM target is a build artifact, not a committed binary. The browser still uses its Web Audio prototype until an AudioWorklet adapter is wired and verified against the generated module. Never create/destroy the engine or mutate its parameters inside a real-time render callback.
