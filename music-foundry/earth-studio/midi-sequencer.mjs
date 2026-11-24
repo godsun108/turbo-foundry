@@ -88,7 +88,7 @@ export class MidiRecorder {
   toTick(timeSeconds) {
     finite(timeSeconds, "timeSeconds");
     if (timeSeconds < 0) throw new RangeError("timeSeconds cannot be negative");
-    return this.startTick + secondsToTicks(timeSeconds, this.tempo, this.ppq);
+    return secondsToTicks(timeSeconds, this.tempo, this.ppq);
   }
   keyFor(note, channel, key) {
     integer(note, "note", 0, 127); integer(channel, "channel", 0, 15);
@@ -190,6 +190,21 @@ export function createAudioWorkletMidiSink(port) {
     noteOff(note, when, channel = 0) { port.postMessage({type:"noteOff",note,channel,when}); },
     allNotesOff(when) { port.postMessage({type:"allNotesOff",when}); }
   };
+}
+
+export class MidiSequencer {
+  constructor({sink, ppq = MIDI_PPQ} = {}) {
+    integer(ppq, "ppq", 1);
+    if (!sink) throw new TypeError("A MIDI event sink is required");
+    this.sink = sink; this.ppq = ppq;
+  }
+  collect(clips, options) { return collectMidiEvents(clips, {...options, ppq:this.ppq}); }
+  playWindow(clips, options) {
+    const events = this.collect(clips, options);
+    dispatchMidiEvents(events, this.sink);
+    return events;
+  }
+  allNotesOff(when) { if (typeof this.sink.allNotesOff === "function") this.sink.allNotesOff(when); }
 }
 
 export function dispatchMidiEvents(events, sink) {
