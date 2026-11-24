@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
   MIDI_PPQ, ticksToSeconds, secondsToTicks, quantizeTick, createMidiClip,
   validateMidiClip, MidiRecorder, MidiSequencer, collectMidiEvents, createAudioWorkletMidiSink,
-  dispatchMidiEvents
+  dispatchMidiEvents, MusicalTransport
 } from "../earth-studio/midi-sequencer.mjs";
 
 test("musical clock converts ticks and seconds at the configured tempo",()=>{
@@ -112,8 +112,6 @@ test("sequencer window slicing does not retrigger notes already in progress",()=
   ]);
   assert.equal(events[0].when,5.25);
 });
-
-import {MusicalTransport} from "../earth-studio/midi-sequencer.mjs";
 
 test("standalone transport clock plays, pauses, seeks, and resumes without browser APIs", () => {
   let now = 0;
