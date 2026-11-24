@@ -1,24 +1,22 @@
-# EARTH STUDIO Native Audio Engine V1
+# EARTH STUDIO Native Instrument Engine V2
 
-A dependency-free, portable C++20 DSP core. This is not yet a device driver, DAW host, plugin host, or finished standalone application.
+Portable dependency-free C++20 DSP core, still a DSP library rather than a device driver, DAW host, plugin host, or standalone product.
 
-## V1 capabilities
-- Fixed 32-voice polyphonic sine instrument with MIDI note-on, note-off, and all-notes-off.
-- Sample-offset event dispatch inside each render block.
-- Preallocated voice storage and bounded render blocks (maximum 2048 frames).
-- Interleaved stereo float output, master-gain clamp, smoothed attack/release envelope.
-- Sample-clock transport with tempo and beat-position reporting.
-- No allocation, mutex, file/network I/O, or exceptions in the render function.
+## Instrument features
+- Four oscillator shapes: sine, saw, square, triangle.
+- 32-voice polyphony and sample-offset MIDI note-on/note-off/all-notes-off.
+- Per-voice ADSR amplitude envelope.
+- Resonance-free one-pole low-pass filter with adjustable cutoff.
+- Global pitch bend and LFO vibrato controls.
+- Smoothed parameters, bounded gain, stereo float output and sample-clock transport.
+- Fixed voice storage and bounded render blocks (2048 frames maximum); render performs no heap allocation, locking, I/O, or exception throwing.
 
 ## Build and test
     cmake -S music-foundry/earth-studio/engine -B build/earth-studio-engine
     cmake --build build/earth-studio-engine --config Release
     ctest --test-dir build/earth-studio-engine --output-on-failure
 
-## Real-time boundary
-Construct and configure the engine before starting the device, then pass caller-owned output memory and an already ordered event span. Do not call setters or inspect mutable engine state concurrently with rendering; V1 uses a single audio-thread ownership model. The caller must split device callbacks into blocks no larger than 2048 frames and keep events sorted by frame offset. Events outside the current block are not consumed.
+Configure parameters before rendering and do not mutate/read engine state concurrently with the audio thread. Callers must supply sorted events whose frame offsets are inside the current block. Platform audio I/O, MIDI hardware, browser WASM, iOS Audio Unit/CoreAudio, recording, effects, plugin support and standalone device integration remain future adapter work.
 
-This is a DSP core only. A platform adapter must still provide audio I/O, device lifecycle, MIDI input, thread handoff, and callback-size adaptation. No iOS Audio Unit, CoreAudio, WASAPI, ALSA, browser WASM, hardware controller, recording, effects rack, or plugin support is claimed yet.
-
-## Next instrument steps
-Add oscillator waveforms/wavetables, pitch bend and modulation, per-voice envelopes, filters, parameter automation, and a stable C ABI before platform adapters are attached.
+## DSP note
+The first filter is intentionally a stable one-pole low-pass without resonance. Oscillator shapes are naive band-limitedness-wise (no anti-aliasing); V2 establishes the instrument parameter contract, not a final high-quality synth. Next priorities: band-limited wavetable/PolyBLEP oscillators, resonant filter, modulation matrix, parameter automation and C ABI.
