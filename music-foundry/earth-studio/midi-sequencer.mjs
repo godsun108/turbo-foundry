@@ -152,12 +152,8 @@ export function collectMidiEvents(clips, {
   if (loop && (!Number.isInteger(loop.startTick) || !Number.isInteger(loop.endTick) || loop.startTick < 0 || loop.endTick <= loop.startTick)) throw new RangeError("loop range is invalid");
   const events = [];
   const addNote = (clip, note, start, end) => {
-    const onTick = Math.max(start, fromTick), offTick = Math.min(end, toTick);
-    if (onTick < toTick && onTick < offTick) {
-      if (start >= fromTick) events.push({type:"noteOn",tick:start,note:note.note,velocity:note.velocity,channel:note.channel,trackId:clip.trackId,clipId:clip.id});
-      else events.push({type:"noteOn",tick:fromTick,note:note.note,velocity:note.velocity,channel:note.channel,trackId:clip.trackId,clipId:clip.id});
-      if (end < toTick) events.push({type:"noteOff",tick:end,note:note.note,velocity:0,channel:note.channel,trackId:clip.trackId,clipId:clip.id});
-    }
+    if (start >= fromTick && start < toTick) events.push({type:"noteOn",tick:start,note:note.note,velocity:note.velocity,channel:note.channel,trackId:clip.trackId,clipId:clip.id});
+    if (end >= fromTick && end < toTick) events.push({type:"noteOff",tick:end,note:note.note,velocity:0,channel:note.channel,trackId:clip.trackId,clipId:clip.id});
   };
   for (const clip of clips) {
     const errors = validateMidiClip(clip);
