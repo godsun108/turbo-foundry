@@ -39,12 +39,12 @@ void transport_clock() {
 }
 void voice_pool_and_release() {
   earth_studio::AudioEngine engine({48000.0, 0.8F, 0.001F, 0.01F});
-  std::array<float, 512> out{};
+  std::array<float, 4096> out{};
   const std::array on{earth_studio::MidiEvent{0, earth_studio::MidiEventType::note_on, 0, 60, 1.0F}};
   engine.render(out.data(), 64, on);
   require(engine.stats().active_voices == 1, "note-on allocates a voice");
   const std::array off{earth_studio::MidiEvent{0, earth_studio::MidiEventType::note_off, 0, 60, 0.0F}};
-  engine.render(out.data(), 256, off);
+  engine.render(out.data(), 2048, off);
   require(engine.stats().active_voices == 0, "release returns voice to pool");
   std::array<earth_studio::MidiEvent, earth_studio::kMaxVoices + 1> chord{};
   for (std::size_t i = 0; i < chord.size(); ++i)
