@@ -197,7 +197,6 @@ export class MusicalTransport {
     this.positionTick = 0;
     this.startedAt = 0;
     this.scheduledUntilTick = 0;
-    this.scheduledUntilTick = 0;
     this.setLoop(loop);
   }
   rawTickAt(clockTimeSeconds = this.now()) {
@@ -246,6 +245,7 @@ export class MusicalTransport {
     this.playing = false;
     this.positionTick = 0;
     this.startedAt = 0;
+    this.scheduledUntilTick = 0;
     return this.snapshot(this.now());
   }
   seek(tick, clockTimeSeconds = this.now()) {
