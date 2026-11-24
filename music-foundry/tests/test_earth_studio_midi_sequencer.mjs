@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   MIDI_PPQ, ticksToSeconds, secondsToTicks, quantizeTick, createMidiClip,
-  validateMidiClip, MidiRecorder, MidiSequencer, collectMidiEvents, createAudioWorkletMidiSink,
+  validateMidiClip, MidiRecorder, MidiSequencer, collectMidiEvents, createAudioWorkletMidiSink, nextQuantizedTick,
   dispatchMidiEvents, MusicalTransport
 } from "../earth-studio/midi-sequencer.mjs";
 
@@ -12,6 +12,14 @@ test("musical clock converts ticks and seconds at the configured tempo",()=>{
   assert.equal(secondsToTicks(.5,120),960);
   assert.equal(secondsToTicks(1,60),960);
 });
+test("scene launch quantization advances to the next bar boundary",()=>{
+  assert.equal(nextQuantizedTick(0,3840),0);
+  assert.equal(nextQuantizedTick(1,3840),3840);
+  assert.equal(nextQuantizedTick(3840,3840),3840);
+  assert.equal(nextQuantizedTick(3841,3840),7680);
+  assert.throws(()=>nextQuantizedTick(-1,3840),RangeError);
+});
+
 test("quantization supports grid snapping and partial strength",()=>{
   assert.equal(quantizeTick(470,120),480);
   assert.equal(quantizeTick(470,120,.5),475);
