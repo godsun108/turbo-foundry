@@ -102,7 +102,7 @@ const colors=['#c8ff4d','#b69cff','#8ce6ed','#ffbd92'];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const fmt=t=>{t=Math.max(0,t||0);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(Math.floor(t%60)).padStart(2,'0')+'.'+Math.floor((t%1)*10)};
 function say(s){$('status').textContent=s}
-function recalc(){const midiTempo=clamp(Number($("bpm").value)||120,40,240);state.duration=Math.max(0,...state.tracks.map(t=>t.offset+t.buffer.duration),...(state.midiTracks||[]).flatMap(t=>(t.midiClips||[]).map(c=>(c.startTick+c.lengthTicks)*60/(midiTempo*960))));$('trackCount').textContent=state.tracks.length+' track'+(state.tracks.length===1?'':'s');$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration);$('seek').value=state.duration?Math.round(state.playhead/state.duration*1000):0;render()}
+function recalc(){const midiTempo=clamp(Number($("bpm").value)||120,40,240);state.duration=Math.max(0,...state.tracks.map(t=>t.offset+t.buffer.duration),...(state.midiTracks||[]).flatMap(t=>(t.midiClips||[]).map(c=>(c.startTick+c.lengthTicks)*60/(midiTempo*960)*(state.midiLoopRepeats||1))));$('trackCount').textContent=state.tracks.length+' track'+(state.tracks.length===1?'':'s');$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration);$('seek').value=state.duration?Math.round(state.playhead/state.duration*1000):0;render()}
 function render(){
 const root=$('timeline');root.querySelectorAll('.track').forEach(n=>n.remove());$('empty').hidden=state.tracks.length>0;
 const ruler=$('ruler');ruler.innerHTML='';const dur=Math.max(20,state.duration+4);ruler.style.width=Math.max(700,dur*50)+'px';for(let s=0;s<=dur;s+=2){const n=document.createElement('span');n.textContent=fmt(s);n.style.left=(s*50)+'px';ruler.append(n)}
