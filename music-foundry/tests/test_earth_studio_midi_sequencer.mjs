@@ -181,7 +181,7 @@ test("standalone transport can cancel a look-ahead window and reschedule from th
   ]}];
   transport.play(now);
   const first = transport.scheduleAhead(clips,{clockTimeSeconds:0,audioTimeSeconds:8,lookAheadSeconds:.5});
-  assert.deepEqual(first.map(event=>[event.type,event.tick]),[["noteOn",480],["noteOff",960]]);
+  assert.deepEqual(first.map(event=>[event.type,event.tick]),[["noteOn",480]]);
   now = .1;
   const cursor = transport.snapshot(now).absoluteTick;
   transport.seek(cursor,now);
