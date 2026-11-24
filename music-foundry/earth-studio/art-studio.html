@@ -270,6 +270,7 @@ function makeSession(){
     format:"earthsession",schemaVersion:1,id:project.id,name:project.name,
     createdAt:project.createdAt,updatedAt:now,tempo:Math.max(40,Math.min(240,Number($("bpm").value)||120)),
     meter:{numerator:4,denominator:4},sampleRate:48000,
+    instrument:window.__earthInstrument?.getSettings()||{oscillator:"sine",attack:20,decay:180,sustain:70,release:300,cutoff:8000,vibrato:0,bend:0},
     tracks:app.state.tracks.map(t=>({
       id:t.id,name:t.name,kind:"audio",gain:t.gain,pan:t.pan,muted:t.muted,solo:t.solo,
       clips:[{id:"clip-"+t.id,assetId:"asset-"+t.id,startSeconds:t.offset,sourceStartSeconds:0,durationSeconds:t.buffer.duration}]
@@ -367,6 +368,7 @@ async function openProject(){
     }
     await context.close();
     app.state.tracks=restored;app.state.selected=restored[0]?.id||null;app.state.playhead=0;
+    window.__earthInstrument?.setSettings(result.session.instrument||{oscillator:"sine",attack:20,decay:180,sustain:70,release:300,cutoff:8000,vibrato:0,bend:0});
     $("bpm").value=result.session.tempo;$("tempo").textContent=result.session.tempo+" BPM";
     app.recalc();
     if(app.state.selected)document.getElementById("selectedControls").hidden=false;
