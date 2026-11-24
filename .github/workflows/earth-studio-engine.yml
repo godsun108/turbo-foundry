@@ -1,0 +1,25 @@
+name: EARTH STUDIO native engine
+on:
+  pull_request:
+    paths:
+      - "music-foundry/earth-studio/engine/**"
+      - ".github/workflows/earth-studio-engine.yml"
+  push:
+    branches:
+      - "earth-studio/**"
+    paths:
+      - "music-foundry/earth-studio/engine/**"
+      - ".github/workflows/earth-studio-engine.yml"
+permissions:
+  contents: read
+jobs:
+  native-engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure CMake
+        run: cmake -S music-foundry/earth-studio/engine -B build/earth-studio-engine -DCMAKE_BUILD_TYPE=Release
+      - name: Build native engine
+        run: cmake --build build/earth-studio-engine --parallel 2
+      - name: Run DSP and transport tests
+        run: ctest --test-dir build/earth-studio-engine --output-on-failure
