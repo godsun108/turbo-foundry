@@ -292,7 +292,7 @@ function reconcileScenes(){
   const count=sceneCount();
   let changed=false;
   if(!count&&activeScene!==null){activeScene=null;pendingScene=null;sceneStartAbsoluteTick=0;changed=true;}
-  else if(count&&(activeScene===null||activeScene>=count)){activeScene=0;pendingScene=null;sceneStartAbsoluteTick=0;changed=true;}
+  else if(count&&activeScene!==null&&activeScene>=count){activeScene=0;pendingScene=null;sceneStartAbsoluteTick=0;changed=true;}
   if(pendingScene&&pendingScene.index>=count){pendingScene=null;changed=true;}
   if(changed)window.dispatchEvent(new Event("earthstudio:scenechange"));
 }
@@ -311,11 +311,12 @@ function advanceScene(absoluteTick){
   return true;
 }
 function stopScene(){pendingScene=null;activeScene=null;sceneStartAbsoluteTick=0;stopPlayback();window.dispatchEvent(new Event("earthstudio:scenechange"));}
+function resetSceneSelection(){activeScene=sceneCount()?0:null;pendingScene=null;sceneStartAbsoluteTick=0;window.dispatchEvent(new Event("earthstudio:scenechange"));}
 window.__earthStudioMidi = {
   render,stopRecording,getTracks:()=>app.state.midiTracks,
   getClips:()=>{const tracks=app.state.midiTracks;const anySolo=tracks.some(track=>track.solo);return activeScene===null?[]:tracks.flatMap(track=>(track.muted||(anySolo&&!track.solo))?[]:((track.midiClips||[])[activeScene]?[{...(track.midiClips||[])[activeScene],startTick:sceneStartAbsoluteTick,trackId:track.id}]:[]));},
   getSceneInfo:()=>({count:sceneCount(),active:activeScene,startTick:sceneStartAbsoluteTick,pending:pendingScene?{index:pendingScene.index,tick:pendingScene.tick}:null}),
-  launchScene,advanceScene,stopScene,isLoopEnabled:()=>loopEnabled,
+  launchScene,advanceScene,stopScene,resetSceneSelection,isLoopEnabled:()=>loopEnabled,
   onTransportStart:()=>{},onTransportStop:stopPlayback,
   dispose:()=>{unsubscribe?.();for(const input of midiAccess?.inputs.values()||[])input.onmidimessage=null;}
 };
