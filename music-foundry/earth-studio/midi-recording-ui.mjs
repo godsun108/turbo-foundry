@@ -198,7 +198,8 @@ function stopRecording() {
   } else {
     const sceneIndex=track.midiClips.length;
     track.midiClips.push(take);
-    if (activeScene === null) activeScene = sceneIndex;
+    const snapshot=window.__earthStudioTransport?.snapshot?.()||{absoluteTick:0,playing:false};
+    launchScene(sceneIndex,snapshot.absoluteTick,snapshot.playing);
   }
   recording = false;
   recorder = null;
