@@ -145,7 +145,7 @@ async function start() {
     await audioContext.resume();
     transport.setTempo(tempo(),now());
     transport.setLoop(loopConfig(),now());
-    const position = transport.snapshot(now()).tick;
+    const position = transport.snapshot(now()).absoluteTick;
     transport.play(now());
     app.state.playing = true;
     playAudioFrom(ticksToSeconds(position,transport.tempo,transport.ppq));
@@ -166,9 +166,9 @@ function pause() {
   stopAudioSources();
   cancelMidi();
   app.state.playing = false;
-  app.state.playhead = ticksToSeconds(snapshot.tick,transport.tempo,transport.ppq);
+  app.state.playhead = ticksToSeconds(snapshot.absoluteTick,transport.tempo,transport.ppq);
   $("play").textContent = "▶ PLAY";
-  updateClock({absoluteTick:snapshot.tick});
+  updateClock(snapshot);
   app.say("Paused.");
 }
 function stop() {
