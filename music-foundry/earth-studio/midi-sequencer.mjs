@@ -179,6 +179,115 @@ export function collectMidiEvents(clips, {
   return events.map(event => ({...event, when:originTime + ticksToSeconds(event.tick - fromTick, tempo, ppq)}));
 }
 
+/**
+ * Host-neutral transport clock for browser, desktop, and standalone builds.
+ * The host supplies a monotonic clock and an audio-clock timestamp when
+ * scheduling; this class never reaches into browser globals or audio APIs.
+ */
+export class MusicalTransport {
+  constructor({tempo = 120, ppq = MIDI_PPQ, now = () => 0, loop = null} = {}) {
+    validateTempo(tempo);
+    integer(ppq, "ppq", 1);
+    if (typeof now !== "function") throw new TypeError("now must be a clock function");
+    this.tempo = tempo;
+    this.ppq = ppq;
+    this.now = now;
+    this.loop = null;
+    this.playing = false;
+    this.positionTick = 0;
+    this.startedAt = 0;
+    this.setLoop(loop);
+  }
+  rawTickAt(clockTimeSeconds = this.now()) {
+    finite(clockTimeSeconds, "clockTimeSeconds");
+    if (!this.playing) return this.positionTick;
+    return Math.max(0, secondsToTicks(clockTimeSeconds - this.startedAt, this.tempo, this.ppq));
+  }
+  positionAt(clockTimeSeconds = this.now()) {
+    const absoluteTick = this.rawTickAt(clockTimeSeconds);
+    if (!this.loop || absoluteTick < this.loop.endTick) return absoluteTick;
+    const length = this.loop.endTick - this.loop.startTick;
+    return this.loop.startTick + ((absoluteTick - this.loop.startTick) % length);
+  }
+  snapshot(clockTimeSeconds = this.now()) {
+    const absoluteTick = this.rawTickAt(clockTimeSeconds);
+    const loopCount = this.loop && absoluteTick >= this.loop.endTick
+      ? Math.floor((absoluteTick - this.loop.startTick) / (this.loop.endTick - this.loop.startTick))
+      : 0;
+    return {
+      playing: this.playing,
+      tick: this.positionAt(clockTimeSeconds),
+      absoluteTick,
+      loopCount,
+      tempo: this.tempo,
+      ppq: this.ppq,
+      loop: this.loop ? {...this.loop} : null
+    };
+  }
+  play(clockTimeSeconds = this.now()) {
+    finite(clockTimeSeconds, "clockTimeSeconds");
+    if (!this.playing) {
+      this.startedAt = clockTimeSeconds - ticksToSeconds(this.positionTick, this.tempo, this.ppq);
+      this.playing = true;
+    }
+    return this.snapshot(clockTimeSeconds);
+  }
+  pause(clockTimeSeconds = this.now()) {
+    finite(clockTimeSeconds, "clockTimeSeconds");
+    if (this.playing) this.positionTick = this.positionAt(clockTimeSeconds);
+    this.playing = false;
+    return this.snapshot(clockTimeSeconds);
+  }
+  stop() {
+    this.playing = false;
+    this.positionTick = 0;
+    this.startedAt = 0;
+    return this.snapshot(this.now());
+  }
+  seek(tick, clockTimeSeconds = this.now()) {
+    integer(tick, "tick", 0);
+    finite(clockTimeSeconds, "clockTimeSeconds");
+    this.positionTick = tick;
+    if (this.playing) this.startedAt = clockTimeSeconds - ticksToSeconds(tick, this.tempo, this.ppq);
+    return this.snapshot(clockTimeSeconds);
+  }
+  setTempo(tempo, clockTimeSeconds = this.now()) {
+    validateTempo(tempo);
+    finite(clockTimeSeconds, "clockTimeSeconds");
+    const absoluteTick = this.rawTickAt(clockTimeSeconds);
+    this.tempo = tempo;
+    if (this.playing) this.startedAt = clockTimeSeconds - ticksToSeconds(absoluteTick, this.tempo, this.ppq);
+    return this.snapshot(clockTimeSeconds);
+  }
+  setLoop(loop, clockTimeSeconds = this.now()) {
+    finite(clockTimeSeconds, "clockTimeSeconds");
+    if (loop !== null) {
+      if (!loop || !Number.isInteger(loop.startTick) || !Number.isInteger(loop.endTick) || loop.startTick < 0 || loop.endTick <= loop.startTick) {
+        throw new RangeError("loop range is invalid");
+      }
+    }
+    const absoluteTick = this.rawTickAt(clockTimeSeconds);
+    this.loop = loop ? {startTick:loop.startTick,endTick:loop.endTick} : null;
+    if (this.playing) this.startedAt = clockTimeSeconds - ticksToSeconds(absoluteTick, this.tempo, this.ppq);
+    else this.positionTick = this.positionAt(clockTimeSeconds);
+    return this.snapshot(clockTimeSeconds);
+  }
+  scheduleAhead(clips, {clockTimeSeconds = this.now(), audioTimeSeconds = clockTimeSeconds, lookAheadSeconds = 0.12} = {}) {
+    finite(clockTimeSeconds, "clockTimeSeconds");
+    finite(audioTimeSeconds, "audioTimeSeconds");
+    finite(lookAheadSeconds, "lookAheadSeconds");
+    if (lookAheadSeconds <= 0) throw new RangeError("lookAheadSeconds must be positive");
+    if (!this.playing) return [];
+    const fromTick = this.rawTickAt(clockTimeSeconds);
+    const toTick = fromTick + secondsToTicks(lookAheadSeconds, this.tempo, this.ppq);
+    if (toTick <= fromTick) return [];
+    return collectMidiEvents(clips, {
+      tempo:this.tempo, ppq:this.ppq, fromTick, toTick,
+      originTime:audioTimeSeconds, loop:this.loop
+    });
+  }
+}
+
 export function createAudioWorkletMidiSink(port) {
   if (!port || typeof port.postMessage !== "function") throw new TypeError("AudioWorklet port must expose postMessage");
   return {
