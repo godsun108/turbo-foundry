@@ -170,7 +170,8 @@ async function startRecording() {
     const start = await instrument.prepare();
     const track = ensureTrack();
     recorder = new MidiRecorder({idPrefix:"note"});
-    recorder.start({tempo:currentTempo(),quantizeTicks:Number($("midiQuantize").value)||0});
+    const transportPosition = window.__earthStudioTransport?.snapshot?.();
+    recorder.start({tempo:currentTempo(),startTick:transportPosition?.tick||0,quantizeTicks:Number($("midiQuantize").value)||0});
     recordStartTime = start;
     recording = true;
     $("midiRecord").disabled = true;
@@ -186,11 +187,12 @@ function stopRecording() {
   const endTime = instrument.getAudioContextTime();
   recorder.stop({timeSeconds:Math.max(0,endTime-recordStartTime)});
   const track = ensureTrack();
-  const take = recorder.toClip({id:id("midi-clip"),lengthTicks:Math.max(currentDurationTicks(),...recorder.notes.map(note=>note.startTick+note.durationTicks),1)});
+  const take = recorder.toClip({id:id("midi-clip")});
   if (overdub && track.midiClips.length) {
     const previous = track.midiClips[track.midiClips.length-1];
-    const notes = [...previous.notes,...take.notes.map(note=>({...note,id:id("note")}))];
-    const lengthTicks = Math.max(previous.lengthTicks,take.lengthTicks,...notes.map(note=>note.startTick+note.durationTicks));
+    const takeOffset = Math.max(0,take.startTick-previous.startTick);
+    const notes = [...previous.notes,...take.notes.map(note=>({...note,id:id("note"),startTick:takeOffset+note.startTick}))];
+    const lengthTicks = Math.max(previous.lengthTicks,takeOffset+take.lengthTicks,...notes.map(note=>note.startTick+note.durationTicks));
     track.midiClips[track.midiClips.length-1] = {...previous,notes,lengthTicks};
   } else {
     track.midiClips.push(take);
