@@ -52,3 +52,5 @@ jobs:
         run: |
           node --check --input-type=module < music-foundry/earth-studio/instrument-adapter.mjs
           node --check --input-type=module < music-foundry/earth-studio/earth-studio-audio-worklet.mjs
+          node --check --input-type=module < music-foundry/earth-studio/midi-sequencer.mjs
+          node --check --input-type=module < music-foundry/earth-studio/midi-recording-ui.mjs
