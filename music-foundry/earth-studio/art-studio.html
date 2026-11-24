@@ -62,8 +62,8 @@ body{padding-bottom:env(safe-area-inset-bottom)}a{color:var(--acid);text-decorat
 </section>
 
 <section class="panel" id="instrumentPanel">
-  <div class="track-head"><h2>PERFORMANCE INSTRUMENT</h2><span class="tag">PLAYABLE BROWSER PROTOTYPE</span></div>
-  <p class="hint">Play notes directly. This Web Audio adapter is a working browser instrument prototype; it is not yet running the native C++ engine.</p>
+  <div class="track-head"><h2>PERFORMANCE INSTRUMENT</h2><span class="tag">NATIVE WASM · WEB AUDIO FALLBACK</span></div>
+  <p class="hint">Play notes directly. EARTH STUDIO attempts the native C++ engine through WebAssembly and AudioWorklet; if unavailable, it falls back to Web Audio.</p>
   <div class="toolbar" style="margin:12px 0">
     <label class="hint" for="instrumentPreset">PRESET</label>
     <select id="instrumentPreset" style="min-height:40px;flex:1;min-width:150px;background:#0b1017;color:white;border:1px solid var(--line);border-radius:8px;padding:7px">
@@ -141,112 +141,7 @@ window.__earthStudio={state,addTrack,recalc,stop,writeWav,say};
 </script>
 
 
-<script>
-(function(){
-"use strict";
-const $=id=>document.getElementById(id);
-const defaults={oscillator:"sine",attack:20,decay:180,sustain:70,release:300,cutoff:8000,vibrato:0,bend:0};
-const presets={
- warm:{...defaults},
- bright:{...defaults,oscillator:"sawtooth",attack:5,decay:260,sustain:58,release:220,cutoff:12500},
- soft:{...defaults,oscillator:"triangle",attack:120,decay:420,sustain:48,release:900,cutoff:5200},
- deep:{...defaults,oscillator:"square",attack:8,decay:300,sustain:82,release:500,cutoff:900}
-};
-let settings={...defaults},ctx=null,voices=new Map(),custom=[];
-const status=s=>{$("instrumentStatus").textContent=s};
-const read=()=>({
- oscillator:$("oscillator").value,attack:Number($("attack").value),decay:Number($("decay").value),
- sustain:Number($("sustain").value),release:Number($("release").value),cutoff:Number($("cutoff").value),
- vibrato:Number($("vibrato").value),bend:Number($("bend").value)
-});
-function paint(){
- settings=read();
- $("attackValue").textContent=settings.attack+" ms";
- $("decayValue").textContent=settings.decay+" ms";
- $("sustainValue").textContent=settings.sustain+"%";
- $("releaseValue").textContent=settings.release+" ms";
- $("cutoffValue").textContent=settings.cutoff>=1000?(settings.cutoff/1000).toFixed(1)+" kHz":settings.cutoff+" Hz";
- $("vibratoValue").textContent=settings.vibrato.toFixed(1)+" Hz";
- $("bendValue").textContent=settings.bend+" st";
- for(const voice of voices.values())updateVoice(voice);
-}
-function apply(value){
- const v={...defaults,...value};
- $("oscillator").value=v.oscillator;
- for(const key of ["attack","decay","sustain","release","cutoff","vibrato","bend"])$(key).value=v[key];
- paint();
-}
-function audio(){
- const AC=window.AudioContext||window.webkitAudioContext;
- if(!AC)throw new Error("Web Audio is not available in this browser");
- if(!ctx)ctx=new AC();
- return ctx;
-}
-function updateVoice(v){
- if(!ctx||!v)return;
- const now=ctx.currentTime;
- v.filter.frequency.setTargetAtTime(settings.cutoff,now,.025);
- v.osc.frequency.setTargetAtTime(v.baseFrequency*Math.pow(2,settings.bend/12),now,.02);
- if(v.lfoGain)v.lfoGain.gain.setTargetAtTime(v.baseFrequency*settings.vibrato/1200,now,.03);
-}
-async function noteOn(id,midi){
- try{
-  const ac=audio();await ac.resume();noteOff(id);
-  const now=ac.currentTime,osc=ac.createOscillator(),filter=ac.createBiquadFilter(),amp=ac.createGain();
-  const base=440*Math.pow(2,(midi-69)/12);
-  osc.type=settings.oscillator;osc.frequency.value=base*Math.pow(2,settings.bend/12);
-  filter.type="lowpass";filter.frequency.value=settings.cutoff;filter.Q.value=.0001;
-  amp.gain.setValueAtTime(.0001,now);
-  amp.gain.exponentialRampToValueAtTime(.22,now+Math.max(.001,settings.attack/1000));
-  amp.gain.exponentialRampToValueAtTime(Math.max(.0001,.22*settings.sustain/100),now+Math.max(.002,(settings.attack+settings.decay)/1000));
-  let lfo=null,lfoGain=null;
-  if(settings.vibrato>0){lfo=ac.createOscillator();lfo.type="sine";lfo.frequency.value=5;lfoGain=ac.createGain();lfoGain.gain.value=base*settings.vibrato/1200;lfo.connect(lfoGain);lfoGain.connect(osc.frequency);lfo.start(now)}
-  osc.connect(filter);filter.connect(amp);amp.connect(ac.destination);osc.start(now);
-  const voice={osc,filter,amp,lfo,lfoGain,baseFrequency:base};
-  voices.set(id,voice);$("instrumentKeyboard").querySelectorAll("[data-note='"+midi+"']").forEach(k=>k.classList.add("active"));
-  status("Playing MIDI "+midi+" · "+settings.oscillator);
- }catch(error){status(error.message||"Could not start audio");}
-}
-function noteOff(id){
- const v=voices.get(id);if(!v)return;
- const now=ctx.currentTime;
- v.amp.gain.cancelScheduledValues(now);v.amp.gain.setTargetAtTime(.0001,now,Math.max(.01,settings.release/3500));
- v.osc.stop(now+Math.max(.06,settings.release/1000+.04));
- if(v.lfo){v.lfo.stop(now+Math.max(.06,settings.release/1000+.04))}
- voices.delete(id);
- const midi=Number(String(id).split(":")[0]);
- $("instrumentKeyboard").querySelectorAll("[data-note='"+midi+"']").forEach(k=>k.classList.remove("active"));
-}
-$("instrumentKeyboard").querySelectorAll("[data-note]").forEach(key=>{
- const midi=Number(key.dataset.note);
- key.addEventListener("pointerdown",e=>{e.preventDefault();key.setPointerCapture(e.pointerId);noteOn(" "+midi+":"+e.pointerId,midi)});
- const release=e=>noteOff(" "+midi+":"+e.pointerId);
- key.addEventListener("pointerup",release);key.addEventListener("pointercancel",release);key.addEventListener("lostpointercapture",release);
-});
-for(const id of ["oscillator","attack","decay","sustain","release","cutoff","vibrato","bend"])$(id).addEventListener("input",paint);
-$("allNotesOff").addEventListener("click",()=>{for(const id of [...voices.keys()])noteOff(id);status("All notes off.");});
-function fillPresets(){
- const select=$("instrumentPreset");
- for(const option of [...select.options])if(option.dataset.custom==="true")option.remove();
- custom.forEach((p,i)=>{const o=new Option(p.name,"custom:"+i);o.dataset.custom="true";select.add(o)});
-}
-$("instrumentPreset").addEventListener("change",e=>{
- const v=e.target.value;
- if(v.startsWith("custom:")){const p=custom[Number(v.slice(7))];if(p)apply(p.settings);}
- else if(presets[v])apply(presets[v]);
-});
-$("saveInstrumentPreset").addEventListener("click",()=>{
- const name=window.prompt("Name this instrument preset:");
- if(!name||!name.trim())return;
- custom.push({name:name.trim().slice(0,40),settings:read()});
- try{localStorage.setItem("earth-studio-instrument-presets-v1",JSON.stringify(custom));fillPresets();$("instrumentPreset").value="custom:"+(custom.length-1);status("Preset saved on this device.");}
- catch(error){custom.pop();status("Could not save preset in this browser.");}
-});
-try{const saved=JSON.parse(localStorage.getItem("earth-studio-instrument-presets-v1")||"[]");if(Array.isArray(saved))custom=saved.filter(p=>p&&typeof p.name==="string"&&p.settings&&typeof p.settings==="object").slice(0,32);fillPresets();}catch{}
-apply(defaults);
-window.__earthInstrument={getSettings:()=>({...settings}),setSettings:apply,allNotesOff:()=>{for(const id of [...voices.keys()])noteOff(id)}};
-})();
-</script>
+<script type="module" src="./instrument-adapter.mjs"></script>
 
 <script type="module">
 import {EarthStudioStore} from "./session-store.mjs";
