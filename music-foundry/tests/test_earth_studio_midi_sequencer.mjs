@@ -173,6 +173,22 @@ test("standalone transport repeats scheduled notes inside a loop window", () => 
   assert.equal(events[2].when,4.5);
 });
 
+test("standalone transport can cancel a look-ahead window and reschedule from the exact cursor", () => {
+  let now = 0;
+  const transport = new MusicalTransport({tempo:120,now:()=>now});
+  const clips = [{id:"clip-1",startTick:0,lengthTicks:1920,notes:[
+    {id:"n1",note:60,startTick:480,durationTicks:480,velocity:100,channel:0}
+  ]}];
+  transport.play(now);
+  const first = transport.scheduleAhead(clips,{clockTimeSeconds:0,audioTimeSeconds:8,lookAheadSeconds:.5});
+  assert.deepEqual(first.map(event=>[event.type,event.tick]),[["noteOn",480],["noteOff",960]]);
+  now = .1;
+  const cursor = transport.snapshot(now).absoluteTick;
+  transport.seek(cursor,now);
+  const restarted = transport.scheduleAhead(clips,{clockTimeSeconds:now,audioTimeSeconds:8.1,lookAheadSeconds:.5});
+  assert.deepEqual(restarted.map(event=>[event.type,event.tick]),[["noteOff",960]]);
+});
+
 test("standalone look-ahead scheduler never emits duplicate events across overlapping polls", () => {
   let now = 0;
   const transport = new MusicalTransport({tempo:120,now:()=>now});
