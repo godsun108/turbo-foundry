@@ -74,3 +74,25 @@ test("validates and round-trips portable instrument settings", () => {
   session.instrument.cutoff = 50000;
   assert.ok(validateSession(session).some(error => error.includes("instrument cutoff")));
 });
+
+test("MIDI clips round-trip in earthsession without breaking legacy tracks",()=>{
+  const session=valid();
+  session.tracks.push({id:"midi-1",name:"Keys",kind:"midi",gain:1,pan:0,muted:false,solo:false,clips:[],midiClips:[
+    {id:"clip-1",startTick:1920,lengthTicks:960,notes:[
+      {id:"note-1",note:60,startTick:0,durationTicks:480,velocity:100,channel:0},
+      {id:"note-2",note:64,startTick:480,durationTicks:480,velocity:82,channel:1}
+    ]}
+  ]});
+  assert.deepEqual(decodeSession(encodeSession(session)).tracks[1].midiClips,session.tracks[1].midiClips);
+  const legacy=valid();
+  assert.equal(decodeSession(encodeSession(legacy)).tracks[0].midiClips,undefined);
+});
+test("rejects MIDI clips on audio tracks and notes outside clip bounds",()=>{
+  const session=valid();
+  session.tracks[0].midiClips=[{id:"bad",startTick:0,lengthTicks:120,notes:[
+    {id:"n",note:60,startTick:0,durationTicks:240,velocity:100,channel:0}
+  ]}];
+  const errors=validateSession(session);
+  assert.ok(errors.some(error=>error.includes("MIDI clips require")));
+  assert.ok(errors.some(error=>error.includes("extends beyond")));
+});
