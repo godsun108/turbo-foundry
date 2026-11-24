@@ -242,7 +242,9 @@ $("midiOverdub").addEventListener("click",()=>{overdub=!overdub;$("midiOverdub")
 $("midiLoop").addEventListener("click",()=>{
   loopEnabled=!loopEnabled;
   app.state.midiLoopRepeats=loopEnabled?4:1;
+  app.state.midiLoopEnabled=loopEnabled;
   $("midiLoop").textContent="MIDI LOOP ×4: "+(loopEnabled?"ON":"OFF");
+  window.dispatchEvent(new Event("earthstudio:transport-config"));
   app.recalc();
   status(loopEnabled?"MIDI clips will repeat for four cycles on playback.":"MIDI loop playback disabled.");
 });
@@ -296,5 +298,5 @@ $("stop").addEventListener("click",stopPlayback);
 $("clearSession").addEventListener("click",()=>{app.state.midiTracks=[];activeTrackId=null;render();stopPlayback();});
 $("newProject").addEventListener("click",()=>{app.state.midiTracks=[];activeTrackId=null;render();stopPlayback();});
 window.addEventListener("earthstudio:change",()=>{render();updateSelectionControls();});
-window.__earthStudioMidi = {render,stopRecording,getTracks:()=>app.state.midiTracks,onTransportStart:schedulePlayback,onTransportStop:stopPlayback,dispose:()=>{unsubscribe?.();for(const input of midiAccess?.inputs.values()||[])input.onmidimessage=null;}};
+window.__earthStudioMidi = {render,stopRecording,getTracks:()=>app.state.midiTracks,getClips:()=>{const tracks=app.state.midiTracks;const anySolo=tracks.some(track=>track.solo);return tracks.flatMap(track=>(track.muted||(anySolo&&!track.solo))?[]:(track.midiClips||[]).map(clip=>({...clip,trackId:track.id})));},isLoopEnabled:()=>loopEnabled,onTransportStart:()=>{},onTransportStop:stopPlayback,dispose:()=>{unsubscribe?.();for(const input of midiAccess?.inputs.values()||[])input.onmidimessage=null;}};
 render();
