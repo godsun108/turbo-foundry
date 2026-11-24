@@ -129,6 +129,10 @@ function frame() {
     stop();
     return;
   }
+  if (midi.advanceScene(snapshot.absoluteTick)) {
+    cancelMidi();
+    refreshLoop();
+  }
   scheduleMidi();
   animationFrame = requestAnimationFrame(frame);
 }
