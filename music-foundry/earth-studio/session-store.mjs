@@ -24,7 +24,7 @@ export function validateSession(session) {
   for (const asset of session.assets || []) {
     if (!asset || typeof asset.id !== "string" || ids.has(asset.id)) errors.push("asset IDs must be unique strings");
     else ids.add(asset.id);
-    if (!asset || typeof asset.storageKey !== "string" || !asset.storageKey || asset.storageKey.split("/").some(part => !part || part === "." || part === "..") || asset.storageKey.startsWith("/") || asset.storageKey.includes("\\\\") || asset.storageKey.includes("\\0")) errors.push("asset storageKey must be a safe relative key");
+    if (!asset || typeof asset.storageKey !== "string" || !asset.storageKey || asset.storageKey.split("/").some(part => !part || part === "." || part === "..") || asset.storageKey.startsWith("/") || asset.storageKey.includes(String.fromCharCode(92)) || asset.storageKey.includes(String.fromCharCode(0))) errors.push("asset storageKey must be a safe relative key");
     else if (storageKeys.has(asset.storageKey)) errors.push("asset storageKeys must be unique");
     else storageKeys.add(asset.storageKey);
     if (!asset || !Number.isInteger(asset.sizeBytes) || asset.sizeBytes < 0) errors.push("asset sizeBytes must be a non-negative integer");
