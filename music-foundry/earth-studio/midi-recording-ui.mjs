@@ -136,6 +136,7 @@ function stopRecording() {
   $("midiRecord").disabled = false;
   $("midiStop").disabled = true;
   window.dispatchEvent(new Event("earthstudio:change"));
+  app.recalc();
   render();
   status("Take saved in the project · " + (overdub ? "overdub complete." : "recording complete."));
 }
@@ -172,7 +173,7 @@ $("midiRecord").addEventListener("click",startRecording);
 $("midiStop").addEventListener("click",stopRecording);
 $("midiOverdub").addEventListener("click",()=>{overdub=!overdub;$("midiOverdub").textContent="OVERDUB: "+(overdub?"ON":"OFF");});
 if (typeof instrument.onMidiEvent === "function") unsubscribe = instrument.onMidiEvent(receive);
-$("play").addEventListener("click",()=>{if(app.state.playing) schedulePlayback();else stopPlayback();});
+$("play").addEventListener("click",()=>{setTimeout(()=>{if(app.state.playing)schedulePlayback();else stopPlayback();},120);});
 $("stop").addEventListener("click",stopPlayback);
 $("clearSession").addEventListener("click",()=>{app.state.midiTracks=[];activeTrackId=null;render();stopPlayback();});
 $("newProject").addEventListener("click",()=>{app.state.midiTracks=[];activeTrackId=null;render();stopPlayback();});
