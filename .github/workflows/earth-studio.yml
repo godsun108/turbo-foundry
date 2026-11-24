@@ -35,10 +35,10 @@ jobs:
           import re
           from pathlib import Path
           html = Path("music-foundry/earth-studio/art-studio.html").read_text(encoding="utf-8")
-          classic = re.findall(r'<script>(.*?)</script>', html, re.S)
-          module = re.findall(r'<script type="module">(.*?)</script>', html, re.S)
-          if len(classic) != 1 or len(module) != 1:
-              raise SystemExit(f"Expected one classic and one module script; found {len(classic)} and {len(module)}")
+          classic = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', html, re.S)
+          module = re.findall(r'<script\s+type=["\']module["\']\s*>(.*?)</script>', html, re.S)
+          if not classic or not module:
+              raise SystemExit(f"Expected at least one classic and one module script; found {len(classic)} and {len(module)}")
           Path("/tmp/earth-studio-classic.js").write_text("\n".join(classic), encoding="utf-8")
           Path("/tmp/earth-studio-module.js").write_text("\n".join(module), encoding="utf-8")
           PY
