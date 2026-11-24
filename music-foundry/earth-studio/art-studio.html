@@ -20,12 +20,13 @@ body{padding-bottom:env(safe-area-inset-bottom)}a{color:var(--acid);text-decorat
 <div class="track-head"><h2>SESSION</h2><span class="hint" id="sessionInfo">48 kHz · browser-local</span></div>
 <div class="toolbar"><button class="primary" id="addAudio">＋ ADD AUDIO</button><button id="addDemo">＋ DEMO TRACK</button><button id="exportMix">EXPORT WAV MIX</button><button class="ghost" id="clearSession">CLEAR SESSION</button></div><div class="toolbar" style="margin-top:10px">
 <input id="projectName" type="text" maxlength="128" value="Untitled Session" aria-label="Project name" style="flex:2;min-width:150px;min-height:42px;background:#0b1017;color:white;border:1px solid var(--line);border-radius:10px;padding:8px"><button id="newProject">NEW PROJECT</button>
-<button id="saveProject" class="primary">SAVE PROJECT</button>
+<button id="saveProject" class="primary">SAVE PROJECT</button><button id="exportPackage">EXPORT .EARTHSESSION</button><button id="importPackage">IMPORT PROJECT</button>
 <select id="projectList" aria-label="Saved projects" style="flex:2;min-width:160px;min-height:42px;background:#0b1017;color:white;border:1px solid var(--line);border-radius:10px;padding:8px"><option value="">OPEN SAVED PROJECT…</option></select>
 <button id="openProject">OPEN</button>
 </div>
 <div class="hint" id="projectStatus">Projects are stored locally in this browser. Save before clearing site data or changing devices.</div>
 <input id="fileInput" type="file" accept="audio/*" multiple hidden>
+<input id="packageInput" type="file" accept=".earthsession,application/zip" hidden>
 <div class="status" id="status" role="status" aria-live="polite">Ready. Add audio files to begin.</div>
 </section>
 <section class="panel">
@@ -102,6 +103,7 @@ window.__earthStudio={state,addTrack,recalc,stop,writeWav,say};
 
 <script type="module">
 import {EarthStudioStore} from "./session-store.mjs";
+import {createProjectArchive,readProjectArchive} from "./project-package.mjs";
 const $=id=>document.getElementById(id);
 const store=new EarthStudioStore();
 const app=window.__earthStudio;
@@ -156,6 +158,46 @@ async function saveProject(){
   }catch(error){status("Save failed: "+(error?.message||String(error)));}
   finally{saving=false;$("saveProject").disabled=false;if(pendingSave){pendingSave=false;scheduleAutosave();}}
 }
+async function exportPackage(){
+  if(saving||loading)return;
+  $("exportPackage").disabled=true;
+  try{
+    const session=makeSession(),payloads=[];
+    for(const track of app.state.tracks){
+      const blob=track.sourceBlob||new Blob([app.writeWav(track.buffer)],{type:"audio/wav"});
+      const id="asset-"+track.id,storageKey="audio/"+track.id+".bin";
+      const sha256=await digest(blob);
+      session.assets.push({id,storageKey,mediaType:blob.type||"application/octet-stream",sizeBytes:blob.size,sha256});
+      payloads.push({id,blob});
+    }
+    const archive=await createProjectArchive(session,payloads);
+    const url=URL.createObjectURL(archive),a=document.createElement("a");
+    const filename=(session.name||"earth-studio").replace(/[^a-z0-9._-]+/gi,"-").replace(/^-+|-+$/g,"").slice(0,64)||"earth-studio";
+    a.href=url;a.download=filename+".earthsession";document.body.append(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+    status("Portable project package exported · "+payloads.length+" audio asset(s).");
+  }catch(error){status("Package export failed: "+(error?.message||String(error)));}
+  finally{$("exportPackage").disabled=false;}
+}
+async function importPackage(file){
+  if(!file||saving||loading)return;
+  loading=true;$("importPackage").disabled=true;
+  try{
+    const imported=await readProjectArchive(file);
+    const now=new Date().toISOString();
+    const importedSession={...imported.session,
+      id:"project-"+newId(),
+      name:(imported.session.name+" (Imported)").slice(0,128),
+      createdAt:now,updatedAt:now
+    };
+    await store.save(importedSession,imported.assets);
+    await refreshProjects(importedSession.id);
+    $("projectList").value=importedSession.id;
+    await openProject();
+    status("Imported portable project as a new local copy · "+imported.assets.length+" verified audio asset(s).");
+  }catch(error){status("Package import failed: "+(error?.message||String(error)));}
+  finally{loading=false;$("importPackage").disabled=false;}
+}
 async function openProject(){
   const id=$("projectList").value;
   if(!id){status("Choose a saved project first.");return;}
@@ -196,6 +238,12 @@ function scheduleAutosave(){
 }
 $("saveProject").addEventListener("click",saveProject);
 $("openProject").addEventListener("click",openProject);
+$("exportPackage").addEventListener("click",exportPackage);
+$("importPackage").addEventListener("click",()=>$("packageInput").click());
+$("packageInput").addEventListener("change",async event=>{
+  const file=event.target.files?.[0];event.target.value="";
+  if(file)await importPackage(file);
+});
 $("newProject").addEventListener("click",()=>{
   if(!confirm("Start a new project? Save the current project first if you want to keep it."))return;
   app.stop();app.state.tracks=[];app.state.selected=null;app.state.playhead=0;app.recalc();
@@ -212,7 +260,7 @@ document.addEventListener("change",event=>{
   if(event.target.matches("#fileInput,#bpm,#trackLabel"))scheduleAutosave();
 });
 document.addEventListener("click",event=>{
-  if(event.target.closest("#saveProject,#openProject,#newProject,#exportMix,#play,#stop,#seek"))return;
+  if(event.target.closest("#saveProject,#openProject,#newProject,#exportPackage,#importPackage,#exportMix,#play,#stop,#seek"))return;
   if(event.target.closest("#addAudio,#addDemo,#clearSession,#mute,#solo,#removeTrack,.track-actions button"))scheduleAutosave();
 });
 try{await refreshProjects();status("Local project storage ready. Changes autosave after edits; use SAVE PROJECT for a manual checkpoint.");}

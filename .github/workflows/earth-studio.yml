@@ -28,7 +28,7 @@ jobs:
       - name: Validate versioned session schema JSON
         run: node -e "JSON.parse(require('node:fs').readFileSync('music-foundry/earth-studio/session-schema-v1.json','utf8'))"
       - name: Test session validation and serialization
-        run: node --test music-foundry/tests/test_earth_studio_session.mjs
+        run: node --test music-foundry/tests/test_earth_studio_session.mjs music-foundry/tests/test_earth_studio_project_package.mjs
       - name: Syntax-check browser scripts
         run: |
           python3 - <<'PY'
