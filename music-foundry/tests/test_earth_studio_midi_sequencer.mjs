@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   MIDI_PPQ, ticksToSeconds, secondsToTicks, quantizeTick, createMidiClip,
-  validateMidiClip, MidiRecorder, collectMidiEvents, createAudioWorkletMidiSink,
+  validateMidiClip, MidiRecorder, MidiSequencer, collectMidiEvents, createAudioWorkletMidiSink,
   dispatchMidiEvents
 } from "../earth-studio/midi-sequencer.mjs";
 
@@ -43,7 +43,7 @@ test("recorder captures polyphonic notes and closes held notes on stop",()=>{
   const clip=recorder.toClip({id:"take-1"});
   assert.equal(clip.startTick,1920);
   assert.deepEqual(clip.notes.map(n=>[n.note,n.startTick,n.durationTicks,n.velocity]),[
-    [60,1920,960,96],[64,2400,960,72]
+    [60,0,960,96],[64,480,960,72]
   ]);
 });
 test("recorder quantizes note boundaries and ignores unmatched note-offs",()=>{
@@ -85,4 +85,18 @@ test("native AudioWorklet sink sends timestamped note events and velocity scalin
     {type:"noteOn",note:64,velocity:1,channel:2,when:3.5},
     {type:"noteOff",note:64,channel:2,when:4}
   ]);
+});
+
+test("sequencer dispatches its scheduled events through the native sink",()=>{
+  const messages=[];
+  const sequencer=new MidiSequencer({sink:createAudioWorkletMidiSink({postMessage:m=>messages.push(m)})});
+  const clip=createMidiClip({id:"native",startTick:0,lengthTicks:960,notes:[
+    {id:"n",note:67,startTick:0,durationTicks:480,velocity:64,channel:1}
+  ]});
+  const events=sequencer.playWindow([clip],{tempo:120,fromTick:0,toTick:960,originTime:2});
+  assert.equal(events.length,2);
+  assert.deepEqual(messages.map(m=>m.type),["noteOn","noteOff"]);
+  assert.equal(messages[0].velocity,64/127);
+  assert.equal(messages[0].when,2);
+  assert.equal(messages[1].when,2.25);
 });
