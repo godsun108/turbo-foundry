@@ -31,6 +31,8 @@ function loopConfig(items = clips()) {
 function cancelMidi() {
   instrument.cancelScheduledMidi?.();
   midi.onTransportStop?.();
+  const snapshot = transport.snapshot(now());
+  transport.seek(snapshot.absoluteTick,now());
 }
 function stopAudioSources() {
   for (const source of audioSources) {
