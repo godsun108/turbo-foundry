@@ -100,3 +100,15 @@ test("sequencer dispatches its scheduled events through the native sink",()=>{
   assert.equal(messages[0].when,2);
   assert.equal(messages[1].when,2.25);
 });
+
+test("sequencer window slicing does not retrigger notes already in progress",()=>{
+  const clip=createMidiClip({id:"slice",startTick:0,lengthTicks:1440,notes:[
+    {id:"long",note:60,startTick:0,durationTicks:960,velocity:100,channel:0},
+    {id:"next",note:62,startTick:960,durationTicks:240,velocity:90,channel:0}
+  ]});
+  const events=collectMidiEvents([clip],{tempo:120,fromTick:480,toTick:1200,originTime:5});
+  assert.deepEqual(events.map(e=>[e.type,e.tick]),[
+    ["noteOff",960],["noteOn",960],["noteOff",1200]
+  ]);
+  assert.equal(events[0].when,5.25);
+});
