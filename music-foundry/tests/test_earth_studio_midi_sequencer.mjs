@@ -112,3 +112,65 @@ test("sequencer window slicing does not retrigger notes already in progress",()=
   ]);
   assert.equal(events[0].when,5.25);
 });
+
+import {MusicalTransport} from "../earth-studio/midi-sequencer.mjs";
+
+test("standalone transport clock plays, pauses, seeks, and resumes without browser APIs", () => {
+  let now = 0;
+  const transport = new MusicalTransport({tempo:120,now:()=>now});
+  transport.play(now);
+  now = 1;
+  assert.equal(transport.snapshot(now).tick, 1920);
+  transport.pause(now);
+  now = 5;
+  assert.equal(transport.snapshot(now).tick, 1920);
+  transport.play(now);
+  now = 5.5;
+  assert.equal(transport.snapshot(now).tick, 2880);
+  transport.seek(960,now);
+  assert.equal(transport.snapshot(now).tick, 960);
+  now = 6;
+  assert.equal(transport.snapshot(now).tick, 1920);
+  transport.setTempo(60,now);
+  now = 7;
+  assert.equal(transport.snapshot(now).tick, 2880);
+  transport.stop();
+  assert.equal(transport.snapshot(now).tick, 0);
+  assert.equal(transport.snapshot(now).playing, false);
+});
+
+test("standalone transport wraps loop position and reports absolute loop count", () => {
+  let now = 0;
+  const transport = new MusicalTransport({tempo:120,now:()=>now,loop:{startTick:960,endTick:2880}});
+  transport.play(now);
+  now = 2;
+  const state = transport.snapshot(now);
+  assert.equal(state.absoluteTick, 3840);
+  assert.equal(state.tick, 1920);
+  assert.equal(state.loopCount, 1);
+});
+
+test("standalone transport schedules look-ahead events against a host audio clock", () => {
+  let now = 0;
+  const transport = new MusicalTransport({tempo:120,now:()=>now});
+  const clips = [{id:"clip-1",startTick:0,lengthTicks:1920,notes:[
+    {id:"n1",note:60,startTick:0,durationTicks:480,velocity:100,channel:0}
+  ]}];
+  transport.play(now);
+  const events = transport.scheduleAhead(clips,{clockTimeSeconds:0,audioTimeSeconds:12,lookAheadSeconds:.3});
+  assert.equal(events.length,2);
+  assert.equal(events[0].when,12);
+  assert.equal(events[1].when,12.25);
+});
+
+test("standalone transport repeats scheduled notes inside a loop window", () => {
+  let now = 0;
+  const transport = new MusicalTransport({tempo:120,now:()=>now,loop:{startTick:0,endTick:960}});
+  transport.play(now);
+  const clips = [{id:"clip-1",startTick:0,lengthTicks:960,notes:[
+    {id:"n1",note:60,startTick:0,durationTicks:240,velocity:100,channel:0}
+  ]}];
+  const events = transport.scheduleAhead(clips,{clockTimeSeconds:0,audioTimeSeconds:4,lookAheadSeconds:1.1});
+  assert.deepEqual(events.map(event=>event.type),["noteOn","noteOff","noteOn","noteOff","noteOn"]);
+  assert.equal(events[2].when,4.5);
+});
