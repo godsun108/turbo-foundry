@@ -94,8 +94,9 @@ function refreshLoop() {
   const current = transport.snapshot().loop;
   if (JSON.stringify(next) !== JSON.stringify(current)) {
     transport.setLoop(next,now());
-    cancelMidi();
+    return true;
   }
+  return false;
 }
 function scheduleMidi() {
   if (!transport.playing) return;
@@ -128,10 +129,7 @@ function frame() {
   if (!transport.playing) return;
   const snapshot = transport.snapshot(now());
   updateClock(snapshot);
-  if (midi.advanceScene(snapshot.absoluteTick)) {
-    cancelMidi();
-    refreshLoop();
-  }
+  midi.advanceScene(snapshot.absoluteTick);
   const activeClips=clips();
   const endTick=transport.loop
     ? transport.loop.startTick+(transport.loop.endTick-transport.loop.startTick)*4
@@ -216,6 +214,10 @@ $("bpm").addEventListener("change",()=>{
   if (transport.playing) app.state.playhead=ticksToSeconds(snapshot.absoluteTick,transport.tempo,transport.ppq);
 });
 window.addEventListener("earthstudio:transport-config",()=>{
+  refreshLoop();
+  if (transport.playing) cancelMidi();
+});
+window.addEventListener("earthstudio:scenechange",()=>{
   refreshLoop();
   if (transport.playing) cancelMidi();
 });
