@@ -39,7 +39,8 @@ class EarthStudioProcessor extends AudioWorkletProcessor {
   }
   onMessage(message) {
     if (!message || typeof message !== "object") return;
-    if (message.type === "noteOn") this.enqueue(0, message.note, message.velocity ?? 1, message.channel ?? 0, message.when);
+    if (message.type === "cancelScheduled") { this.pendingCount = 0; this.enqueue(2, 0, 0, 255); }
+    else if (message.type === "noteOn") this.enqueue(0, message.note, message.velocity ?? 1, message.channel ?? 0, message.when);
     else if (message.type === "noteOff") this.enqueue(1, message.note, 0, message.channel ?? 0, message.when);
     else if (message.type === "allNotesOff") this.enqueue(2, 0, 0, 255, message.when);
     else if (message.type === "settings") this.setInstrument(message.settings || {});
