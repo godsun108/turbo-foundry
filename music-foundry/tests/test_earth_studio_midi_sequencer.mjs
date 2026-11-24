@@ -183,9 +183,9 @@ test("standalone look-ahead scheduler never emits duplicate events across overla
     {id:"n2",note:62,startTick:960,durationTicks:240,velocity:100,channel:0}
   ]}];
   transport.play(now);
-  const first = transport.scheduleAhead(clips,{clockTimeSeconds:0,audioTimeSeconds:20,lookAheadSeconds:.3});
+  const first = transport.scheduleAhead(clips,{clockTimeSeconds:0,audioTimeSeconds:20,lookAheadSeconds:.5});
   now = .1;
-  const second = transport.scheduleAhead(clips,{clockTimeSeconds:now,audioTimeSeconds:20.1,lookAheadSeconds:.3});
+  const second = transport.scheduleAhead(clips,{clockTimeSeconds:now,audioTimeSeconds:20.1,lookAheadSeconds:.5});
   const combined = [...first,...second];
   assert.deepEqual(combined.map(event=>[event.type,event.tick]),[
     ["noteOn",480],["noteOff",960],["noteOn",960]
