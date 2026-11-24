@@ -213,6 +213,9 @@ window.addEventListener("earthstudio:change",()=>{
 document.addEventListener("visibilitychange",()=>{
   if (document.hidden && transport.playing) pause();
 });
+document.addEventListener("click",event=>{
+  if (event.target.closest("#newProject,#clearSession")) stop();
+});
 window.__earthStudioTransport = {
   transport,
   play:start,
