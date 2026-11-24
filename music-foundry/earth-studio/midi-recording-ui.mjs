@@ -75,14 +75,54 @@ function render() {
       row.textContent = clip.notes.length + " notes · " + Math.round(clip.lengthTicks / MIDI_PPQ * 100) / 100 + " beats · " + clip.id;
       card.append(row);
       const roll = document.createElement("div");
-      roll.style.cssText = "position:relative;height:116px;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:repeating-linear-gradient(90deg,#111923 0,#111923 39px,#25303d 40px),repeating-linear-gradient(0deg,transparent 0,transparent 13px,#283442 14px);";
+      roll.style.cssText = "position:relative;height:256px;overflow:hidden;touch-action:none;border:1px solid var(--line);border-radius:8px;background:repeating-linear-gradient(90deg,#111923 0,#111923 39px,#25303d 40px),repeating-linear-gradient(0deg,transparent 0,transparent 1px,#283442 2px);";
       const maxTick = Math.max(1, clip.lengthTicks);
       for (const note of clip.notes) {
-        const block = document.createElement("div");
-        block.title = "MIDI " + note.note + " · velocity " + note.velocity + " · " + note.durationTicks + " ticks";
+        const block = document.createElement("button");
+        block.type = "button";
+        block.title = "Drag to move pitch/time; drag the right edge to resize. MIDI " + note.note + " · velocity " + note.velocity;
+        block.setAttribute("aria-label", block.title);
         const left = Math.min(99, note.startTick / maxTick * 100);
         const width = Math.max(.7, note.durationTicks / maxTick * 100);
-        block.style.cssText = "position:absolute;height:9px;min-width:3px;border-radius:3px;background:var(--acid);border:1px solid #efffc2;top:" + (106 - (note.note % 12) * 8) + "px;left:" + left + "%;width:" + width + "%;opacity:" + (.45 + note.velocity / 230) + ";";
+        const paintNote = () => {
+          const x = Math.min(99, note.startTick / Math.max(1,clip.lengthTicks) * 100);
+          const w = Math.max(.7, note.durationTicks / Math.max(1,clip.lengthTicks) * 100);
+          block.style.left = x + "%";
+          block.style.width = w + "%";
+          block.style.top = Math.max(0,Math.min(246,246-note.note*2)) + "px";
+          block.title = "MIDI " + note.note + " · velocity " + note.velocity + " · " + note.durationTicks + " ticks";
+        };
+        block.style.cssText = "position:absolute;height:9px;min-width:3px;padding:0;border-radius:3px;background:var(--acid);border:1px solid #efffc2;opacity:" + (.45 + note.velocity / 230) + ";touch-action:none;";
+        block.style.left = left + "%";
+        block.style.width = width + "%";
+        block.style.top = Math.max(0,Math.min(246,246-note.note*2)) + "px";
+        block.addEventListener("pointerdown",event=>{
+          event.preventDefault();
+          block.setPointerCapture(event.pointerId);
+          const rect=roll.getBoundingClientRect();
+          const originX=event.clientX,originY=event.clientY;
+          const originalStart=note.startTick,originalDuration=note.durationTicks,originalPitch=note.note;
+          const resizing=event.offsetX>=block.clientWidth-12;
+          const move=moveEvent=>{
+            const delta=Math.round(((moveEvent.clientX-originX)/Math.max(1,rect.width)*maxTick)/60)*60;
+            if(resizing) note.durationTicks=Math.max(60,originalDuration+delta);
+            else note.startTick=Math.max(0,originalStart+delta);
+            note.note=Math.max(0,Math.min(127,originalPitch-Math.round((moveEvent.clientY-originY)/2)));
+            clip.lengthTicks=Math.max(clip.lengthTicks,note.startTick+note.durationTicks);
+            paintNote();
+          };
+          const finish=()=>{
+            block.removeEventListener("pointermove",move);
+            block.removeEventListener("pointerup",finish);
+            block.removeEventListener("pointercancel",finish);
+            window.dispatchEvent(new Event("earthstudio:change"));
+            app.recalc();
+            render();
+          };
+          block.addEventListener("pointermove",move);
+          block.addEventListener("pointerup",finish,{once:true});
+          block.addEventListener("pointercancel",finish,{once:true});
+        });
         roll.append(block);
       }
       card.append(roll);
