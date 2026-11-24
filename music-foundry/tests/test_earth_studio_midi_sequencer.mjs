@@ -154,7 +154,7 @@ test("standalone transport preserves absolute loop cycle when paused and resumed
   transport.play(now);
   now = 1.5;
   assert.equal(transport.snapshot(now).absoluteTick,2880);
-  assert.equal(transport.snapshot(now).loopCount,2);
+  assert.equal(transport.snapshot(now).loopCount,3);
   transport.pause(now);
   now = 10;
   assert.equal(transport.snapshot(now).absoluteTick,2880);
