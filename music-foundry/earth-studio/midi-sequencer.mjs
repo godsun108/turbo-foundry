@@ -27,6 +27,12 @@ export function secondsToTicks(seconds, tempo, ppq = MIDI_PPQ) {
   finite(seconds, "seconds"); validateTempo(tempo); integer(ppq, "ppq", 1);
   return Math.round(seconds * tempo * ppq / 60);
 }
+export function nextQuantizedTick(tick, gridTicks) {
+  finite(tick, "tick"); integer(gridTicks, "gridTicks", 1);
+  if (tick < 0) throw new RangeError("tick cannot be negative");
+  return Math.ceil(tick / gridTicks) * gridTicks;
+}
+
 export function quantizeTick(tick, gridTicks, strength = 1) {
   finite(tick, "tick"); integer(gridTicks, "gridTicks", 1);
   finite(strength, "strength");
