@@ -186,6 +186,24 @@ test("standalone transport schedules look-ahead events against a host audio cloc
   assert.equal(events[1].when,12.25);
 });
 
+test("scene-based MIDI loop scheduling uses a nonzero launch origin", () => {
+  let now = 0;
+  const transport = new MusicalTransport({tempo:120,now:()=>now,loop:{startTick:3840,endTick:4800}});
+  const clips = [{id:"scene-2",startTick:3840,lengthTicks:960,notes:[
+    {id:"scene-note",note:64,startTick:0,durationTicks:240,velocity:100,channel:0}
+  ]}];
+  transport.seek(3840,now);
+  transport.play(now);
+  const events = transport.scheduleAhead(clips,{clockTimeSeconds:0,audioTimeSeconds:30,lookAheadSeconds:1.1});
+  assert.deepEqual(events.map(event=>[event.type,event.tick]),[
+    ["noteOn",3840],["noteOff",4080],["noteOn",4800],["noteOff",5040],["noteOn",5760]
+  ]);
+  now = .5;
+  assert.equal(transport.snapshot(now).tick,4320);
+  now = 1;
+  assert.equal(transport.snapshot(now).tick,3840);
+});
+
 test("standalone transport repeats scheduled notes inside a loop window", () => {
   let now = 0;
   const transport = new MusicalTransport({tempo:120,now:()=>now,loop:{startTick:0,endTick:960}});
