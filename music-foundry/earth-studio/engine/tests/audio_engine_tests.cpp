@@ -44,7 +44,7 @@ void voice_pool_and_release() {
   engine.render(out.data(), 64, on);
   require(engine.stats().active_voices == 1, "note-on allocates a voice");
   const std::array off{earth_studio::MidiEvent{0, earth_studio::MidiEventType::note_off, 0, 60, 0.0F}};
-  engine.render(out.data(), 2048, off);
+  engine.render(out.data(), 2048, off);\n  engine.render(out.data(), 2048);\n  engine.render(out.data(), 2048);
   require(engine.stats().active_voices == 0, "release returns voice to pool");
   std::array<earth_studio::MidiEvent, earth_studio::kMaxVoices + 1> chord{};
   for (std::size_t i = 0; i < chord.size(); ++i)
