@@ -35,8 +35,8 @@ jobs:
           import re
           from pathlib import Path
           html = Path("music-foundry/earth-studio/art-studio.html").read_text(encoding="utf-8")
-          classic = re.findall(r'<script(?![^>]*\\btype=["\\']module["\\'])[^>]*>(.*?)</script>', html, re.S)
-          modules = re.findall(r'<script[^>]*\\btype=["\\']module["\\'][^>]*>(.*?)</script>', html, re.S)
+          classic = re.findall(r'<script(?![^>]*\btype=["\\']module["\\'])[^>]*>(.*?)</script>', html, re.S)
+          modules = re.findall(r'<script[^>]*\btype=["\\']module["\\'][^>]*>(.*?)</script>', html, re.S)
           if not classic or not modules:
               raise SystemExit(f"Expected classic and module scripts; found {len(classic)} and {len(modules)}")
           for index, source in enumerate(classic):
