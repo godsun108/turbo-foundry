@@ -50,6 +50,24 @@ export function validateSession(session) {
     if (!track || typeof track.pan !== "number" || !Number.isFinite(track.pan) || track.pan < -1 || track.pan > 1) errors.push("track pan is outside -1..1");
     if (!track || typeof track.muted !== "boolean" || typeof track.solo !== "boolean") errors.push("track mute and solo flags must be boolean");
     if (!track || !Array.isArray(track.clips)) errors.push("track clips must be an array");
+    if (track && track.midiClips !== undefined && !Array.isArray(track.midiClips)) errors.push("track midiClips must be an array when present");
+    const midiClipIds = new Set();
+    for (const midiClip of (track && track.midiClips) || []) {
+      if (!midiClip || typeof midiClip.id !== "string" || !midiClip.id.trim() || midiClipIds.has(midiClip.id)) errors.push("MIDI clip IDs must be unique non-empty strings per track");
+      else midiClipIds.add(midiClip.id);
+      if (!track || !["midi","instrument"].includes(track.kind)) errors.push("MIDI clips require a midi or instrument track");
+      if (!midiClip || !Number.isInteger(midiClip.startTick) || midiClip.startTick < 0 || !Number.isInteger(midiClip.lengthTicks) || midiClip.lengthTicks < 1 || !Array.isArray(midiClip.notes)) errors.push("MIDI clip timing or notes are invalid");
+      const noteIds = new Set();
+      for (const note of (midiClip && midiClip.notes) || []) {
+        if (!note || typeof note.id !== "string" || !note.id.trim() || noteIds.has(note.id)) errors.push("MIDI note IDs must be unique non-empty strings per clip");
+        else noteIds.add(note.id);
+        if (!note || !Number.isInteger(note.note) || note.note < 0 || note.note > 127) errors.push("MIDI note number must be 0..127");
+        if (!note || !Number.isInteger(note.startTick) || note.startTick < 0 || !Number.isInteger(note.durationTicks) || note.durationTicks < 1) errors.push("MIDI note timing is invalid");
+        if (!note || !Number.isInteger(note.velocity) || note.velocity < 1 || note.velocity > 127) errors.push("MIDI note velocity must be 1..127");
+        if (!note || !Number.isInteger(note.channel) || note.channel < 0 || note.channel > 15) errors.push("MIDI note channel must be 0..15");
+        if (midiClip && note && Number.isInteger(note.startTick) && Number.isInteger(note.durationTicks) && Number.isInteger(midiClip.lengthTicks) && note.startTick + note.durationTicks > midiClip.lengthTicks) errors.push("MIDI note extends beyond its clip length");
+      }
+    }
     for (const clip of (track && track.clips) || []) {
       if (!clip || !assetIds.has(clip.assetId)) errors.push("clip references a missing asset");
       if (!clip || !Number.isFinite(clip.startSeconds) || clip.startSeconds < 0 || !Number.isFinite(clip.sourceStartSeconds) || clip.sourceStartSeconds < 0 || !Number.isFinite(clip.durationSeconds) || clip.durationSeconds <= 0) errors.push("clip timing is invalid");
