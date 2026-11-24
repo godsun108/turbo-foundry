@@ -102,7 +102,7 @@ const colors=['#c8ff4d','#b69cff','#8ce6ed','#ffbd92'];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const fmt=t=>{t=Math.max(0,t||0);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(Math.floor(t%60)).padStart(2,'0')+'.'+Math.floor((t%1)*10)};
 function say(s){$('status').textContent=s}
-function recalc(){state.duration=Math.max(0,...state.tracks.map(t=>t.offset+t.buffer.duration));$('trackCount').textContent=state.tracks.length+' track'+(state.tracks.length===1?'':'s');$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration);$('seek').value=state.duration?Math.round(state.playhead/state.duration*1000):0;render()}
+function recalc(){const midiTempo=clamp(Number($("bpm").value)||120,40,240);state.duration=Math.max(0,...state.tracks.map(t=>t.offset+t.buffer.duration),...(state.midiTracks||[]).flatMap(t=>(t.midiClips||[]).map(c=>(c.startTick+c.lengthTicks)*60/(midiTempo*960)*(state.midiLoopRepeats||1))));$('trackCount').textContent=state.tracks.length+' track'+(state.tracks.length===1?'':'s');$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration);$('seek').value=state.duration?Math.round(state.playhead/state.duration*1000):0;render()}
 function render(){
 const root=$('timeline');root.querySelectorAll('.track').forEach(n=>n.remove());$('empty').hidden=state.tracks.length>0;
 const ruler=$('ruler');ruler.innerHTML='';const dur=Math.max(20,state.duration+4);ruler.style.width=Math.max(700,dur*50)+'px';for(let s=0;s<=dur;s+=2){const n=document.createElement('span');n.textContent=fmt(s);n.style.left=(s*50)+'px';ruler.append(n)}
@@ -114,8 +114,8 @@ if(state.selected){const t=state.tracks.find(x=>x.id===state.selected);if(t)sync
 }
 function select(id){state.selected=id;const t=state.tracks.find(x=>x.id===id);if(!t)return;$('selectedControls').hidden=false;syncControls(t)}
 function syncControls(t){$('selectedTitle').textContent=t.name;$('gain').value=Math.round(t.gain*100);$('gainValue').textContent=Math.round(t.gain*100)+'%';$('pan').value=Math.round(t.pan*100);$('panValue').textContent=t.pan===0?'CENTER':(t.pan<0?'L ':'R ')+Math.abs(Math.round(t.pan*100));$('offset').value=Math.round(t.offset);$('offsetValue').textContent=t.offset.toFixed(1)+' s';$('trackLabel').value=t.name;$('mute').textContent=t.muted?'UNMUTE':'MUTE';$('solo').textContent=t.solo?'UNSOLO':'SOLO'}
-function stop(){if(state.raf)cancelAnimationFrame(state.raf);state.raf=0;state.playing=false;state.nodes.forEach(n=>{try{n.stop()}catch(e){}});state.nodes=[];if(state.ctx){state.ctx.close().catch(()=>{});state.ctx=null}$('play').textContent='▶ PLAY';$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration)}
-async function play(){if(!state.tracks.length){say('Add an audio file first.');return}stop();const AC=window.AudioContext||window.webkitAudioContext;if(!AC){say('Web Audio is not available in this browser.');return}const ctx=new AC();state.ctx=ctx;await ctx.resume();const start=ctx.currentTime+.08;const anySolo=state.tracks.some(t=>t.solo);state.tracks.forEach(t=>{if(t.muted||(anySolo&&!t.solo))return;const source=ctx.createBufferSource();source.buffer=t.buffer;const gain=ctx.createGain();gain.gain.value=t.gain;const pan=ctx.createStereoPanner?ctx.createStereoPanner():null;if(pan)pan.pan.value=t.pan;source.connect(gain);if(pan){gain.connect(pan);pan.connect(ctx.destination)}else gain.connect(ctx.destination);const when=start+Math.max(0,t.offset-state.playhead);const skip=Math.max(0,state.playhead-t.offset);if(skip<t.buffer.duration){source.start(when,skip);state.nodes.push(source)}});state.startedAt=start-state.playhead;state.playing=true;$('play').textContent='Ⅱ PAUSE';say('Playing session.');const tick=()=>{if(!state.playing)return;state.playhead=clamp(ctx.currentTime-state.startedAt,0,state.duration);$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration);$('seek').value=state.duration?Math.round(state.playhead/state.duration*1000):0;if(state.playhead>=state.duration){state.playhead=0;stop();recalc();return}state.raf=requestAnimationFrame(tick)};state.raf=requestAnimationFrame(tick)}
+function stop(){if(state.raf)cancelAnimationFrame(state.raf);state.raf=0;state.playing=false;state.nodes.forEach(n=>{try{n.stop()}catch(e){}});state.nodes=[];if(state.ctx){state.ctx.close().catch(()=>{});state.ctx=null}window.__earthStudioMidi?.onTransportStop?.();$('play').textContent='▶ PLAY';$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration)}
+async function play(){if(!state.tracks.length&&!(state.midiTracks||[]).length){say('Add audio or record a MIDI take first.');return}stop();const AC=window.AudioContext||window.webkitAudioContext;if(!AC){say('Web Audio is not available in this browser.');return}await window.__earthInstrument?.prepare();const ctx=new AC();state.ctx=ctx;await ctx.resume();const start=ctx.currentTime+.08;const anySolo=state.tracks.some(t=>t.solo);state.tracks.forEach(t=>{if(t.muted||(anySolo&&!t.solo))return;const source=ctx.createBufferSource();source.buffer=t.buffer;const gain=ctx.createGain();gain.gain.value=t.gain;const pan=ctx.createStereoPanner?ctx.createStereoPanner():null;if(pan)pan.pan.value=t.pan;source.connect(gain);if(pan){gain.connect(pan);pan.connect(ctx.destination)}else gain.connect(ctx.destination);const when=start+Math.max(0,t.offset-state.playhead);const skip=Math.max(0,state.playhead-t.offset);if(skip<t.buffer.duration){source.start(when,skip);state.nodes.push(source)}});state.startedAt=start-state.playhead;state.playing=true;window.__earthStudioMidi?.onTransportStart?.();$('play').textContent='Ⅱ PAUSE';say('Playing session.');const tick=()=>{if(!state.playing)return;state.playhead=clamp(ctx.currentTime-state.startedAt,0,state.duration);$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration);$('seek').value=state.duration?Math.round(state.playhead/state.duration*1000):0;if(state.playhead>=state.duration){state.playhead=0;stop();recalc();return}state.raf=requestAnimationFrame(tick)};state.raf=requestAnimationFrame(tick)}
 function addTrack(name,buffer,sourceBlob=null){const id='t'+Date.now()+Math.random().toString(36).slice(2,7);state.tracks.push({id,name:name.slice(0,64),buffer,sourceBlob,offset:0,gain:1,pan:0,muted:false,solo:false});state.selected=id;recalc();select(id);window.dispatchEvent(new Event('earthstudio:change'))}
 $('addAudio').onclick=()=>$('fileInput').click();
 $('fileInput').onchange=async e=>{const files=Array.from(e.target.files||[]);if(!files.length)return;say('Decoding '+files.length+' audio file(s)…');const AC=window.AudioContext||window.webkitAudioContext;if(!AC){say('Web Audio is unavailable.');return}const ctx=new AC();for(const f of files){try{const buf=await ctx.decodeAudioData(await f.arrayBuffer());addTrack(f.name.replace(/\.[^.]+$/,''),buf)}catch(err){say('Could not decode '+f.name+'. Try WAV, MP3, M4A or AAC.')}}await ctx.close();$('fileInput').value='';say('Loaded audio locally. Export your work before leaving this page.')};
@@ -166,10 +166,10 @@ function makeSession(){
     createdAt:project.createdAt,updatedAt:now,tempo:Math.max(40,Math.min(240,Number($("bpm").value)||120)),
     meter:{numerator:4,denominator:4},sampleRate:48000,
     instrument:window.__earthInstrument?.getSettings()||{oscillator:"sine",attack:20,decay:180,sustain:70,release:300,cutoff:8000,vibrato:0,bend:0},
-    tracks:app.state.tracks.map(t=>({
+    tracks:[...app.state.tracks.map(t=>({
       id:t.id,name:t.name,kind:"audio",gain:t.gain,pan:t.pan,muted:t.muted,solo:t.solo,
       clips:[{id:"clip-"+t.id,assetId:"asset-"+t.id,startSeconds:t.offset,sourceStartSeconds:0,durationSeconds:t.buffer.duration}]
-    })),
+    })),...((app.state.midiTracks||[]).map(t=>({...t,kind:"instrument",clips:[],midiClips:t.midiClips||[]})))],
     assets:[]
   };
 }
@@ -250,8 +250,9 @@ async function openProject(){
     const result=await store.load(id);
     if(!result){status("That project could not be found.");return;}
     const context=new (window.AudioContext||window.webkitAudioContext)();
-    const restored=[];
+    const restored=[],restoredMidi=[];
     for(const track of result.session.tracks){
+      if(track.kind==="midi"||track.kind==="instrument"){restoredMidi.push({...track,midiClips:track.midiClips||[]});continue;}
       const clip=track.clips[0];
       const item=result.assets.find(asset=>asset.id===clip.assetId);
       if(!item)throw new Error("Missing audio asset for "+track.name);
@@ -262,7 +263,7 @@ async function openProject(){
       restored.push({...track,buffer,sourceBlob:item.blob,offset:clip.startSeconds});
     }
     await context.close();
-    app.state.tracks=restored;app.state.selected=restored[0]?.id||null;app.state.playhead=0;
+    app.state.tracks=restored;app.state.midiTracks=restoredMidi;app.state.selected=restored[0]?.id||null;app.state.playhead=0;window.__earthStudioMidi?.render();
     window.__earthInstrument?.setSettings(result.session.instrument||{oscillator:"sine",attack:20,decay:180,sustain:70,release:300,cutoff:8000,vibrato:0,bend:0});
     $("bpm").value=result.session.tempo;$("tempo").textContent=result.session.tempo+" BPM";
     app.recalc();
@@ -310,5 +311,6 @@ document.addEventListener("click",event=>{
 try{await refreshProjects();status("Local project storage ready. Changes autosave after edits; use SAVE PROJECT for a manual checkpoint.");}
 catch(error){status("Local project storage unavailable: "+(error?.message||String(error)));}
 </script>
+<script type="module" src="./midi-recording-ui.mjs"></script>
 </body>
 </html>

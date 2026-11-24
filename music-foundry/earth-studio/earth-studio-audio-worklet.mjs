@@ -1,6 +1,7 @@
 import createEarthStudioEngine from "./earth_studio_engine_wasm.mjs";
 
 const MAX_EVENTS = 64;
+const MAX_PENDING_EVENTS = 512;
 const EVENT_BYTES = 12;
 const MAX_FRAMES = 2048;
 const WAVEFORMS = { sine: 0, sawtooth: 1, square: 2, triangle: 3 };
@@ -9,9 +10,13 @@ class EarthStudioProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
     this.engine = 0; this.outputPtr = 0; this.eventsPtr = 0; this.parametersPtr = 0;
-    this.eventCount = 0; this.eventTypes = new Uint8Array(MAX_EVENTS);
+    this.eventCount = 0; this.eventOffsets = new Uint32Array(MAX_EVENTS); this.eventTypes = new Uint8Array(MAX_EVENTS);
     this.eventChannels = new Uint8Array(MAX_EVENTS); this.eventNotes = new Uint8Array(MAX_EVENTS);
-    this.eventVelocities = new Float32Array(MAX_EVENTS); this.memoryView = null;
+    this.eventVelocities = new Float32Array(MAX_EVENTS);
+    this.pendingCount = 0; this.pendingFrames = new Float64Array(MAX_PENDING_EVENTS);
+    this.pendingTypes = new Uint8Array(MAX_PENDING_EVENTS); this.pendingChannels = new Uint8Array(MAX_PENDING_EVENTS);
+    this.pendingNotes = new Uint8Array(MAX_PENDING_EVENTS); this.pendingVelocities = new Float32Array(MAX_PENDING_EVENTS);
+    this.memoryView = null;
     this.ready = false; this.failed = false;
     this.port.onmessage = event => this.onMessage(event.data);
     this.initialize(options.processorOptions || {});
@@ -34,15 +39,18 @@ class EarthStudioProcessor extends AudioWorkletProcessor {
   }
   onMessage(message) {
     if (!message || typeof message !== "object") return;
-    if (message.type === "noteOn") this.enqueue(0, message.note, message.velocity ?? 1);
-    else if (message.type === "noteOff") this.enqueue(1, message.note, 0);
-    else if (message.type === "allNotesOff") this.enqueue(2, 0, 0, 255);
+    if (message.type === "noteOn") this.enqueue(0, message.note, message.velocity ?? 1, message.channel ?? 0, message.when);
+    else if (message.type === "noteOff") this.enqueue(1, message.note, 0, message.channel ?? 0, message.when);
+    else if (message.type === "allNotesOff") this.enqueue(2, 0, 0, 255, message.when);
     else if (message.type === "settings") this.setInstrument(message.settings || {});
   }
-  enqueue(type, note, velocity, channel = 0) {
-    if (this.eventCount >= MAX_EVENTS || !Number.isInteger(note) || note < 0 || note > 127) return;
-    const i = this.eventCount++; this.eventTypes[i] = type; this.eventChannels[i] = channel;
-    this.eventNotes[i] = note; this.eventVelocities[i] = Math.max(0, Math.min(1, Number(velocity) || 0));
+  enqueue(type, note, velocity, channel = 0, when = undefined) {
+    if (this.pendingCount >= MAX_PENDING_EVENTS || !Number.isInteger(note) || note < 0 || note > 127) return false;
+    const i = this.pendingCount++;
+    this.pendingFrames[i] = Number.isFinite(when) ? Math.max(currentFrame, Math.round(when * sampleRate)) : currentFrame;
+    this.pendingTypes[i] = type; this.pendingChannels[i] = channel;
+    this.pendingNotes[i] = note; this.pendingVelocities[i] = Math.max(0, Math.min(1, Number(velocity) || 0));
+    return true;
   }
   setInstrument(settings) {
     if (!this.module || !this.engine || !this.parametersPtr) return;
@@ -65,9 +73,28 @@ class EarthStudioProcessor extends AudioWorkletProcessor {
     const channels = outputs[0]; if (!channels || !channels.length) return true;
     const left = channels[0], right = channels.length > 1 ? channels[1] : channels[0], frames = left.length;
     if (!this.ready || this.failed || frames > MAX_FRAMES) { left.fill(0); if (right !== left) right.fill(0); return true; }
+    const blockStart = currentFrame, blockEnd = blockStart + frames;
+    this.eventCount = 0;
+    let keep = 0;
+    for (let i = 0; i < this.pendingCount; i++) {
+      const targetFrame = this.pendingFrames[i];
+      if (targetFrame < blockEnd && this.eventCount < MAX_EVENTS) {
+        const eventIndex = this.eventCount++;
+        this.eventOffsets[eventIndex] = Math.max(0, targetFrame - blockStart);
+        this.eventTypes[eventIndex] = this.pendingTypes[i];
+        this.eventChannels[eventIndex] = this.pendingChannels[i];
+        this.eventNotes[eventIndex] = this.pendingNotes[i];
+        this.eventVelocities[eventIndex] = this.pendingVelocities[i];
+      } else {
+        this.pendingFrames[keep] = targetFrame; this.pendingTypes[keep] = this.pendingTypes[i];
+        this.pendingChannels[keep] = this.pendingChannels[i]; this.pendingNotes[keep] = this.pendingNotes[i];
+        this.pendingVelocities[keep] = this.pendingVelocities[i]; keep++;
+      }
+    }
+    this.pendingCount = keep;
     const view = this.memoryView, eventBase = this.eventsPtr;
     for (let i = 0; i < this.eventCount; i++) {
-      const offset = eventBase + i * EVENT_BYTES; view.setUint32(offset, 0, true);
+      const offset = eventBase + i * EVENT_BYTES; view.setUint32(offset, this.eventOffsets[i], true);
       view.setUint8(offset + 4, this.eventTypes[i]); view.setUint8(offset + 5, this.eventChannels[i]);
       view.setUint8(offset + 6, this.eventNotes[i]); view.setUint8(offset + 7, 0);
       view.setFloat32(offset + 8, this.eventVelocities[i], true);

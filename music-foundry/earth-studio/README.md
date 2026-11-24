@@ -4,7 +4,10 @@ This directory is the canonical Turbo Foundry home for the first ART STUDIO brow
 
 - `art-studio.html` preserves the initial browser-local multitrack workflow and now connects it to project save/open/autosave.
 - `session-schema-v1.json` defines the first portable `.earthsession` manifest.
-- `session-store.mjs` validates, serializes, and persists manifests plus audio Blobs in local IndexedDB.
+- `session-store.mjs` validates, serializes, and persists manifests plus audio Blobs in local IndexedDB. Legacy sessions remain valid; optional inline MIDI clips are stored on MIDI/instrument tracks with note timing in 960-PPQ ticks.
+- `midi-sequencer.mjs` provides the browser-independent musical clock, polyphonic keyboard recorder, quantization, loop-aware event scheduling, and AudioWorklet MIDI sink. The worklet accepts absolute AudioContext timestamps and applies events at sample-frame offsets.
+- `midi-recording-ui.mjs` connects the performance keyboard to Record/Stop/Overdub controls, capture-time quantization, a touch-editable piano roll, note selection/deletion and velocity editing, four-cycle MIDI loop playback, optional Web MIDI hardware input, and MIDI-track persistence in `.earthsession`. MIDI-only sessions can be played without an audio clip. Hardware MIDI depends on browser Web MIDI support and an allowed secure context.
+- `../tests/test_earth_studio_midi_sequencer.mjs` covers MIDI recording, note velocity/channel, quantization, loop scheduling, and timestamped native-engine messages.
 - `project-package.mjs` exports/imports a dependency-free ZIP-based `.earthsession` package containing the manifest and original audio assets.
 - Portable packages use uncompressed ZIP entries for broad compatibility, with CRC-32 and SHA-256 verification; unsafe paths, duplicate entries, encrypted/compressed/ZIP64 archives and unexpected files are rejected.
 - `../tests/test_earth_studio_session.mjs` exercises the pure schema/serialization boundary with Node's built-in test runner.
