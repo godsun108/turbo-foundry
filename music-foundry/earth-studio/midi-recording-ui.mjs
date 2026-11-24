@@ -1,4 +1,4 @@
-import {MidiRecorder, collectMidiEvents, createAudioWorkletMidiSink, dispatchMidiEvents, MIDI_PPQ} from "./midi-sequencer.mjs";
+import {MidiRecorder, MIDI_PPQ} from "./midi-sequencer.mjs";
 
 const app = window.__earthStudio;
 const instrument = window.__earthInstrument;
@@ -40,7 +40,6 @@ let overdub = false;
 let recordStartTime = 0;
 let activeTrackId = null;
 let unsubscribe = null;
-let playbackGeneration = 0;
 let selectedNoteRef = null;
 let loopEnabled = false;
 let midiAccess = null;
@@ -170,7 +169,8 @@ async function startRecording() {
     const start = await instrument.prepare();
     const track = ensureTrack();
     recorder = new MidiRecorder({idPrefix:"note"});
-    recorder.start({tempo:currentTempo(),quantizeTicks:Number($("midiQuantize").value)||0});
+    const transportPosition = window.__earthStudioTransport?.snapshot?.();
+    recorder.start({tempo:currentTempo(),startTick:transportPosition?.tick||0,quantizeTicks:Number($("midiQuantize").value)||0});
     recordStartTime = start;
     recording = true;
     $("midiRecord").disabled = true;
@@ -186,11 +186,12 @@ function stopRecording() {
   const endTime = instrument.getAudioContextTime();
   recorder.stop({timeSeconds:Math.max(0,endTime-recordStartTime)});
   const track = ensureTrack();
-  const take = recorder.toClip({id:id("midi-clip"),lengthTicks:Math.max(currentDurationTicks(),...recorder.notes.map(note=>note.startTick+note.durationTicks),1)});
+  const take = recorder.toClip({id:id("midi-clip")});
   if (overdub && track.midiClips.length) {
     const previous = track.midiClips[track.midiClips.length-1];
-    const notes = [...previous.notes,...take.notes.map(note=>({...note,id:id("note")}))];
-    const lengthTicks = Math.max(previous.lengthTicks,take.lengthTicks,...notes.map(note=>note.startTick+note.durationTicks));
+    const takeOffset = Math.max(0,take.startTick-previous.startTick);
+    const notes = [...previous.notes,...take.notes.map(note=>({...note,id:id("note"),startTick:takeOffset+note.startTick}))];
+    const lengthTicks = Math.max(previous.lengthTicks,takeOffset+take.lengthTicks,...notes.map(note=>note.startTick+note.durationTicks));
     track.midiClips[track.midiClips.length-1] = {...previous,notes,lengthTicks};
   } else {
     track.midiClips.push(take);
@@ -213,28 +214,7 @@ function receive(event) {
   } catch (error) { status("MIDI capture error: " + error.message); }
 }
 function stopPlayback() {
-  playbackGeneration++;
   try { instrument.allNotesOff(); } catch {}
-}
-async function schedulePlayback() {
-  const generation = ++playbackGeneration;
-  if (!app.state.playing || !app.state.midiTracks.length) return;
-  try {
-    const originTime = await instrument.prepare();
-    if (generation !== playbackGeneration || !app.state.playing) return;
-    const clips = app.state.midiTracks.flatMap(track => (track.muted || (app.state.midiTracks.some(item=>item.solo) && !track.solo)) ? [] : (track.midiClips||[]).map(clip=>({...clip,trackId:track.id})));
-    if (!clips.length) return;
-    const loopEnd = Math.max(1,...clips.map(clip=>clip.startTick+clip.lengthTicks));
-    const repeats = loopEnabled ? 4 : 1;
-    const toTick = loopEnabled ? loopEnd*repeats : loopEnd+1;
-    const events = collectMidiEvents(clips,{tempo:currentTempo(),fromTick:0,toTick,originTime:originTime+.08,loop:loopEnabled?{startTick:0,endTick:loopEnd}:null});
-    if (events.length > 512) { status("Playback event limit reached (512 scheduled events). Split the arrangement into shorter sections."); return; }
-    dispatchMidiEvents(events,createAudioWorkletMidiSink(instrument.port));
-    if(loopEnabled) instrument.port.postMessage({type:"allNotesOff",when:originTime+.08+loopEnd*repeats*60/(currentTempo()*MIDI_PPQ)});
-    status("MIDI playback scheduled · " + events.length + " events" + (loopEnabled?" · four loop cycles.":"."));
-  } catch (error) {
-    status("MIDI playback unavailable: " + (error?.message || String(error)));
-  }
 }
 $("midiRecord").addEventListener("click",startRecording);
 $("midiStop").addEventListener("click",stopRecording);
@@ -242,7 +222,9 @@ $("midiOverdub").addEventListener("click",()=>{overdub=!overdub;$("midiOverdub")
 $("midiLoop").addEventListener("click",()=>{
   loopEnabled=!loopEnabled;
   app.state.midiLoopRepeats=loopEnabled?4:1;
+  app.state.midiLoopEnabled=loopEnabled;
   $("midiLoop").textContent="MIDI LOOP ×4: "+(loopEnabled?"ON":"OFF");
+  window.dispatchEvent(new Event("earthstudio:transport-config"));
   app.recalc();
   status(loopEnabled?"MIDI clips will repeat for four cycles on playback.":"MIDI loop playback disabled.");
 });
@@ -296,5 +278,6 @@ $("stop").addEventListener("click",stopPlayback);
 $("clearSession").addEventListener("click",()=>{app.state.midiTracks=[];activeTrackId=null;render();stopPlayback();});
 $("newProject").addEventListener("click",()=>{app.state.midiTracks=[];activeTrackId=null;render();stopPlayback();});
 window.addEventListener("earthstudio:change",()=>{render();updateSelectionControls();});
-window.__earthStudioMidi = {render,stopRecording,getTracks:()=>app.state.midiTracks,onTransportStart:schedulePlayback,onTransportStop:stopPlayback,dispose:()=>{unsubscribe?.();for(const input of midiAccess?.inputs.values()||[])input.onmidimessage=null;}};
+window.__earthStudioMidi = {render,stopRecording,getTracks:()=>app.state.midiTracks,getClips:()=>{const tracks=app.state.midiTracks;const anySolo=tracks.some(track=>track.solo);return tracks.flatMap(track=>(track.muted||(anySolo&&!track.solo))?[]:(track.midiClips||[]).map(clip=>({...clip,trackId:track.id})));},isLoopEnabled:()=>loopEnabled,onTransportStart:()=>{},onTransportStop:stopPlayback,dispose:()=>{unsubscribe?.();for(const input of midiAccess?.inputs.values()||[])input.onmidimessage=null;}};
 render();
+window.dispatchEvent(new Event("earthstudio:midi-ready"));

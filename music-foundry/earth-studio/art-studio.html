@@ -27,7 +27,7 @@ body{padding-bottom:env(safe-area-inset-bottom)}a{color:var(--acid);text-decorat
 <body>
 <header class="top"><a href="../README.md">← MUSIC FOUNDRY</a><small>EARTH STUDIO / WEB ADAPTER</small><a href="https://github.com/godsun108/The-portal/pull/325">SOURCE PR ↗</a></header>
 <main>
-<section class="hero"><div><div class="eyebrow">LOCAL-FIRST MUSIC WORKSPACE</div><h1>ART<br>STUDIO.</h1><p class="sub">A browser adapter for the canonical EARTH STUDIO project. Import audio, arrange clips, shape levels and stereo placement, audition your session, and export a stereo WAV mix. Your audio stays on this device.</p></div><span class="tag">FOUNDATION BUILD · V1</span></section>
+<section class="hero"><div><div class="eyebrow">LOCAL-FIRST MUSIC WORKSPACE</div><h1>EARTH<br>STUDIO.</h1><p class="sub">A browser adapter for the canonical EARTH STUDIO project. Import audio, arrange clips, shape levels and stereo placement, audition your session, and export a stereo WAV mix. Your audio stays on this device.</p></div><span class="tag">FOUNDATION BUILD · V1</span></section>
 <section class="panel">
 <div class="track-head"><h2>SESSION</h2><span class="hint" id="sessionInfo">48 kHz · browser-local</span></div>
 <div class="toolbar"><button class="primary" id="addAudio">＋ ADD AUDIO</button><button id="addDemo">＋ DEMO TRACK</button><button id="exportMix">EXPORT WAV MIX</button><button class="ghost" id="clearSession">CLEAR SESSION</button></div><div class="toolbar" style="margin-top:10px">
@@ -89,7 +89,7 @@ body{padding-bottom:env(safe-area-inset-bottom)}a{color:var(--acid);text-decorat
 
 <section class="panel">
 <div class="track-head"><h2>PROJECT NOTES</h2><span class="tag">LOCAL ONLY</span></div>
-<p class="foot">This first studio foundation supports imported audio tracks, clip start offsets, per-track gain and pan, mute/solo, synchronized playback, and offline stereo WAV rendering. It does not yet provide MIDI instruments, time-stretching, plugin hosting, MIDI instruments, time-stretching, plugin hosting, or Genesis-controlled editing. Use the existing Recording Booth for microphone capture and Vocal Timeline for the established spoken-take workflow.</p>
+<p class="foot">EARTH STUDIO now uses one host-neutral musical transport for play, pause, stop, seek, tempo changes, MIDI look-ahead scheduling, and loop position. The same clock contract is designed to be reused by a future native standalone host. Audio clips remain at their original speed; time-stretching, plugin hosting, and Genesis-controlled editing are future milestones.</p>
 <p class="foot">Projects and imported audio can now be saved locally in this browser. Browser storage can still be cleared by the operating system or user; export backups for important work. iPhone/Safari behavior and quota need real-device testing.</p>
 </section>
 </main>
@@ -312,5 +312,6 @@ try{await refreshProjects();status("Local project storage ready. Changes autosav
 catch(error){status("Local project storage unavailable: "+(error?.message||String(error)));}
 </script>
 <script type="module" src="./midi-recording-ui.mjs"></script>
+<script type="module" src="./transport-controller.mjs"></script>
 </body>
 </html>
