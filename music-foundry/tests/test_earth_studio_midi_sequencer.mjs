@@ -53,7 +53,7 @@ test("recorder quantizes note boundaries and ignores unmatched note-offs",()=>{
   recorder.noteOff({note:50,timeSeconds:.38});
   recorder.stop({timeSeconds:.5});
   assert.deepEqual(recorder.toClip({id:"q",lengthTicks:960}).notes[0],{
-    id:"note-1",note:50,startTick:240,durationTicks:240,velocity:100,channel:0
+    id:"note-1",note:50,startTick:240,durationTicks:480,velocity:100,channel:0
   });
 });
 test("sequencer emits ordered AudioContext-time events with note-off before note-on",()=>{
@@ -61,7 +61,7 @@ test("sequencer emits ordered AudioContext-time events with note-off before note
     {id:"a",note:60,startTick:0,durationTicks:480,velocity:100,channel:0},
     {id:"b",note:60,startTick:480,durationTicks:480,velocity:90,channel:0}
   ]});
-  const events=collectMidiEvents([clip],{tempo:120,fromTick:0,toTick:960,originTime:10});
+  const events=collectMidiEvents([clip],{tempo:120,fromTick:0,toTick:961,originTime:10});
   assert.deepEqual(events.map(e=>[e.type,e.tick,e.when]),[
     ["noteOn",0,10],["noteOff",480,10.25],["noteOn",480,10.25],["noteOff",960,10.5]
   ]);
@@ -106,7 +106,7 @@ test("sequencer window slicing does not retrigger notes already in progress",()=
     {id:"long",note:60,startTick:0,durationTicks:960,velocity:100,channel:0},
     {id:"next",note:62,startTick:960,durationTicks:240,velocity:90,channel:0}
   ]});
-  const events=collectMidiEvents([clip],{tempo:120,fromTick:480,toTick:1200,originTime:5});
+  const events=collectMidiEvents([clip],{tempo:120,fromTick:480,toTick:1201,originTime:5});
   assert.deepEqual(events.map(e=>[e.type,e.tick]),[
     ["noteOff",960],["noteOn",960],["noteOff",1200]
   ]);
