@@ -148,6 +148,23 @@ test("standalone transport wraps loop position and reports absolute loop count",
   assert.equal(state.loopCount, 1);
 });
 
+test("standalone transport preserves absolute loop cycle when paused and resumed", () => {
+  let now = 0;
+  const transport = new MusicalTransport({tempo:120,now:()=>now,loop:{startTick:0,endTick:960}});
+  transport.play(now);
+  now = 1.5;
+  assert.equal(transport.snapshot(now).absoluteTick,2880);
+  assert.equal(transport.snapshot(now).loopCount,2);
+  transport.pause(now);
+  now = 10;
+  assert.equal(transport.snapshot(now).absoluteTick,2880);
+  assert.equal(transport.snapshot(now).tick,0);
+  transport.play(now);
+  now = 10.25;
+  assert.equal(transport.snapshot(now).absoluteTick,3360);
+  assert.equal(transport.snapshot(now).loopCount,3);
+});
+
 test("standalone transport schedules look-ahead events against a host audio clock", () => {
   let now = 0;
   const transport = new MusicalTransport({tempo:120,now:()=>now});
