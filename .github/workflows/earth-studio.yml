@@ -54,4 +54,5 @@ jobs:
           node --check --input-type=module < music-foundry/earth-studio/earth-studio-audio-worklet.mjs
           node --check --input-type=module < music-foundry/earth-studio/midi-sequencer.mjs
           node --check --input-type=module < music-foundry/earth-studio/midi-recording-ui.mjs
+          node --check --input-type=module < music-foundry/earth-studio/performance-surface.mjs
           node --check --input-type=module < music-foundry/earth-studio/transport-controller.mjs
