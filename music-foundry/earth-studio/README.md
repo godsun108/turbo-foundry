@@ -1,6 +1,6 @@
 # EARTH STUDIO browser adapter
 
-This directory is the canonical Turbo Foundry home for the first ART STUDIO browser adapter, migrated from Portal draft PR #325.
+This directory is the canonical Turbo Foundry home for the EARTH STUDIO browser adapter, migrated from Portal draft PR #325.
 
 - `art-studio.html` preserves the initial browser-local multitrack workflow and now connects it to project save/open/autosave.
 - `session-schema-v1.json` defines the first portable `.earthsession` manifest.
@@ -24,7 +24,7 @@ The HTML page remains a Web Audio prototype, not the native low-latency engine. 
 Run the pure unit tests from the repository root:
 
 ```sh
-node --test music-foundry/tests/test_earth_studio_session.mjs music-foundry/tests/test_earth_studio_project_package.mjs
+node --test music-foundry/tests/test_earth_studio_session.mjs music-foundry/tests/test_earth_studio_project_package.mjs music-foundry/tests/test_earth_studio_midi_sequencer.mjs
 ```
 
 Source provenance: `godsun108/The-portal`, `music-foundry/studio.html`, branch `music-foundry/art-studio-foundation`, source blob `6b725fe7c27368dca297d310cfda634fb6884cc8`.
