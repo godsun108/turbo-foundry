@@ -55,6 +55,7 @@ const currentTempo = () => Math.max(40, Math.min(240, Number($("bpm").value) || 
 const currentDurationTicks = () => Math.max(1, Math.ceil(app.state.duration * currentTempo() * MIDI_PPQ / 60));
 
 function render() {
+  reconcileScenes();
   const root = $("midiTrackList");
   root.replaceChildren();
   if (!app.state.midiTracks.length) {
@@ -287,6 +288,14 @@ $("clearSession").addEventListener("click",()=>{app.state.midiTracks=[];activeTr
 $("newProject").addEventListener("click",()=>{app.state.midiTracks=[];activeTrackId=null;render();stopPlayback();});
 window.addEventListener("earthstudio:change",()=>{render();updateSelectionControls();});
 function sceneCount(){return Math.max(0,...app.state.midiTracks.map(track=>(track.midiClips||[]).length));}
+function reconcileScenes(){
+  const count=sceneCount();
+  let changed=false;
+  if(!count&&activeScene!==null){activeScene=null;pendingScene=null;sceneStartAbsoluteTick=0;changed=true;}
+  else if(count&&(activeScene===null||activeScene>=count)){activeScene=0;pendingScene=null;sceneStartAbsoluteTick=0;changed=true;}
+  if(pendingScene&&pendingScene.index>=count){pendingScene=null;changed=true;}
+  if(changed)window.dispatchEvent(new Event("earthstudio:scenechange"));
+}
 function launchScene(index,absoluteTick=window.__earthStudioTransport?.snapshot?.().absoluteTick||0,playing=!!window.__earthStudioTransport?.snapshot?.().playing){
   if(!Number.isInteger(index)||index<0||index>=sceneCount())return false;
   pendingScene=playing?{index,tick:nextQuantizedTick(absoluteTick,4*MIDI_PPQ)}:null;
