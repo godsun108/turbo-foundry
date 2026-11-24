@@ -20,10 +20,13 @@ export function validateSession(session) {
   if (![44100,48000,88200,96000,176400,192000].includes(session.sampleRate)) errors.push("sampleRate is unsupported");
   if (!Array.isArray(session.tracks) || !Array.isArray(session.assets)) errors.push("tracks and assets must be arrays");
   const ids = new Set();
+  const storageKeys = new Set();
   for (const asset of session.assets || []) {
     if (!asset || typeof asset.id !== "string" || ids.has(asset.id)) errors.push("asset IDs must be unique strings");
     else ids.add(asset.id);
-    if (!asset || typeof asset.storageKey !== "string" || !asset.storageKey || asset.storageKey.includes("..") || asset.storageKey.startsWith("/") || asset.storageKey.includes("\\")) errors.push("asset storageKey must be a safe relative key");
+    if (!asset || typeof asset.storageKey !== "string" || !asset.storageKey || asset.storageKey.split("/").some(part => !part || part === "." || part === "..") || asset.storageKey.startsWith("/") || asset.storageKey.includes("\\\\") || asset.storageKey.includes("\\0")) errors.push("asset storageKey must be a safe relative key");
+    else if (storageKeys.has(asset.storageKey)) errors.push("asset storageKeys must be unique");
+    else storageKeys.add(asset.storageKey);
     if (!asset || !Number.isInteger(asset.sizeBytes) || asset.sizeBytes < 0) errors.push("asset sizeBytes must be a non-negative integer");
     if (!asset || typeof asset.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(asset.sha256)) errors.push("asset sha256 must be a lowercase SHA-256 digest");
   }
