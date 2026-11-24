@@ -1,4 +1,4 @@
-name: EARTH STUDIO native engine
+name: EARTH STUDIO native and WASM engine
 on:
   pull_request:
     paths:
@@ -23,3 +23,27 @@ jobs:
         run: cmake --build build/earth-studio-engine --parallel 2
       - name: Run DSP and transport tests
         run: ctest --test-dir build/earth-studio-engine --output-on-failure
+  wasm-engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Emscripten SDK
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.64
+      - name: Configure WebAssembly target
+        run: emcmake cmake -S music-foundry/earth-studio/engine -B build/earth-studio-wasm -DCMAKE_BUILD_TYPE=Release
+      - name: Build WebAssembly module
+        run: cmake --build build/earth-studio-wasm --target earth_studio_engine_wasm --parallel 2
+      - name: Verify browser module outputs
+        run: |
+          test -s build/earth-studio-wasm/web/earth_studio_engine_wasm.mjs
+          test -s build/earth-studio-wasm/web/earth_studio_engine_wasm.wasm
+      - name: Run WASM C ABI smoke test under Node
+        run: node music-foundry/earth-studio/engine/tests/wasm_smoke_test.mjs build/earth-studio-wasm/web/earth_studio_engine_wasm.mjs build/earth-studio-wasm/web/earth_studio_engine_wasm.wasm
+      - name: Upload uncommitted WASM build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: earth-studio-wasm
+          path: build/earth-studio-wasm/web/earth_studio_engine_wasm.*
+          if-no-files-found: error

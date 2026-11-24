@@ -26,10 +26,14 @@ if(EMSCRIPTEN)
   add_executable(earth_studio_engine_wasm src/audio_engine.cpp src/c_api.cpp)
   target_include_directories(earth_studio_engine_wasm PRIVATE include)
   target_compile_features(earth_studio_engine_wasm PRIVATE cxx_std_20)
-  set_target_properties(earth_studio_engine_wasm PROPERTIES CXX_EXTENSIONS OFF SUFFIX ".js")
+  set_target_properties(earth_studio_engine_wasm PROPERTIES
+    CXX_EXTENSIONS OFF
+    SUFFIX ".mjs"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/web"
+  )
   target_link_options(earth_studio_engine_wasm PRIVATE
-    "-sMODULARIZE=1" "-sEXPORT_NAME=createEarthStudioEngine"
-    "-sENVIRONMENT=worker" "-sALLOW_MEMORY_GROWTH=0"
+    "-sMODULARIZE=1" "-sEXPORT_ES6=1" "-sEXPORT_NAME=createEarthStudioEngine"
+    "-sENVIRONMENT=web,worker" "-sALLOW_MEMORY_GROWTH=0"
     "-sINITIAL_MEMORY=16777216" "-sFILESYSTEM=0"
     "-sEXPORTED_FUNCTIONS=['_malloc','_free','_earth_engine_create','_earth_engine_destroy','_earth_engine_render','_earth_engine_set_instrument','_earth_engine_set_master_gain','_earth_engine_active_voices']"
   )
