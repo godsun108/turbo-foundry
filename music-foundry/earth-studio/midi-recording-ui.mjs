@@ -300,3 +300,4 @@ $("newProject").addEventListener("click",()=>{app.state.midiTracks=[];activeTrac
 window.addEventListener("earthstudio:change",()=>{render();updateSelectionControls();});
 window.__earthStudioMidi = {render,stopRecording,getTracks:()=>app.state.midiTracks,getClips:()=>{const tracks=app.state.midiTracks;const anySolo=tracks.some(track=>track.solo);return tracks.flatMap(track=>(track.muted||(anySolo&&!track.solo))?[]:(track.midiClips||[]).map(clip=>({...clip,trackId:track.id})));},isLoopEnabled:()=>loopEnabled,onTransportStart:()=>{},onTransportStop:stopPlayback,dispose:()=>{unsubscribe?.();for(const input of midiAccess?.inputs.values()||[])input.onmidimessage=null;}};
 render();
+window.dispatchEvent(new Event("earthstudio:midi-ready"));
