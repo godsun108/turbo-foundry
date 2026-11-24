@@ -30,7 +30,7 @@ function loopEndTick(items = clips()) {
   return Math.max(1,...items.map(clip=>clip.startTick+clip.lengthTicks));
 }
 function loopConfig(items = clips()) {
-  return midi.isLoopEnabled() && items.length ? {startTick:0,endTick:loopEndTick(items)} : null;
+  return midi.isLoopEnabled() && items.length ? {startTick:items[0].startTick,endTick:loopEndTick(items)} : null;
 }
 function cancelMidi() {
   instrument.cancelScheduledMidi?.();
@@ -76,8 +76,12 @@ function playAudioFrom(positionSeconds) {
   }
 }
 function updateClock(snapshot = transport.snapshot()) {
+  const items=clips();
+  const sceneEnd=Math.max(0,...items.map(clip=>clip.startTick+clip.lengthTicks));
+  const duration=Math.max(app.state.duration,ticksToSeconds(sceneEnd,transport.tempo,transport.ppq));
+  app.state.duration=duration;
   const seconds = ticksToSeconds(snapshot.absoluteTick,transport.tempo,transport.ppq);
-  app.state.playhead = Math.min(app.state.duration,seconds);
+  app.state.playhead = Math.min(duration,seconds);
   $("clock").textContent = app.formatTime ? app.formatTime(app.state.playhead)+" / "+app.formatTime(app.state.duration) : formatTime(app.state.playhead)+" / "+formatTime(app.state.duration);
   $("seek").value = app.state.duration ? Math.round(app.state.playhead/app.state.duration*1000) : 0;
 }
@@ -124,14 +128,17 @@ function frame() {
   if (!transport.playing) return;
   const snapshot = transport.snapshot(now());
   updateClock(snapshot);
-  const endTick = transport.loop ? transport.loop.endTick*4 : secondsToTicks(app.state.duration,transport.tempo,transport.ppq);
-  if (snapshot.absoluteTick >= endTick) {
-    stop();
-    return;
-  }
   if (midi.advanceScene(snapshot.absoluteTick)) {
     cancelMidi();
     refreshLoop();
+  }
+  const activeClips=clips();
+  const endTick=transport.loop
+    ? transport.loop.startTick+(transport.loop.endTick-transport.loop.startTick)*4
+    : Math.max(secondsToTicks(app.state.duration,transport.tempo,transport.ppq),...activeClips.map(clip=>clip.startTick+clip.lengthTicks));
+  if (snapshot.absoluteTick >= endTick) {
+    stop();
+    return;
   }
   scheduleMidi();
   animationFrame = requestAnimationFrame(frame);
