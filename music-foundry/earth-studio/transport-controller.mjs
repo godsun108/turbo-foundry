@@ -116,7 +116,7 @@ function scheduleMidi() {
     });
     if (events.length) {
       const loop = transport.loop;
-      const finalTick = loop ? loop.endTick*4 : Number.POSITIVE_INFINITY;
+      const finalTick = loop ? loop.startTick+(loop.endTick-loop.startTick)*4 : Number.POSITIVE_INFINITY;
       const bounded = events.filter(event=>event.tick<finalTick || (event.tick===finalTick && event.type==="noteOff"));
       dispatchMidiEvents(bounded,createAudioWorkletMidiSink(instrument.port));
     }
