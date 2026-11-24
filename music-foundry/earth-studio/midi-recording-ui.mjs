@@ -160,7 +160,7 @@ async function schedulePlayback() {
     if (generation !== playbackGeneration || !app.state.playing) return;
     const clips = app.state.midiTracks.flatMap(track => (track.muted || (app.state.midiTracks.some(item=>item.solo) && !track.solo)) ? [] : (track.midiClips||[]).map(clip=>({...clip,trackId:track.id})));
     if (!clips.length) return;
-    const toTick = Math.max(currentDurationTicks(),...clips.map(clip=>clip.startTick+clip.lengthTicks));
+    const toTick = Math.max(currentDurationTicks(),...clips.map(clip=>clip.startTick+clip.lengthTicks))+1;
     const events = collectMidiEvents(clips,{tempo:currentTempo(),fromTick:0,toTick,originTime:originTime+.08});
     if (events.length > 512) { status("Playback event limit reached (512 scheduled events). Split the arrangement into shorter sections."); return; }
     dispatchMidiEvents(events,createAudioWorkletMidiSink(instrument.port));
