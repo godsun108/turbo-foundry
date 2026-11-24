@@ -196,6 +196,8 @@ export class MusicalTransport {
     this.playing = false;
     this.positionTick = 0;
     this.startedAt = 0;
+    this.scheduledUntilTick = 0;
+    this.scheduledUntilTick = 0;
     this.setLoop(loop);
   }
   rawTickAt(clockTimeSeconds = this.now()) {
@@ -228,6 +230,7 @@ export class MusicalTransport {
     finite(clockTimeSeconds, "clockTimeSeconds");
     if (!this.playing) {
       this.startedAt = clockTimeSeconds - ticksToSeconds(this.positionTick, this.tempo, this.ppq);
+      this.scheduledUntilTick = this.positionTick;
       this.playing = true;
     }
     return this.snapshot(clockTimeSeconds);
@@ -235,6 +238,7 @@ export class MusicalTransport {
   pause(clockTimeSeconds = this.now()) {
     finite(clockTimeSeconds, "clockTimeSeconds");
     if (this.playing) this.positionTick = this.positionAt(clockTimeSeconds);
+    this.scheduledUntilTick = this.positionTick;
     this.playing = false;
     return this.snapshot(clockTimeSeconds);
   }
@@ -248,6 +252,7 @@ export class MusicalTransport {
     integer(tick, "tick", 0);
     finite(clockTimeSeconds, "clockTimeSeconds");
     this.positionTick = tick;
+    this.scheduledUntilTick = tick;
     if (this.playing) this.startedAt = clockTimeSeconds - ticksToSeconds(tick, this.tempo, this.ppq);
     return this.snapshot(clockTimeSeconds);
   }
@@ -257,6 +262,7 @@ export class MusicalTransport {
     const absoluteTick = this.rawTickAt(clockTimeSeconds);
     this.tempo = tempo;
     if (this.playing) this.startedAt = clockTimeSeconds - ticksToSeconds(absoluteTick, this.tempo, this.ppq);
+    this.scheduledUntilTick = absoluteTick;
     return this.snapshot(clockTimeSeconds);
   }
   setLoop(loop, clockTimeSeconds = this.now()) {
@@ -270,6 +276,7 @@ export class MusicalTransport {
     this.loop = loop ? {startTick:loop.startTick,endTick:loop.endTick} : null;
     if (this.playing) this.startedAt = clockTimeSeconds - ticksToSeconds(absoluteTick, this.tempo, this.ppq);
     else this.positionTick = this.positionAt(clockTimeSeconds);
+    this.scheduledUntilTick = absoluteTick;
     return this.snapshot(clockTimeSeconds);
   }
   scheduleAhead(clips, {clockTimeSeconds = this.now(), audioTimeSeconds = clockTimeSeconds, lookAheadSeconds = 0.12} = {}) {
@@ -278,13 +285,17 @@ export class MusicalTransport {
     finite(lookAheadSeconds, "lookAheadSeconds");
     if (lookAheadSeconds <= 0) throw new RangeError("lookAheadSeconds must be positive");
     if (!this.playing) return [];
-    const fromTick = this.rawTickAt(clockTimeSeconds);
-    const toTick = fromTick + secondsToTicks(lookAheadSeconds, this.tempo, this.ppq);
+    const rawTick = this.rawTickAt(clockTimeSeconds);
+    const fromTick = Math.max(rawTick, this.scheduledUntilTick);
+    const toTick = rawTick + secondsToTicks(lookAheadSeconds, this.tempo, this.ppq);
     if (toTick <= fromTick) return [];
-    return collectMidiEvents(clips, {
+    const originTime = audioTimeSeconds + ticksToSeconds(fromTick - rawTick, this.tempo, this.ppq);
+    const events = collectMidiEvents(clips, {
       tempo:this.tempo, ppq:this.ppq, fromTick, toTick,
-      originTime:audioTimeSeconds, loop:this.loop
+      originTime, loop:this.loop
     });
+    this.scheduledUntilTick = toTick;
+    return events;
   }
 }
 
