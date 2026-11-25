@@ -7,7 +7,6 @@ async function waitForGlobal(key,eventName) {
 const instrument = await waitForGlobal("__earthInstrument","earthstudio:instrument-ready");
 const midi = await waitForGlobal("__earthStudioMidi","earthstudio:midi-ready");
 const $ = id => document.getElementById(id);
-const mappingsKey = "earth-studio-midi-cc-mappings-v1";
 const targets = [
   {id:"attack",label:"ATTACK",scale:"linear"},
   {id:"decay",label:"DECAY",scale:"linear"},
@@ -19,15 +18,7 @@ const targets = [
 ];
 let mappings = {};
 let learningTarget = null;
-try {
-  const saved = JSON.parse(localStorage.getItem(mappingsKey)||"{}");
-  if (saved && typeof saved==="object" && !Array.isArray(saved)) {
-    for (const target of targets) {
-      const mapping=saved[target.id];
-      if (mapping && Number.isInteger(mapping.controller) && mapping.controller>=0 && mapping.controller<=127) mappings[target.id]=mapping;
-    }
-  }
-} catch {}
+
 
 const panel=document.createElement("section");
 panel.className="panel";
@@ -61,8 +52,21 @@ style.textContent=`
 document.head.append(style);
 
 function persistMappings(){
-  try{localStorage.setItem(mappingsKey,JSON.stringify(mappings));}
-  catch{$("ccStatus").textContent="Browser storage blocked; mappings will last only until this page closes.";}
+  window.dispatchEvent(new Event("earthstudio:performancechange"));
+  window.dispatchEvent(new Event("earthstudio:change"));
+}
+function setMappings(value={}){
+  const next={};
+  if(value&&typeof value==="object"&&!Array.isArray(value)){
+    for(const target of targets){
+      const mapping=value[target.id];
+      if(mapping&&Number.isInteger(mapping.controller)&&mapping.controller>=0&&mapping.controller<=127){
+        next[target.id]={controller:mapping.controller};
+      }
+    }
+  }
+  mappings=next;
+  renderMappings();
 }
 function renderScenes(){
   const root=$("sceneLauncher");
@@ -161,4 +165,9 @@ window.addEventListener("earthstudio:scenechange",renderScenes);
 window.addEventListener("earthstudio:change",renderScenes);
 renderScenes();
 renderMappings();
+window.__earthStudioPerformance={
+  getMappings:()=>JSON.parse(JSON.stringify(mappings)),
+  setMappings,
+  clearMappings:()=>setMappings({})
+};
 window.dispatchEvent(new Event("earthstudio:performance-ready"));
