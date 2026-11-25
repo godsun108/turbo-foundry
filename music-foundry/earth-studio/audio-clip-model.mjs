@@ -91,3 +91,14 @@ export function validateAudioClipList(clips) {
   }
   return errors;
 }
+
+/** Snap seconds to a musical grid. divisionsPerBeat: 1=quarter, 2=eighth, 4=sixteenth, 8=thirty-second. */
+export function snapAudioTime(seconds, {tempo = 120, divisionsPerBeat = 4, enabled = true} = {}) {
+  finite(seconds, "seconds"); positive(tempo, "tempo");
+  if (!Number.isInteger(divisionsPerBeat) || divisionsPerBeat < 1 || divisionsPerBeat > 64) {
+    throw new RangeError("divisionsPerBeat must be an integer from 1 to 64");
+  }
+  if (!enabled) return Math.max(0, seconds);
+  const gridSeconds = 60 / tempo / divisionsPerBeat;
+  return Math.max(0, Math.round(seconds / gridSeconds) * gridSeconds);
+}
