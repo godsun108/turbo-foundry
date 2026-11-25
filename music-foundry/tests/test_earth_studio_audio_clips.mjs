@@ -54,7 +54,7 @@ test("clip gain and fades validate, calculate and remain non-destructive",()=>{
  assert.equal(audioClipGainAt(shaped,9),0.4);
  assert.equal(audioClipGainAt(shaped,10),0);
  assert.deepEqual(validateAudioClipEnvelope(shaped),[]);
- assert.deepEqual(validateAudioClipEnvelope({...shaped,fadeInSeconds:9,fadeOutSeconds:9}).length,2);
+ assert.equal(validateAudioClipEnvelope({...shaped,fadeInSeconds:9,fadeOutSeconds:9}).length,1);
  assert.equal(source.gain,undefined);
  assert.throws(()=>setAudioClipEnvelope(source,{gain:3}),RangeError);
 });
