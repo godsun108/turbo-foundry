@@ -50,6 +50,10 @@ let activeScene = 0;
 let sceneStartAbsoluteTick = 0;
 let pendingScene = null;
 let midiAccess = null;
+let learningController = false;
+let learnedController = null;
+let modulationArmed = false;
+let modulationDirty = false;
 const midiInputs = new Set();
 
 const id = prefix => prefix + "-" + crypto.randomUUID();
@@ -264,6 +268,8 @@ function captureModulation(controller,value,channel){
     ? range[0]*Math.pow(range[1]/range[0],value/127)
     : range[0]+(range[1]-range[0])*(value/127);
   const relativeTick=Math.max(0,(snapshot.tick??snapshot.absoluteTick)-sceneStartAbsoluteTick);
+  const quantizeTicks=Number($("midiQuantize").value)||0;
+  clip.lengthTicks=Math.max(clip.lengthTicks,quantizeTicks?Math.round(relativeTick/quantizeTicks)*quantizeTicks:Math.ceil(relativeTick));
   try{
     recordMidiAutomationPoint(clip,parameter,relativeTick,normalized,{quantizeTicks});
     modulationDirty=true;
