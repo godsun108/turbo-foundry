@@ -96,9 +96,16 @@ export function validateSession(session) {
         if (midiClip && note && Number.isInteger(note.startTick) && Number.isInteger(note.durationTicks) && Number.isInteger(midiClip.lengthTicks) && note.startTick + note.durationTicks > midiClip.lengthTicks) errors.push("MIDI note extends beyond its clip length");
       }
     }
+    const audioClipIds = new Set();
+    const trackAssetId = (track && track.clips && track.clips[0]) ? track.clips[0].assetId : null;
     for (const clip of (track && track.clips) || []) {
+      if (!clip || typeof clip.id !== "string" || !clip.id.trim() || audioClipIds.has(clip.id)) errors.push("audio clip IDs must be unique non-empty strings per track");
+      else audioClipIds.add(clip.id);
       if (!clip || !assetIds.has(clip.assetId)) errors.push("clip references a missing asset");
+      if (clip && trackAssetId !== null && clip.assetId !== trackAssetId) errors.push("all clips on an audio track must reference the same source asset");
       if (!clip || !Number.isFinite(clip.startSeconds) || clip.startSeconds < 0 || !Number.isFinite(clip.sourceStartSeconds) || clip.sourceStartSeconds < 0 || !Number.isFinite(clip.durationSeconds) || clip.durationSeconds <= 0) errors.push("clip timing is invalid");
+      if (clip && clip.loop !== undefined && typeof clip.loop !== "boolean") errors.push("audio clip loop must be boolean");
+      if (clip && track && track.kind !== "audio") errors.push("audio clips require an audio track");
     }
   }
   return errors;

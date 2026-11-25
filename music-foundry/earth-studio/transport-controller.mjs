@@ -53,34 +53,49 @@ function playAudioFrom(positionSeconds) {
   const absoluteTick = secondsToTicks(Math.max(0,positionSeconds),transport.tempo,transport.ppq);
   const elapsed = ticksToSeconds(Math.max(0,absoluteTick-scene.startTick),transport.tempo,transport.ppq);
   const startAt = audioContext.currentTime + 0.05;
-  const looping = midi.isLoopEnabled() && clips().length > 0;
   for (const track of tracks) {
-    const offset = Math.max(0,Number(track.offset)||0);
-    const rawSkip = Math.max(0,elapsed-offset);
-    const duration = track.buffer.duration;
-    if (rawSkip >= duration && !looping) continue;
-    const source = audioContext.createBufferSource();
-    const gain = audioContext.createGain();
-    const pan = audioContext.createStereoPanner ? audioContext.createStereoPanner() : null;
-    source.buffer = track.buffer;
-    source.loop = looping;
-    if (source.loop) { source.loopStart = 0; source.loopEnd = duration; }
-    gain.gain.value = track.gain;
-    source.connect(gain);
-    if (pan) {
-      pan.pan.value = track.pan;
-      gain.connect(pan);
-      pan.connect(audioContext.destination);
-    } else {
-      gain.connect(audioContext.destination);
+    const clipList = track.clips?.length ? track.clips : [{
+      startSeconds:Math.max(0,Number(track.offset)||0),sourceStartSeconds:0,durationSeconds:track.buffer.duration
+    }];
+    for (const clip of clipList) {
+      const clipStart = Math.max(0,Number(clip.startSeconds)||0);
+      const sourceStart = Math.max(0,Number(clip.sourceStartSeconds)||0);
+      const clipDuration = Math.max(0,Number(clip.durationSeconds)||0);
+      if (!clipDuration) continue;
+      const relative = elapsed - clipStart;
+      if (relative >= clipDuration && !clip.loop) continue;
+      const source = audioContext.createBufferSource();
+      const gain = audioContext.createGain();
+      const pan = audioContext.createStereoPanner ? audioContext.createStereoPanner() : null;
+      source.buffer = track.buffer;
+      source.loop = !!clip.loop;
+      if (source.loop) {
+        source.loopStart = sourceStart;
+        source.loopEnd = Math.min(track.buffer.duration,sourceStart+clipDuration);
+      }
+      gain.gain.value = track.gain;
+      source.connect(gain);
+      if (pan) {
+        pan.pan.value = track.pan;
+        gain.connect(pan);
+        pan.connect(audioContext.destination);
+      } else {
+        gain.connect(audioContext.destination);
+      }
+      const skip = Math.max(0,relative);
+      const when = startAt + Math.max(0,clipStart-elapsed);
+      if (source.loop) {
+        const loopLength = Math.max(0.001,source.loopEnd-source.loopStart);
+        source.start(when,sourceStart+(skip%loopLength));
+      } else {
+        source.start(when,sourceStart+skip,clipDuration-skip);
+      }
+      source.onended = () => {
+        try { source.disconnect(); gain.disconnect(); pan?.disconnect(); } catch {}
+        audioSources = audioSources.filter(item=>item!==source);
+      };
+      audioSources.push(source);
     }
-    const skip = looping ? rawSkip % duration : rawSkip;
-    source.start(startAt + Math.max(0,offset-elapsed),skip);
-    source.onended = () => {
-      try { source.disconnect(); gain.disconnect(); pan?.disconnect(); } catch {}
-      audioSources = audioSources.filter(item=>item!==source);
-    };
-    audioSources.push(source);
   }
 }
 function updateClock(snapshot = transport.snapshot()) {
@@ -140,7 +155,7 @@ function frame() {
   midi.advanceScene(snapshot.absoluteTick);
   const activeClips=clips();
   const scene=midi.getSceneInfo();
-  const audioEndTick=Math.max(0,...(midi.getAudioTracks?.()||[]).map(track=>scene.startTick+secondsToTicks((Number(track.offset)||0)+track.buffer.duration,transport.tempo,transport.ppq)));
+  const audioEndTick=Math.max(0,...(midi.getAudioTracks?.()||[]).flatMap(track=>(track.clips?.length?track.clips:[{startSeconds:Number(track.offset)||0,durationSeconds:track.buffer.duration}]).map(clip=>scene.startTick+secondsToTicks(clip.startSeconds+clip.durationSeconds,transport.tempo,transport.ppq))));
   const endTick=transport.loop
     ? transport.loop.startTick+(transport.loop.endTick-transport.loop.startTick)*4
     : Math.max(scene.startTick,audioEndTick,...activeClips.map(clip=>clip.startTick+clip.lengthTicks));

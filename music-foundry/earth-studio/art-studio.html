@@ -22,6 +22,13 @@ body{padding-bottom:env(safe-area-inset-bottom)}a{color:var(--acid);text-decorat
 .instrument-actions button{flex:1}
 @media(max-width:600px){.instrument-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.keyboard{gap:2px}.key{min-height:78px;font-size:8px;padding:5px 0}.key.black{min-height:56px}}
 
+
+.clip-tools{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.clip-tools button{font-size:9px;min-height:28px;padding:4px 7px;letter-spacing:.04em}
+.track-lane{position:relative;min-height:54px}
+.track-lane .clip{position:absolute;top:6px;min-width:30px;max-width:none;cursor:pointer;touch-action:pan-y}
+.track-lane .clip.selected-clip{outline:2px solid var(--acid);outline-offset:2px}
+.track-lane .clip small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -97,12 +104,12 @@ body{padding-bottom:env(safe-area-inset-bottom)}a{color:var(--acid);text-decorat
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const state={tracks:[],selected:null,playing:false,startedAt:0,playhead:0,raf:0,ctx:null,nodes:[],duration:0};
+const state={tracks:[],selected:null,selectedClip:null,playing:false,startedAt:0,playhead:0,raf:0,ctx:null,nodes:[],duration:0};
 const colors=['#c8ff4d','#b69cff','#8ce6ed','#ffbd92'];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const fmt=t=>{t=Math.max(0,t||0);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(Math.floor(t%60)).padStart(2,'0')+'.'+Math.floor((t%1)*10)};
 function say(s){$('status').textContent=s}
-function recalc(){const midiTempo=clamp(Number($("bpm").value)||120,40,240);state.duration=Math.max(0,...state.tracks.map(t=>t.offset+t.buffer.duration),...(state.midiTracks||[]).flatMap(t=>(t.midiClips||[]).map(c=>(c.startTick+c.lengthTicks)*60/(midiTempo*960)*(state.midiLoopRepeats||1))));$('trackCount').textContent=state.tracks.length+' track'+(state.tracks.length===1?'':'s');$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration);$('seek').value=state.duration?Math.round(state.playhead/state.duration*1000):0;render()}
+function recalc(){const midiTempo=clamp(Number($("bpm").value)||120,40,240);state.duration=Math.max(0,...state.tracks.map(t=>Math.max(0,...(t.clips||[{startSeconds:t.offset||0,durationSeconds:t.buffer.duration}]).map(c=>c.startSeconds+c.durationSeconds))),...(state.midiTracks||[]).flatMap(t=>(t.midiClips||[]).map(c=>(c.startTick+c.lengthTicks)*60/(midiTempo*960)*(state.midiLoopRepeats||1))));$('trackCount').textContent=state.tracks.length+' track'+(state.tracks.length===1?'':'s');$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration);$('seek').value=state.duration?Math.round(state.playhead/state.duration*1000):0;render()}
 function render(){
 const root=$('timeline');root.querySelectorAll('.track').forEach(n=>n.remove());$('empty').hidden=state.tracks.length>0;
 const ruler=$('ruler');ruler.innerHTML='';const dur=Math.max(20,state.duration+4);ruler.style.width=Math.max(700,dur*50)+'px';for(let s=0;s<=dur;s+=2){const n=document.createElement('span');n.textContent=fmt(s);n.style.left=(s*50)+'px';ruler.append(n)}
@@ -115,14 +122,44 @@ sceneSelect.addEventListener('click',event=>event.stopPropagation());
 sceneSelect.addEventListener('change',event=>{t.sceneIndex=Number(event.target.value);window.dispatchEvent(new Event('earthstudio:change'));window.dispatchEvent(new Event('earthstudio:scenechange'));render()});
 meta.append(sceneSelect);
 const actions=document.createElement('div');actions.className='track-actions';[['EDIT','edit'],[t.muted?'UNMUTE':'MUTE','mute'],[t.solo?'UNSOLO':'SOLO','solo']].forEach(([label,act])=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>{if(act==='edit')select(t.id);if(act==='mute')t.muted=!t.muted;if(act==='solo')t.solo=!t.solo;render()};actions.append(b)});meta.append(actions);
-const lane=document.createElement('div');lane.className='track-lane';const clip=document.createElement('div');clip.className='clip';clip.style.left=(t.offset*50)+'px';clip.style.width=Math.max(30,t.buffer.duration*50)+'px';clip.style.borderColor=colors[i%colors.length];const b=document.createElement('b');b.textContent=t.name;const sm=document.createElement('small');sm.textContent=fmt(t.buffer.duration)+' · '+(t.muted?'MUTED':t.solo?'SOLO':'AUDIO');clip.append(b,sm);lane.append(clip);row.append(meta,lane);row.onclick=e=>{if(!e.target.closest('button'))select(t.id)};root.append(row)});
+const lane=document.createElement('div');lane.className='track-lane';
+(t.clips||[{id:'clip-'+t.id,startSeconds:t.offset||0,sourceStartSeconds:0,durationSeconds:t.buffer.duration}]).forEach((item,ci)=>{
+ const clip=document.createElement('div');clip.className='clip'+(state.selectedClip===item.id?' selected-clip':'');clip.style.left=(item.startSeconds*50)+'px';clip.style.width=Math.max(30,item.durationSeconds*50)+'px';clip.style.borderColor=colors[i%colors.length];
+ const b=document.createElement('b');b.textContent=(ci+1)+'. '+t.name;const sm=document.createElement('small');sm.textContent=fmt(item.durationSeconds)+(item.loop?' · LOOP':'');clip.append(b,sm);
+ clip.addEventListener('click',event=>{event.stopPropagation();select(t.id,item.id)});lane.append(clip);
+});
+const clipTools=document.createElement('div');clipTools.className='clip-tools';
+[['SPLIT @ PLAYHEAD','split'],['DUPLICATE +1s','duplicate'],['TRIM 0.25s','trim'],['MOVE +1s','move'],['LOOP ON/OFF','loop']].forEach(([label,action])=>{const button=document.createElement('button');button.type='button';button.textContent=label;button.className='clip-action';button.addEventListener('click',event=>{event.stopPropagation();editClip(t.id,action)});clipTools.append(button)});
+meta.append(clipTools);row.append(meta,lane);row.onclick=e=>{if(!e.target.closest('button')&&!e.target.closest('.clip'))select(t.id)};root.append(row)});
 if(state.selected){const t=state.tracks.find(x=>x.id===state.selected);if(t)syncControls(t);else{$('selectedControls').hidden=true;state.selected=null}}
 }
-function select(id){state.selected=id;const t=state.tracks.find(x=>x.id===id);if(!t)return;$('selectedControls').hidden=false;syncControls(t)}
-function syncControls(t){$('selectedTitle').textContent=t.name;$('gain').value=Math.round(t.gain*100);$('gainValue').textContent=Math.round(t.gain*100)+'%';$('pan').value=Math.round(t.pan*100);$('panValue').textContent=t.pan===0?'CENTER':(t.pan<0?'L ':'R ')+Math.abs(Math.round(t.pan*100));$('offset').value=Math.round(t.offset);$('offsetValue').textContent=t.offset.toFixed(1)+' s';$('trackLabel').value=t.name;$('mute').textContent=t.muted?'UNMUTE':'MUTE';$('solo').textContent=t.solo?'UNSOLO':'SOLO'}
+function select(id,clipId){state.selected=id;const t=state.tracks.find(x=>x.id===id);if(!t)return;state.selectedClip=clipId||(t.clips||[])[0]?.id||null;$('selectedControls').hidden=false;syncControls(t);render()}
+function editClip(trackId,action){
+ const track=state.tracks.find(item=>item.id===trackId);if(!track)return;
+ if(!track.clips?.length)track.clips=[{id:'clip-'+track.id,assetId:'asset-'+track.id,startSeconds:track.offset||0,sourceStartSeconds:0,durationSeconds:track.buffer.duration}];
+ let clip=track.clips.find(item=>item.id===state.selectedClip)||track.clips[0];state.selectedClip=clip.id;
+ const model=window.__earthStudioClipModel;
+ const makeClipId=()=>'clip-'+Date.now()+Math.random().toString(36).slice(2,7);
+ try{
+  if(action==='split'){
+   const [left,right]=model.splitAudioClip(clip,state.playhead,makeClipId);Object.assign(clip,left);track.clips.push(right);state.selectedClip=right.id;
+  }else if(action==='duplicate'){
+   const copy=model.duplicateAudioClip(clip,{idFactory:makeClipId,offsetSeconds:1});track.clips.push(copy);state.selectedClip=copy.id;
+  }else if(action==='trim'){
+   Object.assign(clip,model.trimAudioClip(clip,{rightSeconds:0.25}));
+  }else if(action==='move'){
+   Object.assign(clip,model.moveAudioClip(clip,clip.startSeconds+1));
+  }else if(action==='loop'){
+   Object.assign(clip,model.setAudioClipLoop(clip,!clip.loop));
+  }
+ }catch(error){say(error?.message||'Clip edit could not be applied.');return}
+ track.clips.sort((a,b)=>a.startSeconds-b.startSeconds);track.offset=track.clips[0]?.startSeconds||0;
+ recalc();window.dispatchEvent(new Event('earthstudio:change'));say('Clip '+action+' applied non-destructively.');
+}
+function syncControls(t){t.offset=(t.clips||[])[0]?.startSeconds??t.offset??0;$('selectedTitle').textContent=t.name;$('gain').value=Math.round(t.gain*100);$('gainValue').textContent=Math.round(t.gain*100)+'%';$('pan').value=Math.round(t.pan*100);$('panValue').textContent=t.pan===0?'CENTER':(t.pan<0?'L ':'R ')+Math.abs(Math.round(t.pan*100));$('offset').value=Math.round(t.offset);$('offsetValue').textContent=t.offset.toFixed(1)+' s';$('trackLabel').value=t.name;$('mute').textContent=t.muted?'UNMUTE':'MUTE';$('solo').textContent=t.solo?'UNSOLO':'SOLO'}
 function stop(){if(state.raf)cancelAnimationFrame(state.raf);state.raf=0;state.playing=false;state.nodes.forEach(n=>{try{n.stop()}catch(e){}});state.nodes=[];if(state.ctx){state.ctx.close().catch(()=>{});state.ctx=null}window.__earthStudioMidi?.onTransportStop?.();$('play').textContent='▶ PLAY';$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration)}
-async function play(){if(!state.tracks.length&&!(state.midiTracks||[]).length){say('Add audio or record a MIDI take first.');return}stop();const AC=window.AudioContext||window.webkitAudioContext;if(!AC){say('Web Audio is not available in this browser.');return}await window.__earthInstrument?.prepare();const ctx=new AC();state.ctx=ctx;await ctx.resume();const start=ctx.currentTime+.08;const anySolo=state.tracks.some(t=>t.solo);state.tracks.forEach(t=>{if(t.muted||(anySolo&&!t.solo))return;const source=ctx.createBufferSource();source.buffer=t.buffer;const gain=ctx.createGain();gain.gain.value=t.gain;const pan=ctx.createStereoPanner?ctx.createStereoPanner():null;if(pan)pan.pan.value=t.pan;source.connect(gain);if(pan){gain.connect(pan);pan.connect(ctx.destination)}else gain.connect(ctx.destination);const when=start+Math.max(0,t.offset-state.playhead);const skip=Math.max(0,state.playhead-t.offset);if(skip<t.buffer.duration){source.start(when,skip);state.nodes.push(source)}});state.startedAt=start-state.playhead;state.playing=true;window.__earthStudioMidi?.onTransportStart?.();$('play').textContent='Ⅱ PAUSE';say('Playing session.');const tick=()=>{if(!state.playing)return;state.playhead=clamp(ctx.currentTime-state.startedAt,0,state.duration);$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration);$('seek').value=state.duration?Math.round(state.playhead/state.duration*1000):0;if(state.playhead>=state.duration){state.playhead=0;stop();recalc();return}state.raf=requestAnimationFrame(tick)};state.raf=requestAnimationFrame(tick)}
-function addTrack(name,buffer,sourceBlob=null){const id='t'+Date.now()+Math.random().toString(36).slice(2,7);state.tracks.push({id,name:name.slice(0,64),buffer,sourceBlob,offset:0,gain:1,pan:0,muted:false,solo:false,sceneIndex:0});state.selected=id;recalc();select(id);window.dispatchEvent(new Event('earthstudio:change'))}
+async function play(){if(!state.tracks.length&&!(state.midiTracks||[]).length){say('Add audio or record a MIDI take first.');return}stop();const AC=window.AudioContext||window.webkitAudioContext;if(!AC){say('Web Audio is not available in this browser.');return}await window.__earthInstrument?.prepare();const ctx=new AC();state.ctx=ctx;await ctx.resume();const start=ctx.currentTime+.08;const anySolo=state.tracks.some(t=>t.solo);state.tracks.forEach(t=>{if(t.muted||(anySolo&&!t.solo))return;(t.clips||[{startSeconds:t.offset||0,sourceStartSeconds:0,durationSeconds:t.buffer.duration}]).forEach(clip=>{const elapsed=state.playhead-clip.startSeconds;if(elapsed>=clip.durationSeconds&&!clip.loop)return;const source=ctx.createBufferSource();source.buffer=t.buffer;source.loop=!!clip.loop;source.loopStart=clip.sourceStartSeconds;source.loopEnd=clip.sourceStartSeconds+clip.durationSeconds;const gain=ctx.createGain();gain.gain.value=t.gain;const pan=ctx.createStereoPanner?ctx.createStereoPanner():null;if(pan)pan.pan.value=t.pan;source.connect(gain);if(pan){gain.connect(pan);pan.connect(ctx.destination)}else gain.connect(ctx.destination);const skip=Math.max(0,elapsed);const when=start+Math.max(0,clip.startSeconds-state.playhead);if(source.loop){source.start(when,clip.sourceStartSeconds+(skip%clip.durationSeconds))}else{source.start(when,clip.sourceStartSeconds+skip,clip.durationSeconds-skip)}state.nodes.push(source)})});state.startedAt=start-state.playhead;state.playing=true;window.__earthStudioMidi?.onTransportStart?.();$('play').textContent='Ⅱ PAUSE';say('Playing session.');const tick=()=>{if(!state.playing)return;state.playhead=clamp(ctx.currentTime-state.startedAt,0,state.duration);$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration);$('seek').value=state.duration?Math.round(state.playhead/state.duration*1000):0;if(state.playhead>=state.duration){state.playhead=0;stop();recalc();return}state.raf=requestAnimationFrame(tick)};state.raf=requestAnimationFrame(tick)}
+function addTrack(name,buffer,sourceBlob=null){const id='t'+Date.now()+Math.random().toString(36).slice(2,7);state.tracks.push({id,name:name.slice(0,64),buffer,sourceBlob,offset:0,gain:1,pan:0,muted:false,solo:false,sceneIndex:0,clips:[{id:'clip-'+id,assetId:'asset-'+id,startSeconds:0,sourceStartSeconds:0,durationSeconds:buffer.duration}]});state.selected=id;state.selectedClip='clip-'+id;recalc();select(id,state.selectedClip);window.dispatchEvent(new Event('earthstudio:change'))}
 $('addAudio').onclick=()=>$('fileInput').click();
 $('fileInput').onchange=async e=>{const files=Array.from(e.target.files||[]);if(!files.length)return;say('Decoding '+files.length+' audio file(s)…');const AC=window.AudioContext||window.webkitAudioContext;if(!AC){say('Web Audio is unavailable.');return}const ctx=new AC();for(const f of files){try{const buf=await ctx.decodeAudioData(await f.arrayBuffer());addTrack(f.name.replace(/\.[^.]+$/,''),buf)}catch(err){say('Could not decode '+f.name+'. Try WAV, MP3, M4A or AAC.')}}await ctx.close();$('fileInput').value='';say('Loaded audio locally. Export your work before leaving this page.')};
 $('addDemo').onclick=()=>{const sr=48000,len=sr*4,buf=new AudioBuffer({length:len,numberOfChannels:2,sampleRate:sr});for(let c=0;c<2;c++){const d=buf.getChannelData(c);for(let i=0;i<len;i++){const t=i/sr;d[i]=.22*Math.sin(2*Math.PI*(c?110:110)*t)*Math.exp(-t*.12)+.07*Math.sin(2*Math.PI*220*t)}}addTrack('Demo bass tone',buf,new Blob([writeWav(buf)],{type:'audio/wav'}));say('Added a generated demo tone. Import your own audio to build a real session.')};
@@ -132,14 +169,14 @@ $('seek').oninput=e=>{state.playhead=state.duration*Number(e.target.value)/1000;
 $('bpm').oninput=e=>$('tempo').textContent=clamp(Number(e.target.value)||120,40,240)+' BPM';
 $('gain').oninput=e=>{const t=state.tracks.find(x=>x.id===state.selected);if(!t)return;t.gain=Number(e.target.value)/100;syncControls(t)};
 $('pan').oninput=e=>{const t=state.tracks.find(x=>x.id===state.selected);if(!t)return;t.pan=Number(e.target.value)/100;syncControls(t)};
-$('offset').oninput=e=>{const t=state.tracks.find(x=>x.id===state.selected);if(!t)return;t.offset=Number(e.target.value);syncControls(t)};
+$('offset').oninput=e=>{const t=state.tracks.find(x=>x.id===state.selected);if(!t)return;const next=Number(e.target.value),delta=next-(t.offset||0);for(const c of t.clips||[])c.startSeconds=Math.max(0,c.startSeconds+delta);t.offset=(t.clips||[])[0]?.startSeconds||next;syncControls(t);recalc();window.dispatchEvent(new Event('earthstudio:change'))};
 $('trackLabel').onchange=e=>{const t=state.tracks.find(x=>x.id===state.selected);if(!t)return;t.name=e.target.value.trim().slice(0,64)||'Audio track';recalc()};
 $('mute').onclick=()=>{const t=state.tracks.find(x=>x.id===state.selected);if(t){t.muted=!t.muted;syncControls(t);render()}};
 $('solo').onclick=()=>{const t=state.tracks.find(x=>x.id===state.selected);if(t){t.solo=!t.solo;syncControls(t);render()}};
-$('removeTrack').onclick=()=>{state.tracks=state.tracks.filter(t=>t.id!==state.selected);state.selected=null;recalc()};
-$('clearSession').onclick=()=>{stop();state.tracks=[];state.selected=null;state.playhead=0;recalc();say('Session cleared. This cannot be undone.')};
+$('removeTrack').onclick=()=>{state.tracks=state.tracks.filter(t=>t.id!==state.selected);state.selected=null;state.selectedClip=null;recalc()};
+$('clearSession').onclick=()=>{stop();state.tracks=[];state.selected=null;state.selectedClip=null;state.playhead=0;recalc();say('Session cleared. This cannot be undone.')};
 function writeWav(buffer){const channels=2,sr=buffer.sampleRate,frames=buffer.length,bytes=frames*channels*2,out=new ArrayBuffer(44+bytes),v=new DataView(out);const str=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};str(0,'RIFF');v.setUint32(4,36+bytes,true);str(8,'WAVE');str(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,channels,true);v.setUint32(24,sr,true);v.setUint32(28,sr*channels*2,true);v.setUint16(32,channels*2,true);v.setUint16(34,16,true);str(36,'data');v.setUint32(40,bytes,true);const l=buffer.getChannelData(0),r=buffer.getChannelData(1);let p=44;for(let i=0;i<frames;i++){for(const x of [l[i],r[i]]){const s=clamp(x,-1,1);v.setInt16(p,s<0?s*32768:s*32767,true);p+=2}}return out}
-$('exportMix').onclick=async()=>{if(!state.tracks.length){say('Nothing to export. Add audio tracks first.');return}stop();const Offline=window.OfflineAudioContext||window.webkitOfflineAudioContext;if(!Offline){say('Offline rendering is not supported in this browser.');return}const dur=Math.max(1,state.duration),sr=48000,frames=Math.ceil(dur*sr);if(frames>sr*60*20){say('This first version limits a mix to 20 minutes.');return}say('Rendering stereo WAV mix…');$('exportMix').disabled=true;try{const ctx=new Offline(2,frames,sr);const anySolo=state.tracks.some(t=>t.solo);state.tracks.forEach(t=>{if(t.muted||(anySolo&&!t.solo))return;const src=ctx.createBufferSource();src.buffer=t.buffer;const g=ctx.createGain();g.gain.value=t.gain;const p=ctx.createStereoPanner?ctx.createStereoPanner():null;if(p)p.pan.value=t.pan;src.connect(g);if(p){g.connect(p);p.connect(ctx.destination)}else g.connect(ctx.destination);src.start(Math.max(0,t.offset))});const rendered=await ctx.startRendering();const wav=writeWav(rendered);const url=URL.createObjectURL(new Blob([wav],{type:'audio/wav'}));const a=document.createElement('a');a.href=url;a.download='earth-studio-mix.wav';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);say('WAV mix rendered and download started.')}catch(err){say('Render failed: '+(err&&err.message||'unknown error'))}finally{$('exportMix').disabled=false}};
+$('exportMix').onclick=async()=>{if(!state.tracks.length){say('Nothing to export. Add audio tracks first.');return}stop();const Offline=window.OfflineAudioContext||window.webkitOfflineAudioContext;if(!Offline){say('Offline rendering is not supported in this browser.');return}const dur=Math.max(1,state.duration),sr=48000,frames=Math.ceil(dur*sr);if(frames>sr*60*20){say('This first version limits a mix to 20 minutes.');return}say('Rendering stereo WAV mix…');$('exportMix').disabled=true;try{const ctx=new Offline(2,frames,sr);const anySolo=state.tracks.some(t=>t.solo);state.tracks.forEach(t=>{if(t.muted||(anySolo&&!t.solo))return;(t.clips||[{startSeconds:t.offset||0,sourceStartSeconds:0,durationSeconds:t.buffer.duration}]).forEach(clip=>{const src=ctx.createBufferSource();src.buffer=t.buffer;src.loop=!!clip.loop;src.loopStart=clip.sourceStartSeconds;src.loopEnd=clip.sourceStartSeconds+clip.durationSeconds;const g=ctx.createGain();g.gain.value=t.gain;const p=ctx.createStereoPanner?ctx.createStereoPanner():null;if(p)p.pan.value=t.pan;src.connect(g);if(p){g.connect(p);p.connect(ctx.destination)}else g.connect(ctx.destination);if(src.loop)src.start(Math.max(0,clip.startSeconds),clip.sourceStartSeconds);else src.start(Math.max(0,clip.startSeconds),clip.sourceStartSeconds,clip.durationSeconds)})});const rendered=await ctx.startRendering();const wav=writeWav(rendered);const url=URL.createObjectURL(new Blob([wav],{type:'audio/wav'}));const a=document.createElement('a');a.href=url;a.download='earth-studio-mix.wav';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);say('WAV mix rendered and download started.')}catch(err){say('Render failed: '+(err&&err.message||'unknown error'))}finally{$('exportMix').disabled=false}};
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&state.playing){state.playhead=clamp(state.ctx.currentTime-state.startedAt,0,state.duration);stop();recalc();say('Playback paused when Portal left the foreground.')}});
 recalc();
 window.__earthStudio={state,addTrack,recalc,stop,writeWav,say};
@@ -151,10 +188,12 @@ window.__earthStudio={state,addTrack,recalc,stop,writeWav,say};
 
 <script type="module">
 import {EarthStudioStore} from "./session-store.mjs";
+import * as AudioClipModel from "./audio-clip-model.mjs";
 import {createProjectArchive,readProjectArchive} from "./project-package.mjs";
 const $=id=>document.getElementById(id);
 const store=new EarthStudioStore();
 const app=window.__earthStudio;
+window.__earthStudioClipModel=AudioClipModel;
 let project={id:"project-"+crypto.randomUUID(),name:"Untitled Session",createdAt:new Date().toISOString()};
 let saving=false,loading=false,dirtyTimer=0,pendingSave=false;
 const status=(message)=>{$("projectStatus").textContent=message};
@@ -175,7 +214,7 @@ function makeSession(){
     performance:{midiCCMappings:window.__earthStudioPerformance?.getMappings?.()||{}},
     tracks:[...app.state.tracks.map(t=>({
       id:t.id,name:t.name,kind:"audio",gain:t.gain,pan:t.pan,muted:t.muted,solo:t.solo,sceneIndex:Number.isInteger(t.sceneIndex)?t.sceneIndex:0,
-      clips:[{id:"clip-"+t.id,assetId:"asset-"+t.id,startSeconds:t.offset,sourceStartSeconds:0,durationSeconds:t.buffer.duration}]
+      clips:(t.clips?.length?t.clips:[{id:"clip-"+t.id,assetId:"asset-"+t.id,startSeconds:t.offset||0,sourceStartSeconds:0,durationSeconds:t.buffer.duration}]).map(c=>({...c,assetId:"asset-"+t.id}))
     })),...((app.state.midiTracks||[]).map(t=>({...t,kind:"instrument",clips:[],midiClips:t.midiClips||[]})))],
     assets:[]
   };
@@ -267,10 +306,10 @@ async function openProject(){
       const actual=await digest(item.blob);
       if(actual!==item.descriptor.sha256)throw new Error("Audio integrity check failed for "+track.name);
       const buffer=await context.decodeAudioData(bytes);
-      restored.push({...track,sceneIndex:Number.isInteger(track.sceneIndex)?track.sceneIndex:0,buffer,sourceBlob:item.blob,offset:clip.startSeconds});
+      restored.push({...track,sceneIndex:Number.isInteger(track.sceneIndex)?track.sceneIndex:0,buffer,sourceBlob:item.blob,clips:track.clips.map(c=>({...c})),offset:track.clips[0]?.startSeconds||0});
     }
     await context.close();
-    app.state.tracks=restored;app.state.midiTracks=restoredMidi;app.state.selected=restored[0]?.id||null;app.state.playhead=0;window.__earthStudioMidi?.resetSceneSelection?.();window.__earthStudioMidi?.render();
+    app.state.tracks=restored;app.state.midiTracks=restoredMidi;app.state.selected=restored[0]?.id||null;app.state.selectedClip=restored[0]?.clips?.[0]?.id||null;app.state.playhead=0;window.__earthStudioMidi?.resetSceneSelection?.();window.__earthStudioMidi?.render();
     window.__earthInstrument?.setSettings(result.session.instrument||{oscillator:"sine",attack:20,decay:180,sustain:70,release:300,cutoff:8000,vibrato:0,bend:0});
     window.__earthStudioPerformance?.setMappings?.(result.session.performance?.midiCCMappings||{});
     $("bpm").value=result.session.tempo;$("tempo").textContent=result.session.tempo+" BPM";
@@ -299,7 +338,7 @@ $("packageInput").addEventListener("change",async event=>{
 });
 $("newProject").addEventListener("click",()=>{
   if(!confirm("Start a new project? Save the current project first if you want to keep it."))return;
-  app.stop();app.state.tracks=[];app.state.selected=null;app.state.playhead=0;app.recalc();
+  app.stop();app.state.tracks=[];app.state.selected=null;app.state.selectedClip=null;app.state.playhead=0;app.recalc();
   window.__earthStudioPerformance?.clearMappings?.();
   project={id:"project-"+newId(),name:"Untitled Session",createdAt:new Date().toISOString()};
   $("projectName").value=project.name;
@@ -315,7 +354,7 @@ document.addEventListener("change",event=>{
 });
 document.addEventListener("click",event=>{
   if(event.target.closest("#saveProject,#openProject,#newProject,#exportPackage,#importPackage,#exportMix,#play,#stop,#seek"))return;
-  if(event.target.closest("#addAudio,#addDemo,#clearSession,#mute,#solo,#removeTrack,.track-actions button"))scheduleAutosave();
+  if(event.target.closest("#addAudio,#addDemo,#clearSession,#mute,#solo,#removeTrack,.track-actions button,.clip-action"))scheduleAutosave();
 });
 try{await refreshProjects();status("Local project storage ready. Changes autosave after edits; use SAVE PROJECT for a manual checkpoint.");}
 catch(error){status("Local project storage unavailable: "+(error?.message||String(error)));}
