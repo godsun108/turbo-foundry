@@ -4,6 +4,9 @@
  * in the browser, Node tests, and the future standalone host.
  */
 export const MIDI_PPQ = 960;
+export const MIDI_AUTOMATION_PARAMETERS = Object.freeze({cutoff:{min:80,max:18000},bend:{min:-12,max:12},vibrato:{min:0,max:20}});
+export function validateMidiAutomation(clip){const errors=[];if(!clip||typeof clip!=="object")return ["MIDI clip must be an object"];if(clip.parameterAutomation===undefined)return errors;if(!Array.isArray(clip.parameterAutomation))return ["parameterAutomation must be an array"];const seen=new Set();for(const lane of clip.parameterAutomation){if(!lane||!Object.hasOwn(MIDI_AUTOMATION_PARAMETERS,lane.parameter)){errors.push("unsupported MIDI automation parameter");continue}if(seen.has(lane.parameter))errors.push("MIDI automation parameters must be unique per clip");seen.add(lane.parameter);if(!Array.isArray(lane.points)){errors.push("MIDI automation points must be an array");continue}let previous=-1;const range=MIDI_AUTOMATION_PARAMETERS[lane.parameter];for(const point of lane.points){if(!point||!Number.isInteger(point.tick)||point.tick<0||point.tick>clip.lengthTicks)errors.push("MIDI automation tick must be within clip length");if(!point||!Number.isFinite(point.value)||point.value<range.min||point.value>range.max)errors.push("MIDI automation value is outside parameter range");if(point&&Number.isInteger(point.tick)&&point.tick<=previous)errors.push("MIDI automation ticks must be strictly increasing");if(point&&Number.isInteger(point.tick))previous=point.tick}}return errors}
+export function midiAutomationValueAt(lane,tick){const points=lane?.points||[];if(!points.length)return null;if(tick<=points[0].tick)return points[0].value;for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i];if(tick<=b.tick){const f=(tick-a.tick)/(b.tick-a.tick);return a.value+(b.value-a.value)*f}}return points[points.length-1].value}
 
 function finite(value, name) {
   if (typeof value !== "number" || !Number.isFinite(value)) throw new TypeError(name + " must be a finite number");
@@ -60,6 +63,7 @@ export function validateMidiClip(clip) {
     if (!Number.isInteger(note.channel) || note.channel < 0 || note.channel > 15) errors.push("MIDI channel must be 0..15");
     if (Number.isInteger(note.startTick) && Number.isInteger(note.durationTicks) && Number.isInteger(clip.lengthTicks) && note.startTick + note.durationTicks > clip.lengthTicks) errors.push("MIDI note extends beyond its clip length");
   }
+  errors.push(...validateMidiAutomation(clip));
   return errors;
 }
 
@@ -164,6 +168,11 @@ export function collectMidiEvents(clips, {
   for (const clip of clips) {
     const errors = validateMidiClip(clip);
     if (errors.length) throw new TypeError("Invalid MIDI clip " + clip.id + ": " + errors.join("; "));
+    for(const lane of clip.parameterAutomation||[])for(const point of lane.points){
+      const tick=clip.startTick+point.tick;
+      if(!loop){if(tick>=fromTick&&tick<toTick)events.push({type:"parameter",tick,parameter:lane.parameter,value:point.value,channel:0,trackId:clip.trackId,clipId:clip.id});}
+      else {const length=loop.endTick-loop.startTick;if(tick<loop.startTick||tick>=loop.endTick)continue;const first=Math.floor((fromTick-tick)/length),last=Math.ceil((toTick-tick)/length);for(let cycle=first;cycle<=last;cycle++){const repeated=tick+cycle*length;if(repeated>=fromTick&&repeated<toTick)events.push({type:"parameter",tick:repeated,parameter:lane.parameter,value:point.value,channel:0,trackId:clip.trackId,clipId:clip.id});}}
+    }
     for (const note of clip.notes) {
       const absoluteStart = clip.startTick + note.startTick;
       const absoluteEnd = absoluteStart + note.durationTicks;
@@ -310,7 +319,8 @@ export function createAudioWorkletMidiSink(port) {
   return {
     noteOn(note, velocity, when, channel = 0) { port.postMessage({type:"noteOn",note,velocity:velocity / 127,channel,when}); },
     noteOff(note, when, channel = 0) { port.postMessage({type:"noteOff",note,channel,when}); },
-    allNotesOff(when) { port.postMessage({type:"allNotesOff",when}); }
+    allNotesOff(when) { port.postMessage({type:"allNotesOff",when}); },
+    parameter(parameter,value,when,channel=0) { port.postMessage({type:"parameter",parameter,value,when,channel}); }
   };
 }
 
@@ -334,6 +344,7 @@ export function dispatchMidiEvents(events, sink) {
   for (const event of events) {
     if (event.type === "noteOn") sink.noteOn(event.note,event.velocity,event.when,event.channel);
     else if (event.type === "noteOff") sink.noteOff(event.note,event.when,event.channel);
+    else if (event.type === "parameter" && typeof sink.parameter === "function") sink.parameter(event.parameter,event.value,event.when,event.channel);
   }
   return events.length;
 }
