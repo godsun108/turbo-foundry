@@ -85,6 +85,26 @@ export function validateSession(session) {
       else midiClipIds.add(midiClip.id);
       if (!track || !["midi","instrument"].includes(track.kind)) errors.push("MIDI clips require a midi or instrument track");
       if (!midiClip || !Number.isInteger(midiClip.startTick) || midiClip.startTick < 0 || !Number.isInteger(midiClip.lengthTicks) || midiClip.lengthTicks < 1 || !Array.isArray(midiClip.notes)) errors.push("MIDI clip timing or notes are invalid");
+      if(midiClip&&midiClip.parameterAutomation!==undefined){
+        if(!Array.isArray(midiClip.parameterAutomation))errors.push("MIDI parameterAutomation must be an array");
+        else{
+          const parameters=new Set(),ranges={cutoff:[80,18000],bend:[-12,12],vibrato:[0,20]};
+          for(const lane of midiClip.parameterAutomation){
+            const range=lane&&ranges[lane.parameter];
+            if(!range||parameters.has(lane.parameter)){errors.push("MIDI automation parameter is unsupported or duplicated");continue}
+            parameters.add(lane.parameter);
+            if(!Array.isArray(lane.points)){errors.push("MIDI automation points must be an array");continue}
+            let previous=-1;
+            for(const point of lane.points){
+              if(!point||!Number.isInteger(point.tick)||point.tick<0||point.tick>midiClip.lengthTicks)errors.push("MIDI automation tick must be within clip length");
+              if(!point||!Number.isFinite(point.value)||point.value<range[0]||point.value>range[1])errors.push("MIDI automation value is outside parameter range");
+              if(point&&Number.isInteger(point.tick)&&point.tick<=previous)errors.push("MIDI automation ticks must be strictly increasing");
+              if(point&&Number.isInteger(point.tick))previous=point.tick;
+              if(point&&Object.keys(point).some(key=>key!=="tick"&&key!=="value"))errors.push("MIDI automation point has unsupported fields");
+            }
+          }
+        }
+      }
       const noteIds = new Set();
       for (const note of (midiClip && midiClip.notes) || []) {
         if (!note || typeof note.id !== "string" || !note.id.trim() || noteIds.has(note.id)) errors.push("MIDI note IDs must be unique non-empty strings per clip");
