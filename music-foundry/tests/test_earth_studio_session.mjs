@@ -115,3 +115,20 @@ test("rejects invalid or unsupported portable MIDI CC mappings", () => {
   assert.ok(errors.some(error => error.includes("controller must be an integer")));
   assert.ok(errors.some(error => error.includes("target is unsupported")));
 });
+
+test("audio scene assignments round-trip and legacy audio tracks default cleanly", () => {
+  const session = valid();
+  session.tracks[0].sceneIndex = 3;
+  assert.equal(decodeSession(encodeSession(session)).tracks[0].sceneIndex,3);
+  const legacy = valid();
+  assert.equal(decodeSession(encodeSession(legacy)).tracks[0].sceneIndex,undefined);
+});
+
+test("rejects invalid audio scene assignments", () => {
+  const session = valid();
+  session.tracks[0].sceneIndex = 128;
+  assert.ok(validateSession(session).some(error => error.includes("sceneIndex must be an integer")));
+  session.tracks[0].sceneIndex = 1;
+  session.tracks[0].kind = "instrument";
+  assert.ok(validateSession(session).some(error => error.includes("sceneIndex is supported only on audio tracks")));
+});

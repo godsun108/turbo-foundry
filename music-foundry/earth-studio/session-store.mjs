@@ -76,6 +76,8 @@ export function validateSession(session) {
     if (!track || typeof track.pan !== "number" || !Number.isFinite(track.pan) || track.pan < -1 || track.pan > 1) errors.push("track pan is outside -1..1");
     if (!track || typeof track.muted !== "boolean" || typeof track.solo !== "boolean") errors.push("track mute and solo flags must be boolean");
     if (!track || !Array.isArray(track.clips)) errors.push("track clips must be an array");
+    if (track && track.sceneIndex !== undefined && (!Number.isInteger(track.sceneIndex) || track.sceneIndex < 0 || track.sceneIndex > 127)) errors.push("track sceneIndex must be an integer from 0 to 127");
+    if (track && track.sceneIndex !== undefined && track.kind !== "audio") errors.push("sceneIndex is supported only on audio tracks");
     if (track && track.midiClips !== undefined && !Array.isArray(track.midiClips)) errors.push("track midiClips must be an array when present");
     const midiClipIds = new Set();
     for (const midiClip of (track && track.midiClips) || []) {

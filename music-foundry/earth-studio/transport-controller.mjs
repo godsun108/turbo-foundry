@@ -47,18 +47,25 @@ function stopAudioSources() {
 }
 function playAudioFrom(positionSeconds) {
   if (!audioContext || audioContext.state === "closed") return;
+  const scene = midi.getSceneInfo();
+  const tracks = midi.getAudioTracks?.() || [];
+  if (scene.active === null || !tracks.length) return;
+  const absoluteTick = secondsToTicks(Math.max(0,positionSeconds),transport.tempo,transport.ppq);
+  const elapsed = ticksToSeconds(Math.max(0,absoluteTick-scene.startTick),transport.tempo,transport.ppq);
   const startAt = audioContext.currentTime + 0.05;
-  const anySolo = app.state.tracks.some(track=>track.solo);
-  for (const track of app.state.tracks) {
-    if (track.muted || (anySolo && !track.solo)) continue;
+  const looping = midi.isLoopEnabled() && clips().length > 0;
+  for (const track of tracks) {
     const offset = Math.max(0,Number(track.offset)||0);
-    const skip = Math.max(0,positionSeconds-offset);
-    if (skip >= track.buffer.duration) continue;
+    const rawSkip = Math.max(0,elapsed-offset);
+    const duration = track.buffer.duration;
+    if (rawSkip >= duration && !looping) continue;
     const source = audioContext.createBufferSource();
     const gain = audioContext.createGain();
-    source.buffer = track.buffer;
-    gain.gain.value = track.gain;
     const pan = audioContext.createStereoPanner ? audioContext.createStereoPanner() : null;
+    source.buffer = track.buffer;
+    source.loop = looping;
+    if (source.loop) { source.loopStart = 0; source.loopEnd = duration; }
+    gain.gain.value = track.gain;
     source.connect(gain);
     if (pan) {
       pan.pan.value = track.pan;
@@ -67,7 +74,8 @@ function playAudioFrom(positionSeconds) {
     } else {
       gain.connect(audioContext.destination);
     }
-    source.start(startAt + Math.max(0,offset-positionSeconds),skip);
+    const skip = looping ? rawSkip % duration : rawSkip;
+    source.start(startAt + Math.max(0,offset-elapsed),skip);
     source.onended = () => {
       try { source.disconnect(); gain.disconnect(); pan?.disconnect(); } catch {}
       audioSources = audioSources.filter(item=>item!==source);
@@ -131,9 +139,11 @@ function frame() {
   updateClock(snapshot);
   midi.advanceScene(snapshot.absoluteTick);
   const activeClips=clips();
+  const scene=midi.getSceneInfo();
+  const audioEndTick=Math.max(0,...(midi.getAudioTracks?.()||[]).map(track=>scene.startTick+secondsToTicks((Number(track.offset)||0)+track.buffer.duration,transport.tempo,transport.ppq)));
   const endTick=transport.loop
     ? transport.loop.startTick+(transport.loop.endTick-transport.loop.startTick)*4
-    : Math.max(secondsToTicks(app.state.duration,transport.tempo,transport.ppq),...activeClips.map(clip=>clip.startTick+clip.lengthTicks));
+    : Math.max(scene.startTick,audioEndTick,...activeClips.map(clip=>clip.startTick+clip.lengthTicks));
   if (snapshot.absoluteTick >= endTick) {
     stop();
     return;
@@ -219,7 +229,14 @@ window.addEventListener("earthstudio:transport-config",()=>{
 });
 window.addEventListener("earthstudio:scenechange",()=>{
   refreshLoop();
-  if (transport.playing) cancelMidi();
+  if (transport.playing) {
+    cancelMidi();
+    stopAudioSources();
+    const snapshot=transport.snapshot(now());
+    playAudioFrom(ticksToSeconds(snapshot.absoluteTick,transport.tempo,transport.ppq));
+  } else {
+    stopAudioSources();
+  }
 });
 window.addEventListener("earthstudio:change",()=>{
   if (transport.playing) {

@@ -286,12 +286,17 @@ if (typeof instrument.onMidiEvent === "function") unsubscribe = instrument.onMid
 $("stop").addEventListener("click",stopPlayback);
 $("clearSession").addEventListener("click",()=>{app.state.midiTracks=[];activeTrackId=null;render();stopPlayback();});
 $("newProject").addEventListener("click",()=>{app.state.midiTracks=[];activeTrackId=null;render();stopPlayback();});
-window.addEventListener("earthstudio:change",()=>{render();updateSelectionControls();});
-function sceneCount(){return Math.max(0,...app.state.midiTracks.map(track=>(track.midiClips||[]).length));}
+window.addEventListener("earthstudio:change",()=>{reconcileScenes();render();updateSelectionControls();});
+function sceneCount(){
+  const midiCount=Math.max(0,...app.state.midiTracks.map(track=>(track.midiClips||[]).length));
+  const audioCount=Math.max(0,...app.state.tracks.map(track=>(Number.isInteger(track.sceneIndex)?track.sceneIndex:0)+1));
+  return Math.max(midiCount,audioCount);
+}
 function reconcileScenes(){
   const count=sceneCount();
   let changed=false;
   if(!count&&activeScene!==null){activeScene=null;pendingScene=null;sceneStartAbsoluteTick=0;changed=true;}
+  else if(count&&activeScene===null){activeScene=0;pendingScene=null;sceneStartAbsoluteTick=0;changed=true;}
   else if(count&&activeScene!==null&&activeScene>=count){activeScene=0;pendingScene=null;sceneStartAbsoluteTick=0;changed=true;}
   if(pendingScene&&pendingScene.index>=count){pendingScene=null;changed=true;}
   if(changed)window.dispatchEvent(new Event("earthstudio:scenechange"));
@@ -315,7 +320,8 @@ function resetSceneSelection(){activeScene=sceneCount()?0:null;pendingScene=null
 window.__earthStudioMidi = {
   render,stopRecording,getTracks:()=>app.state.midiTracks,
   getClips:()=>{const tracks=app.state.midiTracks;const anySolo=tracks.some(track=>track.solo);return activeScene===null?[]:tracks.flatMap(track=>(track.muted||(anySolo&&!track.solo))?[]:((track.midiClips||[])[activeScene]?[{...(track.midiClips||[])[activeScene],startTick:sceneStartAbsoluteTick,trackId:track.id}]:[]));},
-  getSceneInfo:()=>({count:sceneCount(),active:activeScene,startTick:sceneStartAbsoluteTick,pending:pendingScene?{index:pendingScene.index,tick:pendingScene.tick}:null}),
+  getSceneInfo:()=>({count:sceneCount(),active:activeScene,startTick:sceneStartAbsoluteTick,pending:pendingScene?{index:pendingScene.index,tick:pendingScene.tick}:null,audioTrackCount:app.state.tracks.filter(track=>(Number.isInteger(track.sceneIndex)?track.sceneIndex:0)===activeScene).length}),
+  getAudioTracks:()=>{const tracks=app.state.tracks;const anySolo=tracks.some(track=>track.solo);return activeScene===null?[]:tracks.filter(track=>(Number.isInteger(track.sceneIndex)?track.sceneIndex:0)===activeScene&&!track.muted&&(!anySolo||track.solo));},
   launchScene,advanceScene,stopScene,resetSceneSelection,isLoopEnabled:()=>loopEnabled,
   onTransportStart:()=>{},onTransportStop:stopPlayback,
   dispose:()=>{unsubscribe?.();for(const input of midiAccess?.inputs.values()||[])input.onmidimessage=null;}
