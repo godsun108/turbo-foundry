@@ -53,7 +53,6 @@ function playAudioFrom(positionSeconds) {
   const absoluteTick = secondsToTicks(Math.max(0,positionSeconds),transport.tempo,transport.ppq);
   const elapsed = ticksToSeconds(Math.max(0,absoluteTick-scene.startTick),transport.tempo,transport.ppq);
   const startAt = audioContext.currentTime + 0.05;
-  const looping = midi.isLoopEnabled() && clips().length > 0;
   for (const track of tracks) {
     const clipList = track.clips?.length ? track.clips : [{
       startSeconds:Math.max(0,Number(track.offset)||0),sourceStartSeconds:0,durationSeconds:track.buffer.duration
