@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
   MIDI_PPQ, ticksToSeconds, secondsToTicks, quantizeTick, createMidiClip,
   validateMidiClip, MidiRecorder, MidiSequencer, collectMidiEvents, createAudioWorkletMidiSink, nextQuantizedTick,
-  dispatchMidiEvents, MusicalTransport, validateMidiAutomation, midiAutomationValueAt
+  dispatchMidiEvents, MusicalTransport, validateMidiAutomation, midiAutomationValueAt, recordMidiAutomationPoint
 } from "../earth-studio/midi-sequencer.mjs";
 
 test("musical clock converts ticks and seconds at the configured tempo",()=>{
@@ -268,4 +268,24 @@ test("native sink forwards parameter automation with audio-clock timestamps",()=
  const messages=[],sink=createAudioWorkletMidiSink({postMessage:m=>messages.push(m)});
  dispatchMidiEvents([{type:"parameter",parameter:"cutoff",value:1200,when:2.5}],sink);
  assert.deepEqual(messages,[{type:"parameter",parameter:"cutoff",value:1200,when:2.5,channel:0}]);
+});
+
+test("MIDI modulation recording inserts, quantizes, replaces and orders controller points",()=>{
+ const clip=createMidiClip({id:"modulation",startTick:0,lengthTicks:1920,notes:[]});
+ const first=recordMidiAutomationPoint(clip,"cutoff",251,900,{quantizeTicks:240});
+ assert.deepEqual(first,{tick:240,value:900});
+ recordMidiAutomationPoint(clip,"cutoff",479,1200,{quantizeTicks:240});
+ recordMidiAutomationPoint(clip,"cutoff",960,18000);
+ assert.deepEqual(clip.parameterAutomation[0].points,[
+  {tick:240,value:1200},{tick:960,value:18000}
+ ]);
+ assert.equal(midiAutomationValueAt(clip.parameterAutomation[0],600),9600);
+ assert.deepEqual(validateMidiAutomation(clip),[]);
+});
+test("MIDI modulation recorder rejects invalid controls and keeps quantized points in clip bounds",()=>{
+ const clip=createMidiClip({id:"mod-boundary",startTick:0,lengthTicks:1000,notes:[]});
+ assert.equal(recordMidiAutomationPoint(clip,"vibrato",990,20,{quantizeTicks:240}).tick,960);
+ assert.throws(()=>recordMidiAutomationPoint(clip,"unknown",10,1),RangeError);
+ assert.throws(()=>recordMidiAutomationPoint(clip,"bend",10,13),RangeError);
+ assert.throws(()=>recordMidiAutomationPoint(clip,"bend",-1,0),RangeError);
 });

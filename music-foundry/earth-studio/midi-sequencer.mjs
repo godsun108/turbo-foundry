@@ -7,6 +7,24 @@ export const MIDI_PPQ = 960;
 export const MIDI_AUTOMATION_PARAMETERS = Object.freeze({cutoff:{min:80,max:18000},bend:{min:-12,max:12},vibrato:{min:0,max:20}});
 export function validateMidiAutomation(clip){const errors=[];if(!clip||typeof clip!=="object")return ["MIDI clip must be an object"];if(clip.parameterAutomation===undefined)return errors;if(!Array.isArray(clip.parameterAutomation))return ["parameterAutomation must be an array"];const seen=new Set();for(const lane of clip.parameterAutomation){if(!lane||!Object.hasOwn(MIDI_AUTOMATION_PARAMETERS,lane.parameter)){errors.push("unsupported MIDI automation parameter");continue}if(seen.has(lane.parameter))errors.push("MIDI automation parameters must be unique per clip");seen.add(lane.parameter);if(!Array.isArray(lane.points)){errors.push("MIDI automation points must be an array");continue}let previous=-1;const range=MIDI_AUTOMATION_PARAMETERS[lane.parameter];for(const point of lane.points){if(!point||!Number.isInteger(point.tick)||point.tick<0||point.tick>clip.lengthTicks)errors.push("MIDI automation tick must be within clip length");if(!point||!Number.isFinite(point.value)||point.value<range.min||point.value>range.max)errors.push("MIDI automation value is outside parameter range");if(point&&Number.isInteger(point.tick)&&point.tick<=previous)errors.push("MIDI automation ticks must be strictly increasing");if(point&&Number.isInteger(point.tick))previous=point.tick}}return errors}
 export function midiAutomationValueAt(lane,tick){const points=lane?.points||[];if(!points.length)return null;if(tick<=points[0].tick)return points[0].value;for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i];if(tick<=b.tick){const f=(tick-a.tick)/(b.tick-a.tick);return a.value+(b.value-a.value)*f}}return points[points.length-1].value}
+export function recordMidiAutomationPoint(clip,parameter,tick,value,{quantizeTicks=0}={}){
+ const range=MIDI_AUTOMATION_PARAMETERS[parameter];
+ if(!clip||!Number.isInteger(clip.lengthTicks)||clip.lengthTicks<1)throw new TypeError("A valid MIDI clip is required");
+ if(!range)throw new RangeError("Unsupported MIDI automation parameter");
+ if(!Number.isFinite(tick)||tick<0)throw new RangeError("Automation tick must be non-negative");
+ if(!Number.isFinite(value)||value<range.min||value>range.max)throw new RangeError("Automation value is outside parameter range");
+ if(!Number.isInteger(quantizeTicks)||quantizeTicks<0)throw new RangeError("Quantization must be a non-negative integer");
+ const snapped=quantizeTicks?Math.round(tick/quantizeTicks)*quantizeTicks:Math.round(tick);
+ const at=Math.max(0,Math.min(clip.lengthTicks,snapped));
+ clip.parameterAutomation ||= [];
+ let lane=clip.parameterAutomation.find(item=>item.parameter===parameter);
+ if(!lane){lane={parameter,points:[]};clip.parameterAutomation.push(lane);}
+ const existing=lane.points.find(point=>point.tick===at);
+ if(existing)existing.value=value;
+ else lane.points.push({tick:at,value});
+ lane.points.sort((a,b)=>a.tick-b.tick);
+ return lane.points.find(point=>point.tick===at);
+}
 
 function finite(value, name) {
   if (typeof value !== "number" || !Number.isFinite(value)) throw new TypeError(name + " must be a finite number");
