@@ -25,7 +25,7 @@ panel.className="panel";
 panel.id="performanceSurface";
 panel.innerHTML=`
   <div class="track-head"><h2>PERFORMANCE SURFACE</h2><span class="tag">SCENES · MIDI CONTROL</span></div>
-  <p class="hint">Launch complete MIDI clip rows as scenes. While playing, scene changes wait for the next 4/4 bar. Hardware control mappings are saved on this device.</p>
+  <p class="hint">Launch complete MIDI clip rows as scenes. While playing, scene changes wait for the next 4/4 bar. Hardware control mappings are saved with this project.</p>
   <div id="sceneLauncher" class="scene-grid"></div>
   <div class="toolbar" style="margin-top:9px"><span class="hint" id="sceneStatus" role="status" aria-live="polite">No scenes yet. Record a MIDI take to create your first scene.</span><button id="stopMidiScene" class="ghost">STOP MIDI SCENE</button></div>
   <div class="track-head" style="margin-top:18px"><h2>HARDWARE CONTROL LEARN</h2><span class="hint">MIDI CC · 0–127</span></div>
