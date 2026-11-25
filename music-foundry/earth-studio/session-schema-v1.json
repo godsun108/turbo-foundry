@@ -283,6 +283,46 @@
                       }
                     }
                   }
+                },
+                "parameterAutomation": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "parameter",
+                      "points"
+                    ],
+                    "properties": {
+                      "parameter": {
+                        "enum": [
+                          "cutoff",
+                          "bend",
+                          "vibrato"
+                        ]
+                      },
+                      "points": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "tick",
+                            "value"
+                          ],
+                          "properties": {
+                            "tick": {
+                              "type": "integer",
+                              "minimum": 0
+                            },
+                            "value": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
