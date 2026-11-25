@@ -132,6 +132,11 @@
           "solo": {
             "type": "boolean"
           },
+          "sceneIndex": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 127
+          },
           "clips": {
             "type": "array",
             "items": {
