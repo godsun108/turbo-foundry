@@ -73,27 +73,29 @@ function playAudioFrom(positionSeconds) {
         source.loopStart = sourceStart;
         source.loopEnd = Math.min(track.buffer.duration,sourceStart+clipDuration);
       }
-      const clipGain = Number.isFinite(clip.gain) ? clip.gain : 1;
-      const fadeIn = Math.max(0,Number(clip.fadeInSeconds)||0);
-      const fadeOut = Math.max(0,Number(clip.fadeOutSeconds)||0);
       const clipStartOffset = Math.max(0,relative);
       const remaining = Math.max(0,clipDuration-clipStartOffset);
       const clipWhen = startAt + Math.max(0,clipStart-elapsed);
-      const effectiveGain = Math.max(0,Math.min(2,track.gain*clipGain));
-      gain.gain.setValueAtTime(0,clipWhen);
-      const fadeInRemaining = Math.max(0,fadeIn-clipStartOffset);
-      if (fadeInRemaining > 0) {
-        const startLevel = fadeIn ? effectiveGain*Math.min(1,clipStartOffset/fadeIn) : effectiveGain;
-        gain.gain.setValueAtTime(startLevel,clipWhen);
-        gain.gain.linearRampToValueAtTime(effectiveGain,clipWhen+fadeInRemaining);
-      } else {
-        gain.gain.setValueAtTime(effectiveGain,clipWhen);
+      const automation=Array.isArray(clip.gainAutomation)?clip.gainAutomation:[];
+      const clipGain = Number.isFinite(clip.gain) ? clip.gain : 1;
+      const fadeIn = Math.max(0,Number(clip.fadeInSeconds)||0);
+      const fadeOut = Math.max(0,Number(clip.fadeOutSeconds)||0);
+      const points=automation.length?automation:[{timeSeconds:0,value:clipGain}];
+      const automationAt=t=>{
+        if(t<=points[0].timeSeconds)return points[0].value;
+        for(let p=1;p<points.length;p++){const a=points[p-1],b=points[p];if(t<=b.timeSeconds){const f=(t-a.timeSeconds)/(b.timeSeconds-a.timeSeconds);return a.value+(b.value-a.value)*f;}}
+        return points[points.length-1].value;
+      };
+      const curveLength=Math.max(2,Math.min(2048,Math.ceil(remaining*60)));
+      const curve=new Float32Array(curveLength);
+      for(let n=0;n<curveLength;n++){
+        const t=clipStartOffset+(remaining*n/(curveLength-1));
+        const fadeInLevel=fadeIn?Math.min(1,t/fadeIn):1;
+        const fadeOutLevel=fadeOut?Math.min(1,(clipDuration-t)/fadeOut):1;
+        curve[n]=Math.max(0,Math.min(2,track.gain*automationAt(t)*fadeInLevel*fadeOutLevel));
       }
-      if (!clip.loop && fadeOut > 0) {
-        const fadeOutAt = clipWhen + Math.max(0,remaining-fadeOut);
-        gain.gain.setValueAtTime(effectiveGain,fadeOutAt);
-        gain.gain.linearRampToValueAtTime(0,clipWhen+remaining);
-      }
+      if(remaining>0.001)gain.gain.setValueCurveAtTime(curve,clipWhen,remaining);
+      else gain.gain.setValueAtTime(curve[0],clipWhen);
       source.connect(gain);
       if (pan) {
         pan.pan.value = track.pan;
