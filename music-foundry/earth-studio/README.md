@@ -37,3 +37,6 @@ Source provenance: `godsun108/The-portal`, `music-foundry/studio.html`, branch `
 - The arrangement timeline has adjustable horizontal zoom (20–160 pixels per second), a fit-to-session action, and scroll-preserving zoom around the current viewport center. Fade-in/fade-out envelopes are drawn over each clip waveform as a visible gain curve; the original waveform and source audio remain unchanged.
 
 - Audio clips optionally carry ordered gainAutomation points (timeSeconds, value) relative to the clip. The arrangement exposes a touch-friendly automation lane: tap to add/remove points and drag points to reshape a linear gain curve. Playback combines the automation curve with clip gain and fades on the shared AudioContext clock; automation remains non-destructive and travels with .earthsession projects.
+
+
+- MIDI/instrument clips support editable parameter automation lanes for filter cutoff (80–18,000 Hz), pitch bend (−12 to +12 semitones), and vibrato depth (0–20). Points are stored in clip-relative 960-PPQ ticks, validated with each session, interpolated by the sequencer, and sent to the native AudioWorklet with AudioContext timestamps. The worklet applies changes at the corresponding render-frame boundaries; older MIDI clips remain valid.
