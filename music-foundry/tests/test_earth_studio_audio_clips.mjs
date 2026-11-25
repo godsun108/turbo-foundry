@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   validateAudioClip,validateAudioClipList,splitAudioClip,trimAudioClip,
-  moveAudioClip,duplicateAudioClip,setAudioClipLoop,snapAudioTime
+  moveAudioClip,duplicateAudioClip,setAudioClipLoop,snapAudioTime,validateAudioClipEnvelope,audioClipGainAt,setAudioClipEnvelope
 } from "../earth-studio/audio-clip-model.mjs";
 const clip=()=>({id:"clip-a",assetId:"asset-a",startSeconds:4,sourceStartSeconds:2,durationSeconds:10});
 const ids=(()=>{let n=0;return ()=>"clip-"+(++n)})();
@@ -43,4 +43,18 @@ test("snaps timeline positions to tempo-aware musical subdivisions",()=>{
  assert.equal(snapAudioTime(0.27,{tempo:120,divisionsPerBeat:2}),0.25);
  assert.equal(snapAudioTime(0.13,{tempo:120,enabled:false}),0.13);
  assert.throws(()=>snapAudioTime(1,{tempo:0}),RangeError);
+});
+
+test("clip gain and fades validate, calculate and remain non-destructive",()=>{
+ const source=clip();
+ const shaped=setAudioClipEnvelope(source,{gain:0.8,fadeInSeconds:2,fadeOutSeconds:2});
+ assert.equal(audioClipGainAt(shaped,0),0);
+ assert.equal(audioClipGainAt(shaped,1),0.4);
+ assert.equal(audioClipGainAt(shaped,5),0.8);
+ assert.equal(audioClipGainAt(shaped,9),0.4);
+ assert.equal(audioClipGainAt(shaped,10),0);
+ assert.deepEqual(validateAudioClipEnvelope(shaped),[]);
+ assert.equal(validateAudioClipEnvelope({...shaped,fadeInSeconds:9,fadeOutSeconds:9}).length,1);
+ assert.equal(source.gain,undefined);
+ assert.throws(()=>setAudioClipEnvelope(source,{gain:3}),RangeError);
 });

@@ -73,7 +73,27 @@ function playAudioFrom(positionSeconds) {
         source.loopStart = sourceStart;
         source.loopEnd = Math.min(track.buffer.duration,sourceStart+clipDuration);
       }
-      gain.gain.value = track.gain;
+      const clipGain = Number.isFinite(clip.gain) ? clip.gain : 1;
+      const fadeIn = Math.max(0,Number(clip.fadeInSeconds)||0);
+      const fadeOut = Math.max(0,Number(clip.fadeOutSeconds)||0);
+      const clipStartOffset = Math.max(0,relative);
+      const remaining = Math.max(0,clipDuration-clipStartOffset);
+      const clipWhen = startAt + Math.max(0,clipStart-elapsed);
+      const effectiveGain = Math.max(0,Math.min(2,track.gain*clipGain));
+      gain.gain.setValueAtTime(0,clipWhen);
+      const fadeInRemaining = Math.max(0,fadeIn-clipStartOffset);
+      if (fadeInRemaining > 0) {
+        const startLevel = fadeIn ? effectiveGain*Math.min(1,clipStartOffset/fadeIn) : effectiveGain;
+        gain.gain.setValueAtTime(startLevel,clipWhen);
+        gain.gain.linearRampToValueAtTime(effectiveGain,clipWhen+fadeInRemaining);
+      } else {
+        gain.gain.setValueAtTime(effectiveGain,clipWhen);
+      }
+      if (!clip.loop && fadeOut > 0) {
+        const fadeOutAt = clipWhen + Math.max(0,remaining-fadeOut);
+        gain.gain.setValueAtTime(effectiveGain,fadeOutAt);
+        gain.gain.linearRampToValueAtTime(0,clipWhen+remaining);
+      }
       source.connect(gain);
       if (pan) {
         pan.pan.value = track.pan;
@@ -265,6 +285,50 @@ document.addEventListener("visibilitychange",()=>{
 document.addEventListener("click",event=>{
   if (event.target.closest("#newProject,#clearSession")) stop();
 });
+
+/* Compact clip-envelope inspector: all edits update portable clip metadata. */
+function mountClipEnvelopeInspector() {
+  if (document.getElementById("earthClipEnvelope")) return;
+  const panel=document.createElement("section");
+  panel.id="earthClipEnvelope";
+  panel.style.cssText="position:fixed;z-index:30;right:12px;bottom:12px;width:min(300px,calc(100vw - 24px));padding:12px;border:1px solid #64748b;border-radius:12px;background:#101820;color:#f8fafc;font:13px system-ui;box-shadow:0 8px 28px #0008";
+  panel.innerHTML='<strong>CLIP ENVELOPE</strong><div id="earthClipEnvelopeName" style="opacity:.7;margin:4px 0 8px">Select an audio clip</div><label>Clip gain <output id="earthClipGainValue">1.00×</output><input id="earthClipGain" type="range" min="0" max="2" step=".01" value="1" style="width:100%"></label><label>Fade in <output id="earthClipFadeInValue">0.0s</output><input id="earthClipFadeIn" type="range" min="0" max="10" step=".05" value="0" style="width:100%"></label><label>Fade out <output id="earthClipFadeOutValue">0.0s</output><input id="earthClipFadeOut" type="range" min="0" max="10" step=".05" value="0" style="width:100%"></label>';
+  document.body.append(panel);
+  const fields=[["earthClipGain","gain",1],["earthClipFadeIn","fadeInSeconds",0],["earthClipFadeOut","fadeOutSeconds",0]];
+  function selected() {
+    const track=app.state.tracks.find(t=>t.id===app.state.selected);
+    return track?.clips?.find(c=>c.id===app.state.selectedClip) || null;
+  }
+  function sync() {
+    const clip=selected(),name=document.getElementById("earthClipEnvelopeName");
+    name.textContent=clip ? "Selected audio clip · "+clip.id : "Select an audio clip";
+    for(const [id,key,fallback] of fields) {
+      const input=document.getElementById(id),value=clip?.[key]??fallback;
+      input.value=String(value);input.disabled=!clip;
+      document.getElementById(id+"Value").textContent=key==="gain"?Number(value).toFixed(2)+"×":Number(value).toFixed(1)+"s";
+      if(key!=="gain")input.max=clip?String(Math.min(10,clip.durationSeconds)): "10";
+    }
+  }
+  for(const [id,key] of fields.map(([id,key])=>[id,key])) {
+    document.getElementById(id).addEventListener("input",event=>{
+      const clip=selected();if(!clip)return;
+      const next={...clip,[key]:Number(event.target.value)};
+      if((next.fadeInSeconds||0)+(next.fadeOutSeconds||0)>next.durationSeconds) {
+        if(key==="fadeInSeconds")next.fadeOutSeconds=Math.max(0,next.durationSeconds-next.fadeInSeconds);
+        else if(key==="fadeOutSeconds")next.fadeInSeconds=Math.max(0,next.durationSeconds-next.fadeOutSeconds);
+      }
+      Object.assign(clip,next);
+      sync();
+      window.dispatchEvent(new Event("earthstudio:change"));
+    });
+  }
+  window.addEventListener("earthstudio:change",sync);
+  document.addEventListener("click",sync);
+  document.addEventListener("pointerup",sync);
+  sync();
+}
+mountClipEnvelopeInspector();
+
 window.__earthStudioTransport = {
   transport,
   play:start,
