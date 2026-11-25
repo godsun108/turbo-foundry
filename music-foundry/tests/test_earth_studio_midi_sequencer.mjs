@@ -282,9 +282,9 @@ test("MIDI modulation recording inserts, quantizes, replaces and orders controll
  assert.equal(midiAutomationValueAt(clip.parameterAutomation[0],600),9600);
  assert.deepEqual(validateMidiAutomation(clip),[]);
 });
-test("MIDI modulation recorder rejects invalid controls and clamps the final quantized tick",()=>{
+test("MIDI modulation recorder rejects invalid controls and keeps quantized points in clip bounds",()=>{
  const clip=createMidiClip({id:"mod-boundary",startTick:0,lengthTicks:1000,notes:[]});
- assert.equal(recordMidiAutomationPoint(clip,"vibrato",990,20,{quantizeTicks:240}).tick,1000);
+ assert.equal(recordMidiAutomationPoint(clip,"vibrato",990,20,{quantizeTicks:240}).tick,960);
  assert.throws(()=>recordMidiAutomationPoint(clip,"unknown",10,1),RangeError);
  assert.throws(()=>recordMidiAutomationPoint(clip,"bend",10,13),RangeError);
  assert.throws(()=>recordMidiAutomationPoint(clip,"bend",-1,0),RangeError);
