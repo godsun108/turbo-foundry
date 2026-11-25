@@ -96,3 +96,22 @@ test("rejects MIDI clips on audio tracks and notes outside clip bounds",()=>{
   assert.ok(errors.some(error=>error.includes("MIDI clips require")));
   assert.ok(errors.some(error=>error.includes("extends beyond")));
 });
+
+test("portable MIDI CC mappings round-trip with a project", () => {
+  const session = valid();
+  session.performance = {midiCCMappings:{attack:{controller:73},cutoff:{controller:74},bend:{controller:1}}};
+  assert.deepEqual(decodeSession(encodeSession(session)).performance,session.performance);
+});
+
+test("legacy sessions remain valid without performance settings", () => {
+  const session = valid();
+  assert.equal(decodeSession(encodeSession(session)).performance,undefined);
+});
+
+test("rejects invalid or unsupported portable MIDI CC mappings", () => {
+  const session = valid();
+  session.performance = {midiCCMappings:{attack:{controller:128},unknown:{controller:12}}};
+  const errors = validateSession(session);
+  assert.ok(errors.some(error => error.includes("controller must be an integer")));
+  assert.ok(errors.some(error => error.includes("target is unsupported")));
+});
