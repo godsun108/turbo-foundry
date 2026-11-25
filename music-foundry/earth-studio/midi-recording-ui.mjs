@@ -1,4 +1,4 @@
-import {MidiRecorder, MIDI_PPQ, nextQuantizedTick} from "./midi-sequencer.mjs";
+import {MidiRecorder, MIDI_PPQ, nextQuantizedTick, recordMidiAutomationPoint} from "./midi-sequencer.mjs";
 
 const app = window.__earthStudio;
 const instrument = window.__earthInstrument;
@@ -16,6 +16,10 @@ panel.innerHTML = `
     <button id="midiOverdub">OVERDUB: OFF</button>
     <button id="midiLoop">MIDI LOOP ×4: OFF</button>
     <button id="midiConnect">CONNECT MIDI DEVICE</button>
+    <label class="hint" for="midiAutomationParameter">MODULATION TARGET</label>
+    <select id="midiAutomationParameter" style="min-height:40px;background:#0b1017;color:white;border:1px solid var(--line);border-radius:8px;padding:7px"><option value="cutoff">FILTER CUTOFF</option><option value="bend">PITCH BEND</option><option value="vibrato">VIBRATO</option></select>
+    <button id="midiLearnCC">LEARN KNOB</button>
+    <button id="midiArmAutomation">ARM MODULATION: OFF</button>
     <label class="hint" for="midiQuantize">QUANTIZE</label>
     <select id="midiQuantize" style="min-height:40px;background:#0b1017;color:white;border:1px solid var(--line);border-radius:8px;padding:7px">
       <option value="0">OFF</option><option value="240">1/16</option><option value="480">1/8</option><option value="960">1/4</option>
@@ -237,6 +241,50 @@ function receive(event) {
     else if (event.type === "noteOff") recorder.noteOff({note:event.note,channel:event.channel||0,timeSeconds,key:String(event.channel||0)+":"+event.note});
   } catch (error) { status("MIDI capture error: " + error.message); }
 }
+function captureModulation(controller,value,channel){
+  if(learningController){
+    learnedController=controller;
+    learningController=false;
+    $("midiLearnCC").textContent="LEARN KNOB · CC "+controller;
+    status("MIDI CC "+controller+" learned. Arm modulation and play to record it.");
+    return;
+  }
+  if(!modulationArmed||learnedController===null||controller!==learnedController)return;
+  const track=selectedTrack();
+  const clip=track?.midiClips?.[activeScene];
+  const snapshot=window.__earthStudioTransport?.snapshot?.();
+  if(!clip||!snapshot?.playing){
+    status("Start playback in the target scene to record modulation.");
+    return;
+  }
+  const parameter=$("midiAutomationParameter").value;
+  const ranges={cutoff:[80,18000],bend:[-12,12],vibrato:[0,20]};
+  const range=ranges[parameter];
+  const normalized=parameter==="cutoff"
+    ? range[0]*Math.pow(range[1]/range[0],value/127)
+    : range[0]+(range[1]-range[0])*(value/127);
+  const relativeTick=Math.max(0,snapshot.absoluteTick-sceneStartAbsoluteTick);
+  try{
+    recordMidiAutomationPoint(clip,parameter,relativeTick,normalized,{quantizeTicks:Number($("midiQuantize").value)||0});
+    modulationDirty=true;
+    status("Recording "+parameter+" · MIDI CC "+controller+" · "+Math.round(relativeTick)+" ticks");
+  }catch(error){status("Modulation capture error: "+(error?.message||String(error)));}
+}
+$("midiLearnCC").addEventListener("click",()=>{
+  learningController=true;
+  $("midiLearnCC").textContent="MOVE A KNOB…";
+  status("Move the hardware knob or fader you want to assign.");
+});
+$("midiArmAutomation").addEventListener("click",()=>{
+  modulationArmed=!modulationArmed;
+  $("midiArmAutomation").textContent="ARM MODULATION: "+(modulationArmed?"ON":"OFF");
+  if(!modulationArmed&&modulationDirty){
+    modulationDirty=false;
+    window.dispatchEvent(new Event("earthstudio:change"));
+    app.recalc();
+    status("Modulation take saved to the selected MIDI clip.");
+  }else status(modulationArmed?"Modulation armed · start playback and move the learned control.":"Modulation capture disarmed.");
+});
 function stopPlayback() {
   try { instrument.allNotesOff(); } catch {}
 }
@@ -282,7 +330,7 @@ async function connectHardwareMidi(){
       input.onmidimessage=event=>{
         const [statusByte,data1,data2]=event.data;
         const command=statusByte&0xf0,channel=statusByte&0x0f;
-        if(command===0xb0){window.dispatchEvent(new CustomEvent("earthstudio:controlchange",{detail:{controller:data1,value:data2,channel}}));return;}
+        if(command===0xb0){captureModulation(data1,data2,channel);window.dispatchEvent(new CustomEvent("earthstudio:controlchange",{detail:{controller:data1,value:data2,channel}}));return;}
         const audioTime=instrument.getAudioContextTime()+((event.timeStamp-performance.now())/1000);
         if(command===0x90&&data2>0)receive({type:"noteOn",note:data1,velocity:data2,channel,audioTime});
         else if(command===0x80||(command===0x90&&data2===0))receive({type:"noteOff",note:data1,channel,audioTime});
