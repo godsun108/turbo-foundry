@@ -294,13 +294,48 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "attack": { {"type":"object","additionalProperties":false,"required":["controller"],"properties":{"controller":{"type":"integer","minimum":0,"maximum":127}}} },
-            "decay": { {"type":"object","additionalProperties":false,"required":["controller"],"properties":{"controller":{"type":"integer","minimum":0,"maximum":127}}} },
-            "sustain": { {"type":"object","additionalProperties":false,"required":["controller"],"properties":{"controller":{"type":"integer","minimum":0,"maximum":127}}} },
-            "release": { {"type":"object","additionalProperties":false,"required":["controller"],"properties":{"controller":{"type":"integer","minimum":0,"maximum":127}}} },
-            "cutoff": { {"type":"object","additionalProperties":false,"required":["controller"],"properties":{"controller":{"type":"integer","minimum":0,"maximum":127}}} },
-            "vibrato": { {"type":"object","additionalProperties":false,"required":["controller"],"properties":{"controller":{"type":"integer","minimum":0,"maximum":127}}} },
-            "bend": { {"type":"object","additionalProperties":false,"required":["controller"],"properties":{"controller":{"type":"integer","minimum":0,"maximum":127}}} }
+            "attack": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["controller"],
+              "properties": {"controller": {"type": "integer", "minimum": 0, "maximum": 127}}
+            },
+            "decay": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["controller"],
+              "properties": {"controller": {"type": "integer", "minimum": 0, "maximum": 127}}
+            },
+            "sustain": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["controller"],
+              "properties": {"controller": {"type": "integer", "minimum": 0, "maximum": 127}}
+            },
+            "release": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["controller"],
+              "properties": {"controller": {"type": "integer", "minimum": 0, "maximum": 127}}
+            },
+            "cutoff": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["controller"],
+              "properties": {"controller": {"type": "integer", "minimum": 0, "maximum": 127}}
+            },
+            "vibrato": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["controller"],
+              "properties": {"controller": {"type": "integer", "minimum": 0, "maximum": 127}}
+            },
+            "bend": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["controller"],
+              "properties": {"controller": {"type": "integer", "minimum": 0, "maximum": 127}}
+            }
           }
         }
       }
