@@ -323,8 +323,8 @@ function mountClipEnvelopeInspector() {
     });
   }
   window.addEventListener("earthstudio:change",sync);
-  const observer=new MutationObserver(sync);
-  observer.observe(document.body,{subtree:true,childList:true});
+  document.addEventListener("click",sync);
+  document.addEventListener("pointerup",sync);
   sync();
 }
 mountClipEnvelopeInspector();
