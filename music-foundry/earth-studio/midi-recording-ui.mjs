@@ -139,6 +139,22 @@ function render() {
         roll.append(block);
       }
       card.append(roll);
+      const tools=document.createElement("div");tools.className="toolbar";tools.style.marginTop="8px";
+      const parameter=document.createElement("select");parameter.setAttribute("aria-label","MIDI automation parameter");
+      for(const pair of [["cutoff","FILTER CUTOFF"],["bend","PITCH BEND"],["vibrato","VIBRATO"]])parameter.add(new Option(pair[1],pair[0]));
+      const hint=document.createElement("span");hint.className="hint";hint.textContent="PARAMETER LANE · TAP TO ADD / DRAG TO EDIT";
+      tools.append(parameter,hint);card.append(tools);
+      const lane=document.createElement("div");lane.style.cssText="height:72px;position:relative;border:1px solid var(--line);border-radius:8px;background:#101820;touch-action:none;margin-bottom:12px";
+      const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");svg.setAttribute("viewBox","0 0 1000 72");svg.setAttribute("preserveAspectRatio","none");svg.style.cssText="width:100%;height:100%;overflow:visible";
+      const path=document.createElementNS("http://www.w3.org/2000/svg","path");path.setAttribute("fill","none");path.setAttribute("stroke","#54e7d1");path.setAttribute("stroke-width","2.5");path.setAttribute("vector-effect","non-scaling-stroke");svg.append(path);lane.append(svg);card.append(lane);
+      const lanes=clip.parameterAutomation||(clip.parameterAutomation=[]);
+      const ranges={cutoff:[80,18000],bend:[-12,12],vibrato:[0,20]};
+      const activeLane=()=>lanes.find(item=>item.parameter===parameter.value);
+      const coordinates=point=>{const range=ranges[parameter.value];return {x:point.tick/Math.max(1,clip.lengthTicks)*1000,y:66-(point.value-range[0])/(range[1]-range[0])*58}};
+      const drawLane=()=>{const active=activeLane(),points=active?.points||[];path.setAttribute("d",points.length?"M "+points.map(point=>{const pos=coordinates(point);return pos.x+" "+pos.y}).join(" L "):"");svg.querySelectorAll("circle").forEach(node=>node.remove());points.forEach(point=>{const pos=coordinates(point),dot=document.createElementNS("http://www.w3.org/2000/svg","circle");dot.setAttribute("cx",pos.x);dot.setAttribute("cy",pos.y);dot.setAttribute("r","5");dot.setAttribute("fill","#f8ffb0");dot.setAttribute("stroke","#10201e");dot.setAttribute("stroke-width","1.5");dot.addEventListener("pointerdown",event=>{event.preventDefault();event.stopPropagation();const move=ev=>{const rect=lane.getBoundingClientRect(),range=ranges[parameter.value];point.tick=Math.max(0,Math.min(clip.lengthTicks,Math.round((ev.clientX-rect.left)/rect.width*clip.lengthTicks)));point.value=Math.max(range[0],Math.min(range[1],range[0]+(range[1]-range[0])*(rect.bottom-ev.clientY)/rect.height));active.points.sort((a,b)=>a.tick-b.tick);drawLane()};const finish=()=>{window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",finish);window.dispatchEvent(new Event("earthstudio:change"));app.recalc();render()};window.addEventListener("pointermove",move);window.addEventListener("pointerup",finish,{once:true})});svg.append(dot)})};
+      parameter.addEventListener("change",drawLane);
+      lane.addEventListener("pointerdown",event=>{if(event.target.closest("circle"))return;const rect=lane.getBoundingClientRect(),range=ranges[parameter.value],tick=Math.max(0,Math.min(clip.lengthTicks,Math.round((event.clientX-rect.left)/rect.width*clip.lengthTicks))),value=Math.max(range[0],Math.min(range[1],range[0]+(range[1]-range[0])*(rect.bottom-event.clientY)/rect.height));let active=activeLane();if(!active){active={parameter:parameter.value,points:[]};lanes.push(active)}const found=active.points.findIndex(point=>Math.abs(point.tick-tick)<30);if(found>=0)active.points.splice(found,1);else active.points.push({tick,value});active.points.sort((a,b)=>a.tick-b.tick);drawLane();window.dispatchEvent(new Event("earthstudio:change"))});
+      drawLane();
     }
     root.append(card);
   }
