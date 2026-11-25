@@ -40,7 +40,7 @@ class EarthStudioProcessor extends AudioWorkletProcessor {
   }
   onMessage(message) {
     if (!message || typeof message !== "object") return;
-    if (message.type === "cancelScheduled") { this.pendingCount = 0; this.enqueue(2, 0, 0, 255); }
+    if (message.type === "cancelScheduled") { this.pendingCount = 0; this.pendingAutomation = []; this.enqueue(2, 0, 0, 255); }
     else if (message.type === "noteOn") this.enqueue(0, message.note, message.velocity ?? 1, message.channel ?? 0, message.when);
     else if (message.type === "noteOff") this.enqueue(1, message.note, 0, message.channel ?? 0, message.when);
     else if (message.type === "allNotesOff") this.enqueue(2, 0, 0, 255, message.when);
@@ -82,7 +82,7 @@ class EarthStudioProcessor extends AudioWorkletProcessor {
     const left=channels[0],right=channels.length>1?channels[1]:channels[0],frames=left.length;
     if(!this.ready||this.failed||frames>MAX_FRAMES){left.fill(0);if(right!==left)right.fill(0);return true;}
     const blockStart=currentFrame,blockEnd=blockStart+frames;
-    const due=[];let keep=0;
+    const due=[],deferred=[];let keep=0;
     for(let i=0;i<this.pendingCount;i++){
       const item={frame:this.pendingFrames[i],type:this.pendingTypes[i],channel:this.pendingChannels[i],note:this.pendingNotes[i],velocity:this.pendingVelocities[i]};
       if(item.frame<blockEnd)due.push(item);
@@ -103,10 +103,10 @@ class EarthStudioProcessor extends AudioWorkletProcessor {
       this.eventCount=0;
       for(const item of due){
         const offset=item.frame-blockStart;
-        if(offset>=cursor&&offset<stop&&this.eventCount<MAX_EVENTS){
+        if(offset>=cursor&&offset<stop){if(this.eventCount<MAX_EVENTS){
           const i=this.eventCount++;this.eventOffsets[i]=offset-cursor;this.eventTypes[i]=item.type;
           this.eventChannels[i]=item.channel;this.eventNotes[i]=item.note;this.eventVelocities[i]=item.velocity;
-        }
+        }else deferred.push(item)}
       }
       const result=this.module._earth_engine_render(this.engine,this.outputPtr,segmentFrames,this.eventsPtr,this.eventCount);
       this.eventCount=0;
@@ -115,6 +115,7 @@ class EarthStudioProcessor extends AudioWorkletProcessor {
       cursor=stop;
     }
     while(ai<automationDue.length){const item=automationDue[ai++];this.settings[item.parameter]=item.value;this.setInstrument(this.settings);}
+    for(const item of deferred){if(this.pendingCount>=MAX_PENDING_EVENTS)break;const i=this.pendingCount++;this.pendingFrames[i]=item.frame;this.pendingTypes[i]=item.type;this.pendingChannels[i]=item.channel;this.pendingNotes[i]=item.note;this.pendingVelocities[i]=item.velocity;}
     return true;
   }
 }
