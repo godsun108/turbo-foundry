@@ -25,9 +25,9 @@ panel.className="panel";
 panel.id="performanceSurface";
 panel.innerHTML=`
   <div class="track-head"><h2>PERFORMANCE SURFACE</h2><span class="tag">SCENES · MIDI CONTROL</span></div>
-  <p class="hint">Launch complete MIDI clip rows as scenes. While playing, scene changes wait for the next 4/4 bar. Hardware control mappings are saved with this project.</p>
+  <p class="hint">Launch aligned audio and MIDI scenes. Assign audio tracks to a scene in the timeline; while playing, scene changes wait for the next 4/4 bar. Hardware control mappings are saved with this project.</p>
   <div id="sceneLauncher" class="scene-grid"></div>
-  <div class="toolbar" style="margin-top:9px"><span class="hint" id="sceneStatus" role="status" aria-live="polite">No scenes yet. Record a MIDI take to create your first scene.</span><button id="stopMidiScene" class="ghost">STOP MIDI SCENE</button></div>
+  <div class="toolbar" style="margin-top:9px"><span class="hint" id="sceneStatus" role="status" aria-live="polite">No scenes yet. Add an audio track or record a MIDI take to create your first scene.</span><button id="stopMidiScene" class="ghost">STOP MIDI SCENE</button></div>
   <div class="track-head" style="margin-top:18px"><h2>HARDWARE CONTROL LEARN</h2><span class="hint">MIDI CC · 0–127</span></div>
   <div id="ccMappings" class="cc-grid"></div>
   <div class="hint" id="ccStatus" role="status" aria-live="polite" style="margin-top:8px">Connect a MIDI controller, then tap LEARN beside a parameter and move a knob or fader.</div>
@@ -77,18 +77,19 @@ function renderScenes(){
     empty.className="empty";
     empty.textContent="No scenes yet. Record MIDI takes on one or more instrument tracks.";
     root.append(empty);
-    $("sceneStatus").textContent="No scenes available.";
+    $("sceneStatus").textContent="No audio or MIDI scenes available.";
     return;
   }
   for(let index=0;index<info.count;index++){
     const tracks=midi.getTracks();
     const populated=tracks.filter(track=>(track.midiClips||[])[index]).length;
+    const audioPopulated=app.state.tracks.filter(track=>(Number.isInteger(track.sceneIndex)?track.sceneIndex:0)===index).length;
     const button=document.createElement("button");
     button.className="scene-launch"+(info.active===index?" active":"")+(info.pending?.index===index?" pending":"");
     const title=document.createElement("strong");
     title.textContent="SCENE "+String(index+1).padStart(2,"0");
     const detail=document.createElement("small");
-    detail.textContent=populated+" instrument track"+(populated===1?"":"s");
+    detail.textContent=audioPopulated+" audio · "+populated+" MIDI tracks";
     button.append(title,detail);
     button.setAttribute("aria-pressed",String(info.active===index));
     button.addEventListener("click",()=>{
