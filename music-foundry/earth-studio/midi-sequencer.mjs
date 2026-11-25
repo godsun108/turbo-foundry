@@ -176,7 +176,10 @@ export function collectMidiEvents(clips, {
         if(end<fromTick||start>=toTick)return;
         const emit=(relative,value)=>{const tick=start+relative;if(tick>=fromTick&&tick<toTick)events.push({type:"parameter",tick,parameter:lane.parameter,value,channel:0,trackId:clip.trackId,clipId:clip.id});};
         const points=lane.points;
-        emit(0,points[0].value);
+        const relativeNow=Math.max(0,fromTick-start);
+        const valueAt=t=>{if(t<=points[0].tick)return points[0].value;for(let j=1;j<points.length;j++){const a=points[j-1],b=points[j];if(t<=b.tick){const ratio=(t-a.tick)/(b.tick-a.tick);return a.value+(b.value-a.value)*ratio;}}return points[points.length-1].value;};
+        if(relativeNow<clip.lengthTicks)emit(relativeNow,valueAt(relativeNow));
+        else emit(0,points[0].value);
         for(let i=1;i<points.length;i++){
           const a=points[i-1],b=points[i];
           for(let tick=Math.max(a.tick+step,Math.ceil((fromTick-start)/step)*step);tick<b.tick;tick+=step){
