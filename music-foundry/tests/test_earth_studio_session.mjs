@@ -150,3 +150,10 @@ test("rejects duplicate audio clip IDs and invalid loop flags",()=>{
  assert.ok(errors.some(error=>error.includes("audio clip IDs")));
  assert.ok(errors.some(error=>error.includes("loop must be boolean")));
 });
+
+test("rejects audio clip instances that point at different source assets on one track",()=>{
+ const session=valid();
+ session.assets.push({id:"asset-2",storageKey:"audio/asset-2.wav",mediaType:"audio/wav",sizeBytes:64,sha256:"b".repeat(64)});
+ session.tracks[0].clips.push({id:"clip-other",assetId:"asset-2",startSeconds:5,sourceStartSeconds:0,durationSeconds:2});
+ assert.ok(validateSession(session).some(error=>error.includes("same source asset")));
+});
