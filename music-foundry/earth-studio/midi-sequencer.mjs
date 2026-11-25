@@ -168,10 +168,34 @@ export function collectMidiEvents(clips, {
   for (const clip of clips) {
     const errors = validateMidiClip(clip);
     if (errors.length) throw new TypeError("Invalid MIDI clip " + clip.id + ": " + errors.join("; "));
-    for(const lane of clip.parameterAutomation||[])for(const point of lane.points){
-      const tick=clip.startTick+point.tick;
-      if(!loop){if(tick>=fromTick&&tick<toTick)events.push({type:"parameter",tick,parameter:lane.parameter,value:point.value,channel:0,trackId:clip.trackId,clipId:clip.id});}
-      else {const length=loop.endTick-loop.startTick;if(tick<loop.startTick||tick>=loop.endTick)continue;const first=Math.floor((fromTick-tick)/length),last=Math.ceil((toTick-tick)/length);for(let cycle=first;cycle<=last;cycle++){const repeated=tick+cycle*length;if(repeated>=fromTick&&repeated<toTick)events.push({type:"parameter",tick:repeated,parameter:lane.parameter,value:point.value,channel:0,trackId:clip.trackId,clipId:clip.id});}}
+    for(const lane of clip.parameterAutomation||[]){
+      if(!lane.points.length)continue;
+      const step=Math.max(1,Math.round(tempo*ppq/60/30));
+      const sampleLane=(cycleOffset)=>{
+        const start=clip.startTick+cycleOffset,end=start+clip.lengthTicks;
+        if(end<fromTick||start>=toTick)return;
+        const emit=(relative,value)=>{const tick=start+relative;if(tick>=fromTick&&tick<toTick)events.push({type:"parameter",tick,parameter:lane.parameter,value,channel:0,trackId:clip.trackId,clipId:clip.id});};
+        const points=lane.points;
+        emit(0,points[0].value);
+        for(let i=1;i<points.length;i++){
+          const a=points[i-1],b=points[i];
+          for(let tick=Math.max(a.tick+step,Math.ceil((fromTick-start)/step)*step);tick<b.tick;tick+=step){
+            const ratio=(tick-a.tick)/(b.tick-a.tick);emit(tick,a.value+(b.value-a.value)*ratio);
+          }
+          emit(b.tick,b.value);
+        }
+        const last=points[points.length-1];
+        for(let tick=Math.max(last.tick+step,Math.ceil((fromTick-start)/step)*step);tick<clip.lengthTicks&&start+tick<toTick;tick+=step)emit(tick,last.value);
+      };
+      if(!loop)sampleLane(0);
+      else {
+        const length=loop.endTick-loop.startTick;
+        if(clip.startTick>=loop.startTick&&clip.startTick<loop.endTick){
+          const first=Math.max(0,Math.floor((fromTick-clip.startTick)/length));
+          const last=Math.max(first,Math.ceil((toTick-clip.startTick)/length));
+          for(let cycle=first;cycle<=last;cycle++)sampleLane(cycle*length);
+        }
+      }
     }
     for (const note of clip.notes) {
       const absoluteStart = clip.startTick + note.startTick;
