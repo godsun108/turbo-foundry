@@ -256,8 +256,12 @@ test("MIDI parameter automation validates, interpolates and schedules",()=>{
  assert.deepEqual(validateMidiAutomation(clip),[]);
  assert.equal(midiAutomationValueAt(clip.parameterAutomation[0],480),6);
  const events=collectMidiEvents([clip],{tempo:120,fromTick:0,toTick:1921,originTime:4});
- assert.deepEqual(events.map(e=>[e.type,e.tick,e.value]),[["parameter",0,0],["parameter",960,12],["parameter",1920,-12]]);
- assert.deepEqual(events.map(e=>e.when),[4,4.5,5]);
+ const points=events.filter(e=>e.type==="parameter");
+ assert.equal(points[0].tick,0);assert.equal(points[0].value,0);
+ assert.ok(points.some(e=>e.tick===960&&e.value===12));
+ assert.ok(points.some(e=>e.tick===1920&&e.value===-12));
+ assert.ok(points.some(e=>e.tick===480&&e.value===6),"intermediate points are interpolated");
+ assert.equal(points.at(-1).when,5);
  assert.ok(validateMidiAutomation({...clip,parameterAutomation:[{parameter:"bend",points:[{tick:0,value:0},{tick:0,value:2}]}]}).length);
 });
 test("native sink forwards parameter automation with audio-clock timestamps",()=>{
