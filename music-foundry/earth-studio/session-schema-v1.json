@@ -171,6 +171,9 @@
                 "durationSeconds": {
                   "type": "number",
                   "exclusiveMinimum": 0
+                },
+                "loop": {
+                  "type": "boolean"
                 }
               }
             }
