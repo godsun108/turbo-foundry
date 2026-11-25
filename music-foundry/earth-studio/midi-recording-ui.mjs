@@ -263,7 +263,7 @@ function captureModulation(controller,value,channel){
   const normalized=parameter==="cutoff"
     ? range[0]*Math.pow(range[1]/range[0],value/127)
     : range[0]+(range[1]-range[0])*(value/127);
-  const relativeTick=Math.max(0,snapshot.absoluteTick-sceneStartAbsoluteTick);
+  const relativeTick=Math.max(0,(snapshot.tick??snapshot.absoluteTick)-sceneStartAbsoluteTick);
   try{
     recordMidiAutomationPoint(clip,parameter,relativeTick,normalized,{quantizeTicks:Number($("midiQuantize").value)||0});
     modulationDirty=true;
