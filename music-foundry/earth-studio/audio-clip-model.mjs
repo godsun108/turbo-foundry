@@ -102,3 +102,31 @@ export function snapAudioTime(seconds, {tempo = 120, divisionsPerBeat = 4, enabl
   const gridSeconds = 60 / tempo / divisionsPerBeat;
   return Math.max(0, Math.round(seconds / gridSeconds) * gridSeconds);
 }
+
+
+/** Clip-level gain and linear fade envelope. Values are portable clip metadata. */
+export function validateAudioClipEnvelope(clip) {
+  const errors = [];
+  if (!clip || typeof clip !== "object") return ["clip must be an object"];
+  if (clip.gain !== undefined && (!Number.isFinite(clip.gain) || clip.gain < 0 || clip.gain > 2)) errors.push("clip gain must be between 0 and 2");
+  for (const key of ["fadeInSeconds","fadeOutSeconds"]) {
+    if (clip[key] !== undefined && (!Number.isFinite(clip[key]) || clip[key] < 0 || clip[key] > clip.durationSeconds)) errors.push(key + " must be between zero and clip duration");
+  }
+  if ((clip.fadeInSeconds || 0) + (clip.fadeOutSeconds || 0) > clip.durationSeconds) errors.push("clip fades cannot overlap beyond the clip duration");
+  return errors;
+}
+export function audioClipGainAt(clip, elapsedSeconds) {
+  assertClip(clip); finite(elapsedSeconds,"elapsedSeconds");
+  const duration=clip.durationSeconds, t=Math.max(0,Math.min(duration,elapsedSeconds));
+  const fadeIn=Math.max(0,clip.fadeInSeconds||0), fadeOut=Math.max(0,clip.fadeOutSeconds||0);
+  const inGain=fadeIn ? Math.min(1,t/fadeIn) : 1;
+  const outGain=fadeOut ? Math.min(1,(duration-t)/fadeOut) : 1;
+  return Math.max(0,Math.min(2,clip.gain===undefined?1:clip.gain))*Math.min(inGain,outGain);
+}
+export function setAudioClipEnvelope(clip, {gain=clip.gain===undefined?1:clip.gain,fadeInSeconds=clip.fadeInSeconds||0,fadeOutSeconds=clip.fadeOutSeconds||0}={}) {
+  assertClip(clip);
+  const next={...clip,gain,fadeInSeconds,fadeOutSeconds};
+  const errors=validateAudioClipEnvelope(next);
+  if(errors.length) throw new RangeError(errors.join("; "));
+  return next;
+}
