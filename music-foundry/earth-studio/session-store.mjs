@@ -105,6 +105,9 @@ export function validateSession(session) {
       if (clip && trackAssetId !== null && clip.assetId !== trackAssetId) errors.push("all clips on an audio track must reference the same source asset");
       if (!clip || !Number.isFinite(clip.startSeconds) || clip.startSeconds < 0 || !Number.isFinite(clip.sourceStartSeconds) || clip.sourceStartSeconds < 0 || !Number.isFinite(clip.durationSeconds) || clip.durationSeconds <= 0) errors.push("clip timing is invalid");
       if (clip && clip.loop !== undefined && typeof clip.loop !== "boolean") errors.push("audio clip loop must be boolean");
+      if (clip && clip.gain !== undefined && (!Number.isFinite(clip.gain) || clip.gain < 0 || clip.gain > 2)) errors.push("audio clip gain must be between 0 and 2");
+      for (const key of ["fadeInSeconds","fadeOutSeconds"]) if (clip && clip[key] !== undefined && (!Number.isFinite(clip[key]) || clip[key] < 0 || clip[key] > clip.durationSeconds)) errors.push("audio clip " + key + " must be within its duration");
+      if (clip && (clip.fadeInSeconds || 0) + (clip.fadeOutSeconds || 0) > clip.durationSeconds) errors.push("audio clip fades cannot overlap beyond the clip duration");
       if (clip && track && track.kind !== "audio") errors.push("audio clips require an audio track");
     }
   }
