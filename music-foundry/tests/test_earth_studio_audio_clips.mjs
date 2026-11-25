@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   validateAudioClip,validateAudioClipList,splitAudioClip,trimAudioClip,
-  moveAudioClip,duplicateAudioClip,setAudioClipLoop,snapAudioTime,validateAudioClipEnvelope,audioClipGainAt,setAudioClipEnvelope
+  moveAudioClip,duplicateAudioClip,setAudioClipLoop,snapAudioTime,validateAudioClipEnvelope,audioClipGainAt,setAudioClipEnvelope,validateAudioClipAutomation,audioClipAutomationAt,setAudioClipAutomation
 } from "../earth-studio/audio-clip-model.mjs";
 const clip=()=>({id:"clip-a",assetId:"asset-a",startSeconds:4,sourceStartSeconds:2,durationSeconds:10});
 const ids=(()=>{let n=0;return ()=>"clip-"+(++n)})();
@@ -57,4 +57,17 @@ test("clip gain and fades validate, calculate and remain non-destructive",()=>{
  assert.equal(validateAudioClipEnvelope({...shaped,fadeInSeconds:9,fadeOutSeconds:9}).length,1);
  assert.equal(source.gain,undefined);
  assert.throws(()=>setAudioClipEnvelope(source,{gain:3}),RangeError);
+});
+
+test("clip gain automation validates ordered points and interpolates linearly",()=>{
+ const source=clip();
+ const automated=setAudioClipAutomation(source,[{timeSeconds:0,value:0},{timeSeconds:5,value:2},{timeSeconds:10,value:1}]);
+ assert.equal(audioClipAutomationAt(automated,0),0);
+ assert.equal(audioClipAutomationAt(automated,2.5),1);
+ assert.equal(audioClipAutomationAt(automated,7.5),1.5);
+ assert.equal(audioClipAutomationAt(automated,10),1);
+ assert.deepEqual(validateAudioClipAutomation(automated),[]);
+ assert.equal(validateAudioClipAutomation({...automated,gainAutomation:[{timeSeconds:5,value:1},{timeSeconds:4,value:1}]}).length,1);
+ assert.throws(()=>setAudioClipAutomation(source,[{timeSeconds:11,value:1}]),RangeError);
+ assert.equal(source.gainAutomation,undefined);
 });
