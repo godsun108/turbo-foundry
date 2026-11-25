@@ -170,7 +170,7 @@ export function collectMidiEvents(clips, {
     if (errors.length) throw new TypeError("Invalid MIDI clip " + clip.id + ": " + errors.join("; "));
     for(const lane of clip.parameterAutomation||[]){
       if(!lane.points.length)continue;
-      const step=Math.max(1,Math.round(tempo*ppq/60/30));
+      const step=Math.max(1,Math.round(tempo*ppq/60/60));
       const sampleLane=(cycleOffset)=>{
         const start=clip.startTick+cycleOffset,end=start+clip.lengthTicks;
         if(end<fromTick||start>=toTick)return;
