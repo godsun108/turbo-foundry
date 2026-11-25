@@ -73,7 +73,27 @@ function playAudioFrom(positionSeconds) {
         source.loopStart = sourceStart;
         source.loopEnd = Math.min(track.buffer.duration,sourceStart+clipDuration);
       }
-      gain.gain.value = track.gain;
+      const clipGain = Number.isFinite(clip.gain) ? clip.gain : 1;
+      const fadeIn = Math.max(0,Number(clip.fadeInSeconds)||0);
+      const fadeOut = Math.max(0,Number(clip.fadeOutSeconds)||0);
+      const clipStartOffset = Math.max(0,relative);
+      const remaining = Math.max(0,clipDuration-clipStartOffset);
+      const clipWhen = startAt + Math.max(0,clipStart-elapsed);
+      const effectiveGain = Math.max(0,Math.min(2,track.gain*clipGain));
+      gain.gain.setValueAtTime(0,clipWhen);
+      const fadeInRemaining = Math.max(0,fadeIn-clipStartOffset);
+      if (fadeInRemaining > 0) {
+        const startLevel = fadeIn ? effectiveGain*Math.min(1,clipStartOffset/fadeIn) : effectiveGain;
+        gain.gain.setValueAtTime(startLevel,clipWhen);
+        gain.gain.linearRampToValueAtTime(effectiveGain,clipWhen+fadeInRemaining);
+      } else {
+        gain.gain.setValueAtTime(effectiveGain,clipWhen);
+      }
+      if (!clip.loop && fadeOut > 0) {
+        const fadeOutAt = clipWhen + Math.max(0,remaining-fadeOut);
+        gain.gain.setValueAtTime(effectiveGain,fadeOutAt);
+        gain.gain.linearRampToValueAtTime(0,clipWhen+remaining);
+      }
       source.connect(gain);
       if (pan) {
         pan.pan.value = track.pan;
