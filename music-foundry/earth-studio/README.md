@@ -33,3 +33,5 @@ node --test music-foundry/tests/test_earth_studio_session.mjs music-foundry/test
 Source provenance: `godsun108/The-portal`, `music-foundry/studio.html`, branch `music-foundry/art-studio-foundation`, source blob `6b725fe7c27368dca297d310cfda634fb6884cc8`.
 
 - Audio clip instances support optional portable `gain` (0–2), `fadeInSeconds`, and `fadeOutSeconds` metadata. The shared browser transport applies clip gain and linear fade curves at the AudioContext clock; source audio remains untouched. Older sessions default to unity clip gain and no fades.
+
+- The arrangement timeline has adjustable horizontal zoom (20–160 pixels per second), a fit-to-session action, and scroll-preserving zoom around the current viewport center. Fade-in/fade-out envelopes are drawn over each clip waveform as a visible gain curve; the original waveform and source audio remain unchanged.
