@@ -108,6 +108,19 @@ export function validateSession(session) {
       if (clip && clip.gain !== undefined && (!Number.isFinite(clip.gain) || clip.gain < 0 || clip.gain > 2)) errors.push("audio clip gain must be between 0 and 2");
       for (const key of ["fadeInSeconds","fadeOutSeconds"]) if (clip && clip[key] !== undefined && (!Number.isFinite(clip[key]) || clip[key] < 0 || clip[key] > clip.durationSeconds)) errors.push("audio clip " + key + " must be within its duration");
       if (clip && (clip.fadeInSeconds || 0) + (clip.fadeOutSeconds || 0) > clip.durationSeconds) errors.push("audio clip fades cannot overlap beyond the clip duration");
+      if (clip && clip.gainAutomation !== undefined) {
+        if (!Array.isArray(clip.gainAutomation)) errors.push("audio clip gainAutomation must be an array");
+        else {
+          let previous=-Infinity;
+          for (const point of clip.gainAutomation) {
+            if (!point || !Number.isFinite(point.timeSeconds) || point.timeSeconds < 0 || point.timeSeconds > clip.durationSeconds) errors.push("audio clip automation point time must be within clip duration");
+            if (!point || !Number.isFinite(point.value) || point.value < 0 || point.value > 2) errors.push("audio clip automation value must be between 0 and 2");
+            if (point && Number.isFinite(point.timeSeconds) && point.timeSeconds <= previous) errors.push("audio clip automation point times must be strictly increasing");
+            if (point && Number.isFinite(point.timeSeconds)) previous=point.timeSeconds;
+            if (point && Object.keys(point).some(key=>key!=="timeSeconds"&&key!=="value")) errors.push("audio clip automation point contains unsupported fields");
+          }
+        }
+      }
       if (clip && track && track.kind !== "audio") errors.push("audio clips require an audio track");
     }
   }
