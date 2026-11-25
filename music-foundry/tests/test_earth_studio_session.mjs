@@ -132,3 +132,21 @@ test("rejects invalid audio scene assignments", () => {
   session.tracks[0].kind = "instrument";
   assert.ok(validateSession(session).some(error => error.includes("sceneIndex is supported only on audio tracks")));
 });
+
+test("audio clip instances and loop state round-trip without duplicating source assets",()=>{
+ const session=valid();
+ session.tracks[0].clips=[
+  {id:"clip-left",assetId:"asset-1",startSeconds:0,sourceStartSeconds:0,durationSeconds:2},
+  {id:"clip-right",assetId:"asset-1",startSeconds:5,sourceStartSeconds:2,durationSeconds:3,loop:true}
+ ];
+ const restored=decodeSession(encodeSession(session));
+ assert.equal(restored.assets.length,1);
+ assert.deepEqual(restored.tracks[0].clips,session.tracks[0].clips);
+});
+test("rejects duplicate audio clip IDs and invalid loop flags",()=>{
+ const session=valid();
+ session.tracks[0].clips.push({...session.tracks[0].clips[0],loop:"yes"});
+ const errors=validateSession(session);
+ assert.ok(errors.some(error=>error.includes("audio clip IDs")));
+ assert.ok(errors.some(error=>error.includes("loop must be boolean")));
+});
