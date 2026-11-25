@@ -35,3 +35,5 @@ Source provenance: `godsun108/The-portal`, `music-foundry/studio.html`, branch `
 - Audio clip instances support optional portable `gain` (0–2), `fadeInSeconds`, and `fadeOutSeconds` metadata. The shared browser transport applies clip gain and linear fade curves at the AudioContext clock; source audio remains untouched. Older sessions default to unity clip gain and no fades.
 
 - The arrangement timeline has adjustable horizontal zoom (20–160 pixels per second), a fit-to-session action, and scroll-preserving zoom around the current viewport center. Fade-in/fade-out envelopes are drawn over each clip waveform as a visible gain curve; the original waveform and source audio remain unchanged.
+
+- Audio clips optionally carry ordered gainAutomation points (timeSeconds, value) relative to the clip. The arrangement exposes a touch-friendly automation lane: tap to add/remove points and drag points to reshape a linear gain curve. Playback combines the automation curve with clip gain and fades on the shared AudioContext clock; automation remains non-destructive and travels with .earthsession projects.

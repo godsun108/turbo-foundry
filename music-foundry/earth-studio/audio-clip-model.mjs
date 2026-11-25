@@ -130,3 +130,39 @@ export function setAudioClipEnvelope(clip, {gain=clip.gain===undefined?1:clip.ga
   if(errors.length) throw new RangeError(errors.join("; "));
   return next;
 }
+
+
+/** Gain automation points use clip-relative seconds and a linear 0..2 multiplier. */
+export function validateAudioClipAutomation(clip) {
+  const errors=[];
+  if(!clip||typeof clip!=="object") return ["clip must be an object"];
+  if(clip.gainAutomation===undefined) return errors;
+  if(!Array.isArray(clip.gainAutomation)) return ["gainAutomation must be an array"];
+  let previous=-Infinity;
+  for(const point of clip.gainAutomation) {
+    if(!point||!Number.isFinite(point.timeSeconds)||point.timeSeconds<0||point.timeSeconds>clip.durationSeconds) errors.push("automation point time must be within clip duration");
+    if(!point||!Number.isFinite(point.value)||point.value<0||point.value>2) errors.push("automation point value must be between 0 and 2");
+    if(point&&Number.isFinite(point.timeSeconds)&&point.timeSeconds<=previous) errors.push("automation point times must be strictly increasing");
+    if(point&&Number.isFinite(point.timeSeconds)) previous=point.timeSeconds;
+  }
+  return errors;
+}
+export function audioClipAutomationAt(clip, elapsedSeconds) {
+  finite(elapsedSeconds,"elapsedSeconds");
+  const points=clip?.gainAutomation||[];
+  if(!points.length) return clip?.gain===undefined?1:clip.gain;
+  const t=Math.max(0,Math.min(clip.durationSeconds,elapsedSeconds));
+  if(t<=points[0].timeSeconds) return points[0].value;
+  for(let i=1;i<points.length;i++){
+    const a=points[i-1],b=points[i];
+    if(t<=b.timeSeconds){const ratio=(t-a.timeSeconds)/(b.timeSeconds-a.timeSeconds);return a.value+(b.value-a.value)*ratio;}
+  }
+  return points[points.length-1].value;
+}
+export function setAudioClipAutomation(clip, points) {
+  assertClip(clip);
+  const next={...clip,gainAutomation:points.map(point=>({...point}))};
+  const errors=validateAudioClipAutomation(next);
+  if(errors.length) throw new RangeError(errors.join("; "));
+  return next;
+}
