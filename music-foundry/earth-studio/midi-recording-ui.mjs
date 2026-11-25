@@ -265,7 +265,7 @@ function captureModulation(controller,value,channel){
     : range[0]+(range[1]-range[0])*(value/127);
   const relativeTick=Math.max(0,(snapshot.tick??snapshot.absoluteTick)-sceneStartAbsoluteTick);
   try{
-    recordMidiAutomationPoint(clip,parameter,relativeTick,normalized,{quantizeTicks:Number($("midiQuantize").value)||0});
+    recordMidiAutomationPoint(clip,parameter,relativeTick,normalized,{quantizeTicks});
     modulationDirty=true;
     status("Recording "+parameter+" · MIDI CC "+controller+" · "+Math.round(relativeTick)+" ticks");
   }catch(error){status("Modulation capture error: "+(error?.message||String(error)));}
