@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
   MIDI_PPQ, ticksToSeconds, secondsToTicks, quantizeTick, createMidiClip,
   validateMidiClip, MidiRecorder, MidiSequencer, collectMidiEvents, createAudioWorkletMidiSink, nextQuantizedTick,
-  dispatchMidiEvents, MusicalTransport
+  dispatchMidiEvents, MusicalTransport, validateMidiAutomation, midiAutomationValueAt
 } from "../earth-studio/midi-sequencer.mjs";
 
 test("musical clock converts ticks and seconds at the configured tempo",()=>{
@@ -248,4 +248,20 @@ test("standalone look-ahead scheduler never emits duplicate events across overla
     ["noteOn",480],["noteOff",960],["noteOn",960]
   ]);
   assert.equal(new Set(combined.map(event=>event.type+":"+event.tick+":"+event.note)).size,combined.length);
+});
+
+test("MIDI parameter automation validates, interpolates and schedules",()=>{
+ const clip=createMidiClip({id:"automation",startTick:0,lengthTicks:1920,notes:[]});
+ clip.parameterAutomation=[{parameter:"bend",points:[{tick:0,value:0},{tick:960,value:12},{tick:1920,value:-12}]}];
+ assert.deepEqual(validateMidiAutomation(clip),[]);
+ assert.equal(midiAutomationValueAt(clip.parameterAutomation[0],480),6);
+ const events=collectMidiEvents([clip],{tempo:120,fromTick:0,toTick:1921,originTime:4});
+ assert.deepEqual(events.map(e=>[e.type,e.tick,e.value]),[["parameter",0,0],["parameter",960,12],["parameter",1920,-12]]);
+ assert.deepEqual(events.map(e=>e.when),[4,4.5,5]);
+ assert.ok(validateMidiAutomation({...clip,parameterAutomation:[{parameter:"bend",points:[{tick:0,value:0},{tick:0,value:2}]}]}).length);
+});
+test("native sink forwards parameter automation with audio-clock timestamps",()=>{
+ const messages=[],sink=createAudioWorkletMidiSink({postMessage:m=>messages.push(m)});
+ dispatchMidiEvents([{type:"parameter",parameter:"cutoff",value:1200,when:2.5}],sink);
+ assert.deepEqual(messages,[{type:"parameter",parameter:"cutoff",value:1200,when:2.5,channel:0}]);
 });
