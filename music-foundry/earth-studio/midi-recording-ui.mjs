@@ -296,6 +296,7 @@ function reconcileScenes(){
   const count=sceneCount();
   let changed=false;
   if(!count&&activeScene!==null){activeScene=null;pendingScene=null;sceneStartAbsoluteTick=0;changed=true;}
+  else if(count&&activeScene===null){activeScene=0;pendingScene=null;sceneStartAbsoluteTick=0;changed=true;}
   else if(count&&activeScene!==null&&activeScene>=count){activeScene=0;pendingScene=null;sceneStartAbsoluteTick=0;changed=true;}
   if(pendingScene&&pendingScene.index>=count){pendingScene=null;changed=true;}
   if(changed)window.dispatchEvent(new Event("earthstudio:scenechange"));
