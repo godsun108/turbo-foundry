@@ -38,6 +38,7 @@ body{padding-bottom:env(safe-area-inset-bottom)}a{color:var(--acid);text-decorat
 .clip.dragging{filter:brightness(1.18);opacity:.92}
 .snap-control{display:flex;align-items:center;gap:7px}
 .snap-control select{min-height:34px;background:#0b1017;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:5px}
+.fade-envelope{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;overflow:visible}.fade-envelope path{fill:none;stroke:#f8ffb0;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 0 2px #111)}.timeline-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.timeline-tools input{width:110px;accent-color:var(--acid)}.timeline-tools button{min-height:30px;padding:4px 8px;font-size:10px}.timeline-scroll{scrollbar-width:thin}
 </style>
 </head>
 <body>
@@ -63,7 +64,7 @@ body{padding-bottom:env(safe-area-inset-bottom)}a{color:var(--acid);text-decorat
 <div class="toolbar" style="margin-top:10px"><label class="hint" for="bpm">TEMPO</label><input id="bpm" type="number" min="40" max="240" value="120" style="width:76px;min-height:38px;background:#0b1017;color:white;border:1px solid var(--line);border-radius:8px;padding:6px"><span class="hint">Tempo is a session marker; imported audio is not time-stretched.</span></div>
 </section>
 <section class="panel">
-<div class="track-head"><h2>ARRANGEMENT</h2><div class="toolbar"><label class="snap-control hint">SNAP <select id="snapGrid" aria-label="Timeline snap grid"><option value="0">OFF</option><option value="1">1/4</option><option value="2">1/8</option><option value="4" selected>1/16</option><option value="8">1/32</option></select></label><span class="hint" id="trackCount">0 tracks</span></div></div>
+<div class="track-head"><h2>ARRANGEMENT</h2><div class="toolbar"><div class="timeline-tools"><label class="hint" for="timelineZoom">ZOOM</label><input id="timelineZoom" type="range" min="20" max="160" step="5" value="50" aria-label="Timeline zoom"><output id="timelineZoomValue" class="hint">50 px/s</output><button type="button" id="timelineFit">FIT</button></div><label class="snap-control hint">SNAP <select id="snapGrid" aria-label="Timeline snap grid"><option value="0">OFF</option><option value="1">1/4</option><option value="2">1/8</option><option value="4" selected>1/16</option><option value="8">1/32</option></select></label><span class="hint" id="trackCount">0 tracks</span></div></div>
 <div class="timeline-scroll"><div class="timeline" id="timeline"><div class="ruler" id="ruler"></div><div class="empty" id="empty">Your tracks will appear here. Import audio or add the demo tone.</div></div></div>
 <div id="selectedControls" hidden>
 <div class="track-head" style="margin-top:16px"><h2 id="selectedTitle">TRACK CONTROLS</h2><span class="hint">Selected track</span></div>
@@ -113,7 +114,7 @@ body{padding-bottom:env(safe-area-inset-bottom)}a{color:var(--acid);text-decorat
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const state={tracks:[],selected:null,selectedClip:null,playing:false,startedAt:0,playhead:0,raf:0,ctx:null,nodes:[],duration:0,snapDivisions:4};
+const state={zoomPxPerSecond:50,tracks:[],selected:null,selectedClip:null,playing:false,startedAt:0,playhead:0,raf:0,ctx:null,nodes:[],duration:0,snapDivisions:4};
 const colors=['#c8ff4d','#b69cff','#8ce6ed','#ffbd92'];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const fmt=t=>{t=Math.max(0,t||0);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(Math.floor(t%60)).padStart(2,'0')+'.'+Math.floor((t%1)*10)};
@@ -121,7 +122,7 @@ function say(s){$('status').textContent=s}
 function recalc(){const midiTempo=clamp(Number($("bpm").value)||120,40,240);state.duration=Math.max(0,...state.tracks.map(t=>Math.max(0,...(t.clips||[{startSeconds:t.offset||0,durationSeconds:t.buffer.duration}]).map(c=>c.startSeconds+c.durationSeconds))),...(state.midiTracks||[]).flatMap(t=>(t.midiClips||[]).map(c=>(c.startTick+c.lengthTicks)*60/(midiTempo*960)*(state.midiLoopRepeats||1))));$('trackCount').textContent=state.tracks.length+' track'+(state.tracks.length===1?'':'s');$('clock').textContent=fmt(state.playhead)+' / '+fmt(state.duration);$('seek').value=state.duration?Math.round(state.playhead/state.duration*1000):0;render()}
 function render(){
 const root=$('timeline');root.querySelectorAll('.track').forEach(n=>n.remove());$('empty').hidden=state.tracks.length>0;
-const ruler=$('ruler');ruler.innerHTML='';const dur=Math.max(20,state.duration+4);ruler.style.width=Math.max(700,dur*50)+'px';for(let s=0;s<=dur;s+=2){const n=document.createElement('span');n.textContent=fmt(s);n.style.left=(s*50)+'px';ruler.append(n)}
+const ruler=$('ruler');ruler.innerHTML='';const dur=Math.max(20,state.duration+4);const px=state.zoomPxPerSecond||50;ruler.style.width=Math.max(700,dur*px)+'px';for(let s=0;s<=dur;s+=2){const n=document.createElement('span');n.textContent=fmt(s);n.style.left=(s*px)+'px';ruler.append(n)}
 state.tracks.forEach((t,i)=>{const row=document.createElement('div');row.className='track';row.style.width=ruler.style.width;
 const meta=document.createElement('div');meta.className='track-meta';const name=document.createElement('div');name.className='track-name';name.textContent=t.name;meta.append(name);
 const sceneSelect=document.createElement('select');sceneSelect.className='audio-scene-select';sceneSelect.setAttribute('aria-label','Audio scene for '+t.name);
@@ -133,12 +134,18 @@ meta.append(sceneSelect);
 const actions=document.createElement('div');actions.className='track-actions';[['EDIT','edit'],[t.muted?'UNMUTE':'MUTE','mute'],[t.solo?'UNSOLO':'SOLO','solo']].forEach(([label,act])=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>{if(act==='edit')select(t.id);if(act==='mute')t.muted=!t.muted;if(act==='solo')t.solo=!t.solo;render()};actions.append(b)});meta.append(actions);
 const lane=document.createElement('div');lane.className='track-lane';
 (t.clips||[{id:'clip-'+t.id,startSeconds:t.offset||0,sourceStartSeconds:0,durationSeconds:t.buffer.duration}]).forEach((item,ci)=>{
- const clip=document.createElement('div');clip.className='clip'+(state.selectedClip===item.id?' selected-clip':'');clip.style.left=(item.startSeconds*50)+'px';clip.style.width=Math.max(30,item.durationSeconds*50)+'px';clip.style.borderColor=colors[i%colors.length];clip.dataset.clipId=item.id;
+ const clip=document.createElement('div');clip.className='clip'+(state.selectedClip===item.id?' selected-clip':'');clip.style.left=(item.startSeconds*px)+'px';clip.style.width=Math.max(30,item.durationSeconds*px)+'px';clip.style.borderColor=colors[i%colors.length];clip.dataset.clipId=item.id;
  const b=document.createElement('b');b.textContent=(ci+1)+'. '+t.name;const sm=document.createElement('small');sm.textContent=fmt(item.durationSeconds)+(item.loop?' · LOOP':'');clip.append(b,sm);
- const canvas=document.createElement('canvas');canvas.className='waveform';canvas.setAttribute('aria-label','Audio waveform');canvas.width=Math.max(60,Math.round(item.durationSeconds*50));canvas.height=56;const wave=canvas.getContext('2d');if(wave){const channels=t.buffer.numberOfChannels,samples=Math.min(canvas.width,1200),start=Math.floor(item.sourceStartSeconds*t.buffer.sampleRate),count=Math.max(1,Math.floor(item.durationSeconds*t.buffer.sampleRate));wave.beginPath();for(let x=0;x<samples;x++){const from=start+Math.floor(x/samples*count),to=Math.min(t.buffer.length,start+Math.floor((x+1)/samples*count));let peak=0;for(let ch=0;ch<channels;ch++){const data=t.buffer.getChannelData(ch);for(let k=from;k<to;k+=Math.max(1,Math.floor((to-from)/12)))peak=Math.max(peak,Math.abs(data[k]||0))}const y=28-peak*24;wave.moveTo(x/samples*canvas.width,y);wave.lineTo(x/samples*canvas.width,28+peak*24)}wave.strokeStyle='rgba(245,255,220,.88)';wave.lineWidth=1;wave.stroke()}clip.append(canvas);
+ const canvas=document.createElement('canvas');canvas.className='waveform';canvas.setAttribute('aria-label','Audio waveform');canvas.width=Math.max(60,Math.round(item.durationSeconds*px));canvas.height=56;const wave=canvas.getContext('2d');if(wave){const channels=t.buffer.numberOfChannels,samples=Math.min(canvas.width,1200),start=Math.floor(item.sourceStartSeconds*t.buffer.sampleRate),count=Math.max(1,Math.floor(item.durationSeconds*t.buffer.sampleRate));wave.beginPath();for(let x=0;x<samples;x++){const from=start+Math.floor(x/samples*count),to=Math.min(t.buffer.length,start+Math.floor((x+1)/samples*count));let peak=0;for(let ch=0;ch<channels;ch++){const data=t.buffer.getChannelData(ch);for(let k=from;k<to;k+=Math.max(1,Math.floor((to-from)/12)))peak=Math.max(peak,Math.abs(data[k]||0))}const y=28-peak*24;wave.moveTo(x/samples*canvas.width,y);wave.lineTo(x/samples*canvas.width,28+peak*24)}wave.strokeStyle='rgba(245,255,220,.88)';wave.lineWidth=1;wave.stroke()}clip.append(canvas);
+ const fadeIn=Math.max(0,Math.min(item.durationSeconds,item.fadeInSeconds||0)),fadeOut=Math.max(0,Math.min(item.durationSeconds,item.fadeOutSeconds||0)),fadeSvg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+ fadeSvg.setAttribute('viewBox','0 0 '+canvas.width+' 56');fadeSvg.setAttribute('preserveAspectRatio','none');fadeSvg.classList.add('fade-envelope');
+ const fadePath=document.createElementNS('http://www.w3.org/2000/svg','path');
+ const fadeInX=fadeIn*px,fadeOutX=canvas.width-fadeOut*px;
+ fadePath.setAttribute('d','M 0 48 L '+fadeInX+' 8 L '+Math.max(fadeInX,fadeOutX)+' 8 L '+canvas.width+' 48');
+ fadeSvg.append(fadePath);clip.append(fadeSvg);
  const leftHandle=document.createElement('button');leftHandle.type='button';leftHandle.className='clip-handle left';leftHandle.setAttribute('aria-label','Trim clip start');const rightHandle=document.createElement('button');rightHandle.type='button';rightHandle.className='clip-handle right';rightHandle.setAttribute('aria-label','Trim clip end');clip.append(leftHandle,rightHandle);
  clip.addEventListener('click',event=>{event.stopPropagation();select(t.id,item.id)});
- const beginDrag=(event,mode)=>{event.preventDefault();event.stopPropagation();state.selected=t.id;state.selectedClip=item.id;$('selectedControls').hidden=false;syncControls(t);const originX=event.clientX,original={startSeconds:item.startSeconds,sourceStartSeconds:item.sourceStartSeconds,durationSeconds:item.durationSeconds};clip.classList.add('dragging');try{clip.setPointerCapture(event.pointerId)}catch{}const move=moveEvent=>{const delta=(moveEvent.clientX-originX)/50;const snap=value=>state.snapDivisions?window.__earthStudioClipModel.snapAudioTime(value,{tempo:clamp(Number($('bpm').value)||120,40,240),divisionsPerBeat:state.snapDivisions}):Math.max(0,value);if(mode==='move'){item.startSeconds=snap(Math.max(0,original.startSeconds+delta))}else if(mode==='left'){const shift=snap(Math.max(0,Math.min(original.durationSeconds-.05,delta)));item.startSeconds=original.startSeconds+shift;item.sourceStartSeconds=original.sourceStartSeconds+shift;item.durationSeconds=original.durationSeconds-shift}else{item.durationSeconds=Math.max(.05,snap(original.durationSeconds+delta))}clip.style.left=(item.startSeconds*50)+'px';clip.style.width=Math.max(30,item.durationSeconds*50)+'px';sm.textContent=fmt(item.durationSeconds)+(item.loop?' · LOOP':'')};const finish=()=>{clip.classList.remove('dragging');document.removeEventListener('pointermove',move);document.removeEventListener('pointerup',finish);document.removeEventListener('pointercancel',finish);track.clips.sort((a,b)=>a.startSeconds-b.startSeconds);track.offset=track.clips[0]?.startSeconds||0;recalc();window.dispatchEvent(new Event('earthstudio:change'));say(mode==='move'?'Clip moved.': 'Clip boundary trimmed.');};document.addEventListener('pointermove',move);document.addEventListener('pointerup',finish,{once:true});document.addEventListener('pointercancel',finish,{once:true})};
+ const beginDrag=(event,mode)=>{event.preventDefault();event.stopPropagation();state.selected=t.id;state.selectedClip=item.id;$('selectedControls').hidden=false;syncControls(t);const originX=event.clientX,original={startSeconds:item.startSeconds,sourceStartSeconds:item.sourceStartSeconds,durationSeconds:item.durationSeconds};clip.classList.add('dragging');try{clip.setPointerCapture(event.pointerId)}catch{}const move=moveEvent=>{const delta=(moveEvent.clientX-originX)/(state.zoomPxPerSecond||50);const snap=value=>state.snapDivisions?window.__earthStudioClipModel.snapAudioTime(value,{tempo:clamp(Number($('bpm').value)||120,40,240),divisionsPerBeat:state.snapDivisions}):Math.max(0,value);if(mode==='move'){item.startSeconds=snap(Math.max(0,original.startSeconds+delta))}else if(mode==='left'){const shift=snap(Math.max(0,Math.min(original.durationSeconds-.05,delta)));item.startSeconds=original.startSeconds+shift;item.sourceStartSeconds=original.sourceStartSeconds+shift;item.durationSeconds=original.durationSeconds-shift}else{item.durationSeconds=Math.max(.05,snap(original.durationSeconds+delta))}clip.style.left=(item.startSeconds*(state.zoomPxPerSecond||50))+'px';clip.style.width=Math.max(30,item.durationSeconds*(state.zoomPxPerSecond||50))+'px';sm.textContent=fmt(item.durationSeconds)+(item.loop?' · LOOP':'')};const finish=()=>{clip.classList.remove('dragging');document.removeEventListener('pointermove',move);document.removeEventListener('pointerup',finish);document.removeEventListener('pointercancel',finish);track.clips.sort((a,b)=>a.startSeconds-b.startSeconds);track.offset=track.clips[0]?.startSeconds||0;recalc();window.dispatchEvent(new Event('earthstudio:change'));say(mode==='move'?'Clip moved.': 'Clip boundary trimmed.');};document.addEventListener('pointermove',move);document.addEventListener('pointerup',finish,{once:true});document.addEventListener('pointercancel',finish,{once:true})};
  clip.addEventListener('pointerdown',event=>{if(event.target===clip||event.target===canvas||event.target===b||event.target===sm)beginDrag(event,'move')});leftHandle.addEventListener('pointerdown',event=>beginDrag(event,'left'));rightHandle.addEventListener('pointerdown',event=>beginDrag(event,'right'));lane.append(clip);
 });
 const clipTools=document.createElement('div');clipTools.className='clip-tools';
@@ -146,6 +153,24 @@ const clipTools=document.createElement('div');clipTools.className='clip-tools';
 meta.append(clipTools);row.append(meta,lane);row.onclick=e=>{if(!e.target.closest('button')&&!e.target.closest('.clip'))select(t.id)};root.append(row)});
 if(state.selected){const t=state.tracks.find(x=>x.id===state.selected);if(t)syncControls(t);else{$('selectedControls').hidden=true;state.selected=null}}
 }
+
+const zoomInput=$('timelineZoom'),zoomOutput=$('timelineZoomValue'),timelineScroll=document.querySelector('.timeline-scroll');
+function setTimelineZoom(value,{fit=false}={}) {
+ const old=state.zoomPxPerSecond||50, next=clamp(Number(value)||50,20,160);
+ const anchor=timelineScroll.scrollLeft+timelineScroll.clientWidth/2;
+ state.zoomPxPerSecond=next;
+ zoomInput.value=String(next);zoomOutput.textContent=next+' px/s';
+ render();
+ if(fit){timelineScroll.scrollLeft=0;return}
+ timelineScroll.scrollLeft=Math.max(0,anchor*(next/old)-timelineScroll.clientWidth/2);
+}
+zoomInput.addEventListener('input',event=>setTimelineZoom(event.target.value));
+$('timelineFit').addEventListener('click',()=>{
+ const available=Math.max(1,timelineScroll.clientWidth-160);
+ const target=state.duration>0?Math.floor(available/Math.max(20,state.duration+4)):50;
+ setTimelineZoom(clamp(target,20,160),{fit:true});
+});
+
 function select(id,clipId){state.selected=id;const t=state.tracks.find(x=>x.id===id);if(!t)return;state.selectedClip=clipId||(t.clips||[])[0]?.id||null;$('selectedControls').hidden=false;syncControls(t);render()}
 function editClip(trackId,action){
  const track=state.tracks.find(item=>item.id===trackId);if(!track)return;
