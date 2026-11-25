@@ -29,6 +29,32 @@ export function validateSession(session) {
       }
     }
   }
+  if (session.performance !== undefined) {
+    const performance = session.performance;
+    const allowedTargets = new Set(["attack","decay","sustain","release","cutoff","vibrato","bend"]);
+    if (!performance || typeof performance !== "object" || Array.isArray(performance)) {
+      errors.push("performance settings must be an object");
+    } else {
+      for (const key of Object.keys(performance)) {
+        if (key !== "midiCCMappings") errors.push("performance contains an unsupported setting");
+      }
+      const mappings = performance.midiCCMappings;
+      if (mappings !== undefined) {
+        if (!mappings || typeof mappings !== "object" || Array.isArray(mappings)) {
+          errors.push("performance MIDI CC mappings must be an object");
+        } else {
+          for (const [target, mapping] of Object.entries(mappings)) {
+            if (!allowedTargets.has(target)) errors.push("performance MIDI CC mapping target is unsupported");
+            if (!mapping || typeof mapping !== "object" || Array.isArray(mapping) ||
+                Object.keys(mapping).some(key => key !== "controller") ||
+                !Number.isInteger(mapping.controller) || mapping.controller < 0 || mapping.controller > 127) {
+              errors.push("performance MIDI CC mapping controller must be an integer from 0 to 127");
+            }
+          }
+        }
+      }
+    }
+  }
   const ids = new Set();
   const storageKeys = new Set();
   for (const asset of session.assets || []) {
