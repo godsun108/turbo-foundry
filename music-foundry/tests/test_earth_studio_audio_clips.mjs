@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   validateAudioClip,validateAudioClipList,splitAudioClip,trimAudioClip,
-  moveAudioClip,duplicateAudioClip,setAudioClipLoop
+  moveAudioClip,duplicateAudioClip,setAudioClipLoop,snapAudioTime
 } from "../earth-studio/audio-clip-model.mjs";
 const clip=()=>({id:"clip-a",assetId:"asset-a",startSeconds:4,sourceStartSeconds:2,durationSeconds:10});
 const ids=(()=>{let n=0;return ()=>"clip-"+(++n)})();
@@ -36,4 +36,11 @@ test("duplicating creates a distinct instance over the same source asset",()=>{
 test("loop state is explicit and validated",()=>{
  assert.equal(setAudioClipLoop(clip(),true).loop,true);
  assert.throws(()=>setAudioClipLoop(clip(),"yes"),TypeError);
+});
+
+test("snaps timeline positions to tempo-aware musical subdivisions",()=>{
+ assert.equal(snapAudioTime(0.13,{tempo:120,divisionsPerBeat:4}),0.125);
+ assert.equal(snapAudioTime(0.27,{tempo:120,divisionsPerBeat:2}),0.25);
+ assert.equal(snapAudioTime(0.13,{tempo:120,enabled:false}),0.13);
+ assert.throws(()=>snapAudioTime(1,{tempo:0}),RangeError);
 });
