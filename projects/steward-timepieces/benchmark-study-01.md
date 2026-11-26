@@ -5,7 +5,7 @@
 
 ## Executive finding
 
-The ETA 7750 is the closest direct functional benchmark found so far: it combines an automatic chronograph with weekday and date display, 30-minute and 12-hour chronograph counters, and running seconds. This is exactly the core complication set requested for C-01.
+The ETA 7750 and Sellita SW500 a are direct functional benchmarks. Both combine an automatic chronograph with weekday and date display, 30-minute and 12-hour chronograph counters, and running seconds. Sellita's published SW500 a specification lists a typical 62-hour reserve, compared with ETA's 54-hour typical reserve for the 7750.
 
 This changes the benchmark priority. The ETA 7750 and its day-date derivatives should be studied before treating the date-only SW510 as the nearest comparator.
 
@@ -76,7 +76,7 @@ Keep the following as open candidates:
 
 Do not select vertical clutch or column wheel solely because they sound premium. The final architecture must be justified by calculations, teardown study, service evidence, and prototype tests.
 
-## Next work package
+## Correction log\n\nRevision 0.2 corrects the Sellita benchmark identification: SW500 a is the day-date variant; SW500 b is date-only. The initial draft mistakenly attributed the day-date investigation to the SW500 family without recording the exact variant, and incorrectly implied SW510 might be the relevant day-date family. The SW500 a variant is now explicitly identified from Sellita's published catalogue.\n\n## Next work package
 
 **WP-02: Functional teardown and energy budget**
 - Map the 7750 chronograph sequence from pusher actuation through coupling, brake release, running, stopping, and reset.
