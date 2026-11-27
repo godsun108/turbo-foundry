@@ -16,8 +16,8 @@ class GearCenterDistanceTests(unittest.TestCase):
         self.assertAlmostEqual(gear_center_distance(0.5, 80, 20, "internal"), 15.0)
 
     def test_invalid_mesh_and_teeth_rejected(self):
-        for args in [(0.5, 20, 20, "internal"), (0.5, 0, 20, "external"),
-                     (0.5, 20, 20, "bevel")]:
+        for args in [(0.5, 20, 20, "internal"), (0.5, 20, 80, "internal"),
+                     (0.5, 0, 20, "external"), (0.5, 20, 20, "bevel")]:
             with self.assertRaises(ValueError):
                 gear_center_distance(*args)
 
