@@ -14,7 +14,7 @@ WP-39 integrates bounded integer tooth-pair enumeration with involute gear geome
 
 ## 2. Scope
 
-Supported: ordered multi-mesh external spur gear trains. A gear ID reused across consecutive meshes must retain one tooth count and one arbor assignment. Every gear requires explicit module, pressure angle, addendum/dedendum coefficients, profile shift and provenance. Each mesh requires explicit tooth search bounds, stage-ratio bounds and error limit. Overall ratio target and overall error bound are mandatory.
+Supported: ordered multi-mesh external spur gear trains. A gear ID reused across consecutive meshes must retain one tooth count and one arbor assignment. Every gear requires explicit module, pressure angle, addendum/dedendum coefficients, profile shift and provenance. Each mesh requires explicit tooth search bounds, stage-ratio bounds and error limit. Overall ratio target and overall error bound are mandatory. An explicit `max_combinations` hard cap bounds the Cartesian search; `max_candidates` bounds returned results. Any search truncation is reported and means the returned ranking is only among combinations examined.
 
 Optional center-distance evaluation requires explicit center distance and tolerance. Optional contact-ratio threshold is only evaluated when supplied. Missing coordinates/tolerance are reported as not evaluable, never treated as pass.
 
@@ -28,7 +28,7 @@ R=prod_{i=1}^{n}rac{z_{driver,i}}{z_{driven,i}}
 
 External mesh direction reverses at each stage; this package reports ratio magnitude and retains mesh order. A full physical kinematic graph, compound wheel identity and direction closure must still be reconciled with WP-25/WP-26 before design review.
 
-Search is bounded by supplied tooth ranges and candidate limit. It is not a global optimizer; truncation is reported.
+Search is bounded by supplied tooth ranges, an explicit combination cap and a returned-candidate limit. It is not a global optimizer; truncation is reported. When the combination cap is reached, unexamined combinations may contain better candidates, so the ranking must not be treated as globally optimal.
 
 ## 4. Involute and mesh screening
 
