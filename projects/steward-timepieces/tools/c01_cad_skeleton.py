@@ -85,9 +85,9 @@ def validate_config(config: dict[str, Any]) -> dict[str, Any]:
 
     for bridge in bridges:
         _polygon(bridge.get("outline_xy_mm"), f"bridge {bridge.get('id')}.outline_xy_mm")
-        _number(bridge.get("z_min_mm"), f"bridge {bridge['id']}.z_min_mm")
-        _number(bridge.get("z_max_mm"), f"bridge {bridge['id']}.z_max_mm")
-        if bridge["z_max_mm"] <= bridge["z_min_mm"]:
+        z_min = _number(bridge.get("z_min_mm"), f"bridge {bridge['id']}.z_min_mm")
+        z_max = _number(bridge.get("z_max_mm"), f"bridge {bridge['id']}.z_max_mm")
+        if z_max <= z_min:
             raise ValueError(f"bridge {bridge['id']} must have positive axial extent")
         if not isinstance(bridge.get("supported_components"), list) or not bridge["supported_components"]:
             raise ValueError(f"bridge {bridge['id']} requires supported_components")
@@ -97,9 +97,9 @@ def validate_config(config: dict[str, Any]) -> dict[str, Any]:
     for item in keepouts:
         _point(item.get("xy_mm"), f"keepout {item.get('id')}.xy_mm")
         _number(item.get("radius_mm"), f"keepout {item['id']}.radius_mm", positive=True)
-        _number(item.get("z_min_mm"), f"keepout {item['id']}.z_min_mm")
-        _number(item.get("z_max_mm"), f"keepout {item['id']}.z_max_mm")
-        if item["z_max_mm"] <= item["z_min_mm"]:
+        z_min = _number(item.get("z_min_mm"), f"keepout {item['id']}.z_min_mm")
+        z_max = _number(item.get("z_max_mm"), f"keepout {item['id']}.z_max_mm")
+        if z_max <= z_min:
             raise ValueError(f"keepout {item['id']} must have positive axial extent")
         if not item.get("evidence") or not item.get("source_revision"):
             raise ValueError(f"keepout {item['id']} requires evidence and source_revision")
@@ -184,15 +184,16 @@ def generate_openscad(config: dict[str, Any]) -> str:
         ]
 
     lines += [
-        "// Assembly is intentionally not instantiated: bridge/keepout visibility",
-        "// and interference review must be selected by the engineer in the CAD viewer.",
-        "// Example review calls:",
-        "// main_plate();",
+        "// Preview controls: the plate is shown by default; overlays are opt-in.",
+        "show_plate = true;",
+        "show_bridges = false;",
+        "show_keepouts = false;",
+        "if (show_plate) main_plate();",
     ]
     for bridge in config["bridges"]:
         name = "bridge_" + "".join(c if c.isalnum() else "_" for c in bridge["id"])
-        lines.append(f"// {name}();")
+        lines.append(f"if (show_bridges) {name}();")
     for item in config["keepouts"]:
         name = "envelope_" + "".join(c if c.isalnum() else "_" for c in item["id"])
-        lines.append(f"// {name}();")
+        lines.append(f"if (show_keepouts) {name}();")
     return "\n".join(lines) + "\n"
