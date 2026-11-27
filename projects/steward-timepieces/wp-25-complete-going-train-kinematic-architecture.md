@@ -56,10 +56,6 @@ n_{target}=\frac{60}{T}\quad\mathrm{rpm}
 
 The fractional absolute speed error is:
 [
-e=\frac{|n_{actual}|-n_{target}|}{n_{target}}
-]
-For acceptance, use the absolute value of this signed difference:
-[
 e_{abs}=\frac{\left||n_{actual}|-n_{target}\right|}{n_{target}}
 ]
 
