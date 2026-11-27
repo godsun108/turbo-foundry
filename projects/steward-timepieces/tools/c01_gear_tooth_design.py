@@ -97,6 +97,10 @@ def external_mesh_screen(*, gear_a, gear_b, center_distance_mm=None,
     m1=_positive(gear_a["module_mm"],"gear_a.module_mm")
     m2=_positive(gear_b["module_mm"],"gear_b.module_mm")
     if abs(m1-m2)>1e-12: raise GearDesignInputError("compatible equal module required")
+    alpha_a = _finite(gear_a["pressure_angle_deg"], "gear_a.pressure_angle_deg")
+    alpha_b = _finite(gear_b["pressure_angle_deg"], "gear_b.pressure_angle_deg")
+    if abs(alpha_a-alpha_b)>1e-12:
+        raise GearDesignInputError("matching reference pressure angles are required")
     z1,z2=gear_a["teeth"],gear_b["teeth"]
     if any(isinstance(z,bool) or not isinstance(z,int) or z<1 for z in (z1,z2)):
         raise GearDesignInputError("tooth counts must be positive integers")
@@ -110,6 +114,8 @@ def external_mesh_screen(*, gear_a, gear_b, center_distance_mm=None,
     alpha_w=acos(max(-1.0,min(1.0,(rb1+rb2)/a)))
     path=sqrt(ra1**2-rb1**2)+sqrt(ra2**2-rb2**2)-a*sin(alpha_w)
     base_pitch=pi*m1*cos(radians(gear_a["pressure_angle_deg"]))
+    if path <= 0:
+        raise GearDesignInputError("non-positive path of contact; pair geometry is not viable under this model")
     eps=path/base_pitch
     out={
       "nominal_reference_center_distance_mm":a0,
