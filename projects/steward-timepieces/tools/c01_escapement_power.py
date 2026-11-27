@@ -39,6 +39,8 @@ def evaluate_interface_power(data: dict[str, Any]) -> dict[str, Any]:
     instant/state. This arithmetic comparison does not model transients.
     """
     boundary = _text(data.get("boundary_id"), "boundary_id")
+    speed_tolerance = _number(data.get("speed_match_tolerance_fraction"),
+                               "speed_match_tolerance_fraction", nonnegative=True)
     samples = data.get("samples")
     if not isinstance(samples, list) or not samples:
         raise ValueError("samples must be a non-empty list")
@@ -59,8 +61,6 @@ def evaluate_interface_power(data: dict[str, Any]) -> dict[str, Any]:
                                   f"{state}.required_torque_nm", nonnegative=True)
         required_speed = _number(sample.get("required_speed_rad_s"),
                                  f"{state}.required_speed_rad_s", positive=True)
-        speed_tolerance = _number(data.get("speed_match_tolerance_fraction"),
-                                  "speed_match_tolerance_fraction", nonnegative=True)
         speed_error = abs(supplied_speed - required_speed) / max(
             supplied_speed, required_speed)
         supplied_power = supplied_torque * supplied_speed
