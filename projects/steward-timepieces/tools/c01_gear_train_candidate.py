@@ -182,17 +182,17 @@ def evaluate_candidate(data: dict[str, Any]) -> dict[str, Any]:
         geometry = []
         for spec in mesh_specs:
             a, b = by_arbor[spec["arbor_a_id"]], by_arbor[spec["arbor_b_id"]]
-            if a.get("xy_mm") is None or b.get("xy_mm") is None or spec.get("module_mm") is None:
+            stage = next(s for s in combo["mesh_schedule"] if s["mesh_id"] == spec["id"])
+            if a.get("xy_mm") is None or b.get("xy_mm") is None or stage.get("module_mm") is None:
                 geometry.append({"mesh_id": spec["id"], "status": "not_evaluable_missing_module_or_coordinates"})
                 continue
-            stage = next(s for s in combo["mesh_schedule"] if s["mesh_id"] == spec["id"])
             tolerance = spec.get("center_distance_tolerance_mm")
             if tolerance is None:
                 geometry.append({"mesh_id": spec["id"], "status": "not_evaluable_tolerance_not_supplied"})
                 continue
             geometry.append(evaluate_mesh({
                 "id": spec["id"], "arbor_a_id": spec["arbor_a_id"],
-                "arbor_b_id": spec["arbor_b_id"], "module_mm": spec["module_mm"],
+                "arbor_b_id": spec["arbor_b_id"], "module_mm": stage["module_mm"],
                 "gear_a_teeth": stage["driver_teeth"], "gear_b_teeth": stage["driven_teeth"],
                 "mesh": spec["mesh_type"], "xy_a_mm": a["xy_mm"], "xy_b_mm": b["xy_mm"],
                 "center_distance_tolerance_mm": tolerance,
