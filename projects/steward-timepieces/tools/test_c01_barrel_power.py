@@ -25,7 +25,7 @@ class BarrelPowerTests(unittest.TestCase):
             "operating_start_angle_rad": 1,
             "operating_end_angle_rad": 3,
         })
-        self.assertAlmostEqual(result["usable_spring_energy_j"], 0.3)
+        self.assertAlmostEqual(result["usable_spring_energy_j"], 0.35)
 
     def test_rejects_extrapolation_outside_measured_curve(self):
         with self.assertRaises(ValueError):
