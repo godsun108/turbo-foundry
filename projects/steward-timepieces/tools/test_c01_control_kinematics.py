@@ -20,7 +20,7 @@ class WP44Tests(unittest.TestCase):
               "poses":[{"x_mm":x,"y_mm":0,"angle_deg":0,"z_min_mm":0,"z_max_mm":1} for x in xs]}
         return {"candidate_id":"CW","evidence_id":"SYNTHETIC","source_revision":"fixture",
           "time_unit":"s","length_unit":"mm","samples":samples,
-          "members":[member("A",[0,1,2]),member("B",[3,3,3])],
+          "members":[member("A",[0,1,2]),member("B",[3,4,5])],
           "constraints":[{"constraint_id":"L1","type":"fixed_point_distance","member_a":"A","member_b":"B",
             "a_local_x_mm":0,"a_local_y_mm":0,"b_local_x_mm":0,"b_local_y_mm":0,
             "target_distance_mm":3,"tolerance_mm":0.01,"evidence_id":"SYNTHETIC","source_revision":"fixture"}]}
