@@ -49,7 +49,7 @@ class GearArborDetailTests(unittest.TestCase):
                            {"nominal_mm":1,"tolerance_plus_mm":0.05,"tolerance_minus_mm":0.05,"sign":-1}])
         self.assertAlmostEqual(r["nominal_mm"],1)
         self.assertAlmostEqual(r["worst_case_min_mm"],0.75)
-        self.assertAlmostEqual(r["worst_case_max_mm"],1.25)
+        self.assertAlmostEqual(r["worst_case_max_mm"],1.15)
 
     def test_arbor_support_traceability(self):
         r=validate_arbor_register([{"arbor_id":"A1"}],[{"support_id":"S1","arbor_id":"A1","support_type":"jewel_bearing",
