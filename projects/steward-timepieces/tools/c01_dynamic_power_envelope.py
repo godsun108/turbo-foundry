@@ -108,6 +108,8 @@ def evaluate_operating_load(data: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("load_id values must be unique")
     if len(categories) != len(set(categories)):
         raise ValueError("only one non-overlapping record per load category is accepted")
+    if "baseline" not in categories:
+        raise ValueError("a measured baseline load record is required")
     total = sum(r["energy_j"] for r in rows)
     return {
         "model": "steward.c01.dynamic.operating-load.v1",
@@ -130,6 +132,8 @@ def evaluate_event_increment(baseline: dict[str, Any],
     for f in ("movement_revision", "boundary_id", "test_condition_id", "interval_id"):
         if baseline[f] != event_window[f]:
             raise ValueError(f"event and baseline must share {f}")
+    if baseline["source_record_id"] == event_window["source_record_id"]:
+        raise ValueError("baseline and event window require distinct source records")
     if event_window.get("event_complete") is not True:
         raise ValueError("event_window must explicitly confirm complete event capture")
     t0 = _num(baseline.get("interval_seconds"), "baseline.interval_seconds", positive=True)
@@ -164,6 +168,10 @@ def evaluate_transition(samples: list[dict[str, Any]]) -> dict[str, Any]:
         values.append({k: _num(s.get(k), f"{label}.{k}")
                        for k in ("timestamp_seconds", "measured_power_w", "amplitude_deg",
                                  "rate_s_per_day")})
+    if any(v["timestamp_seconds"] < 0 for v in values):
+        raise ValueError("transition timestamps must be non-negative")
+    if any(v["measured_power_w"] < 0 or v["amplitude_deg"] < 0 for v in values):
+        raise ValueError("measured power and amplitude must be non-negative")
     if not values[0]["timestamp_seconds"] < values[1]["timestamp_seconds"] < values[2]["timestamp_seconds"]:
         raise ValueError("transition timestamps must be strictly increasing")
     return {"movement_revision": common[0], "boundary_id": common[1],
