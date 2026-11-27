@@ -66,6 +66,9 @@ class InvoluteGearTests(unittest.TestCase):
         b=dict(b); b["module_mm"]=.6
         with self.assertRaises(GearDesignInputError):
             external_mesh_screen(gear_a=a,gear_b=b)
+        b=dict(self.gear(40)); b["pressure_angle_deg"]=25
+        with self.assertRaises(GearDesignInputError):
+            external_mesh_screen(gear_a=a,gear_b=b)
         with self.assertRaises(GearDesignInputError):
             gear_parameters(module_mm=.5,teeth=20,pressure_angle_deg=20,addendum_coefficient=1,
                 dedendum_coefficient=1.25,profile_shift=0,evidence_id="",source_revision="r")
