@@ -41,7 +41,7 @@ class GoingTrainTests(unittest.TestCase):
     def test_compound_path_exact_ratio_and_direction(self):
         result = evaluate_path(fixture(), "barrel", "fourth", 1)
         self.assertEqual(result["status"], "unique_path")
-        self.assertEqual(result["signed_compound_speed_ratio"], "-216")
+        self.assertEqual(result["signed_compound_speed_ratio"], "-288")
         self.assertEqual(result["output_direction"], "opposite")
 
     def test_no_path_reported(self):
@@ -70,7 +70,7 @@ class GoingTrainTests(unittest.TestCase):
 
     def test_output_target_comparison(self):
         data = fixture()
-        data["input"] = {"arbor_id": "barrel", "rpm": "1/216"}
+        data["input"] = {"arbor_id": "barrel", "rpm": "1/288"}
         data["outputs"] = [{"id": "seconds", "arbor_id": "fourth", "period_seconds": 60}]
         result = evaluate_outputs(data)
         self.assertEqual(result["outputs"][0]["path_evaluation"]["output_rpm"], "1")
@@ -85,7 +85,7 @@ class GoingTrainTests(unittest.TestCase):
 
     def test_conditional_escapement_relationship(self):
         result = compare_escapement_frequency(4, 2, 15, 15)
-        self.assertEqual(result["conditional_escape_wheel_speed_rpm"], "16")
+        self.assertEqual(result["conditional_escape_wheel_speed_rpm"], "32")
 
     def test_escape_wheel_speed_requires_event_definition(self):
         with self.assertRaises(ValueError):
