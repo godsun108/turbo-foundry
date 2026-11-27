@@ -6,7 +6,7 @@ train order and provenance. No C-01 geometry or acceptance thresholds defaulted.
 from __future__ import annotations
 from fractions import Fraction
 from itertools import product
-from math import hypot
+from math import isfinite
 
 try:
     from c01_tooth_synthesis import pair_candidates
@@ -23,7 +23,8 @@ def _text(v,n):
     return v
 
 def _pos(v,n):
-    if isinstance(v,bool) or not isinstance(v,(int,float)) or v<=0: raise OptimizationInputError(f"{n} must be positive")
+    if isinstance(v,bool) or not isinstance(v,(int,float)) or not isfinite(v) or v<=0:
+        raise OptimizationInputError(f"{n} must be finite and positive")
     return float(v)
 
 def _fraction(v,n,positive=False):
@@ -67,6 +68,9 @@ def optimize_train(data):
     max_candidates=data.get("max_candidates")
     if isinstance(max_candidates,bool) or not isinstance(max_candidates,int) or max_candidates<1:
         raise OptimizationInputError("max_candidates must be a positive integer")
+    max_combinations=data.get("max_combinations")
+    if isinstance(max_combinations,bool) or not isinstance(max_combinations,int) or max_combinations<1:
+        raise OptimizationInputError("max_combinations must be a positive integer")
     overall_target=_fraction(data.get("overall_target_ratio"),"overall_target_ratio",True)
     max_error=_fraction(data.get("max_overall_fractional_error"),"max_overall_fractional_error")
     if max_error<0 or max_error>=1: raise OptimizationInputError("overall error bound must be in [0,1)")
@@ -91,7 +95,13 @@ def optimize_train(data):
         if not valid: return {"candidate_id":cid,"candidate_count":0,"candidates":[],"status":"no_candidates_within_declared_mesh_bounds","design_selected":False}
         options.append(valid)
     candidates=[]
+    combinations_examined=0
+    search_space_truncated=False
     for combo in product(*options):
+        if combinations_examined >= max_combinations:
+            search_space_truncated=True
+            break
+        combinations_examined += 1
         assignment={}; schedule=[]; consistent=True
         for mesh,pair in zip(meshes,combo):
             for gid,z in ((mesh["driver_gear_id"],pair["driver_teeth"]),(mesh["driven_gear_id"],pair["driven_teeth"])):
@@ -146,7 +156,8 @@ def optimize_train(data):
                                   tuple(sorted(c["tooth_assignments"].items()))))
     return {"schema":"steward.c01.wp39.v1","candidate_id":cid,
         "candidate_count":len(candidates),"returned_candidates":candidates[:max_candidates],
-        "search_space_truncated":len(candidates)>max_candidates,
+        "combinations_examined":combinations_examined,
+        "search_space_truncated":search_space_truncated or len(candidates)>max_candidates,
         "status":"ranked_analytical_candidates_no_selection","design_selected":False,
         "architecture_frozen":False,"manufacturing_release":False,
         "limitations":["External spur gears only; all mesh modules and reference pressure angles must match.",
