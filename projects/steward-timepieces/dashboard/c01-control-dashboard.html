@@ -127,7 +127,7 @@ function render(){
  const r=filtered.find(x=>$("run").value==="ALL"||x.run_id===$("run").value);
  if(r&&r.force_travel_samples) chart($("force-chart"),r.force_travel_samples,"travel_mm","force_n","Travel (mm)","Force (N)");
  else { $("force-chart").className="empty";$("force-chart").textContent="Import a selected run containing force_travel_samples."; }
- const latency=filtered.flatMap(x=>x.start_stop_latency_s||[]);
+ const latency=r?(r.start_stop_latency_s||[]):[];
  barChart($("latency-chart"),latency,"Latency (s)");
  if(r&&r.reset_observations_deg){const z=r.zero_datum_deg;if(!finite(z)){ $("reset-chart").className="empty";$("reset-chart").textContent="Reset zero datum is missing or invalid."; }else barChart($("reset-chart"),r.reset_observations_deg.map(v=>((v-z+180)%360+360)%360-180),"Signed error (deg)");}
  else { $("reset-chart").className="empty";$("reset-chart").textContent="Import reset observations and zero datum."; }
