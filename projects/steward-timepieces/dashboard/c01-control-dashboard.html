@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>STEWARD C-01 | Chronograph Control Evidence Dashboard</title>
+<style>
+:root{color-scheme:dark;--bg:#101316;--panel:#191f23;--panel2:#20282d;--line:#354047;--ink:#edf0e9;--muted:#aab5b5;--gold:#c9a86a;--blue:#80b7d6;--red:#d88b83;--green:#9bc49b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:28px clamp(16px,4vw,48px) 20px;border-bottom:1px solid var(--line);background:#151a1e}
+.kicker{color:var(--gold);font-size:.76rem;letter-spacing:.16em;text-transform:uppercase}
+h1{font-size:clamp(1.5rem,3vw,2.25rem);line-height:1.15;margin:.35rem 0}
+.sub{color:var(--muted);max-width:900px}.status{display:inline-block;border:1px solid var(--gold);color:var(--gold);padding:3px 9px;border-radius:3px;font-size:.76rem;letter-spacing:.06em;margin-top:10px}
+main{max-width:1400px;margin:auto;padding:22px clamp(12px,3vw,36px) 60px}
+.toolbar,.panel,.metric{background:var(--panel);border:1px solid var(--line);border-radius:8px}
+.toolbar{padding:16px;display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-bottom:16px}
+.field{display:flex;flex-direction:column;gap:5px;color:var(--muted);font-size:.8rem}
+input,select,button{font:inherit;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:9px 11px}
+button{cursor:pointer}button:hover{border-color:var(--gold)}button.primary{background:#3a3022;border-color:var(--gold)}
+.note{color:var(--muted);font-size:.83rem;flex:1;min-width:220px}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}
+.metric{padding:14px}.metric small{display:block;color:var(--muted);font-size:.75rem}.metric strong{display:block;font-size:1.5rem;margin-top:5px;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.panel{padding:16px;min-width:0}.panel h2{font-size:1rem;margin:0 0 5px}.hint{color:var(--muted);font-size:.78rem;margin:0 0 12px}
+.chart{width:100%;height:260px;display:block;background:#13191c;border:1px solid #2b353b;border-radius:5px}
+.empty{height:260px;display:grid;place-items:center;color:var(--muted);border:1px dashed var(--line);border-radius:5px;text-align:center;padding:20px}
+table{width:100%;border-collapse:collapse;font-size:.83rem}th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-weight:600}
+.table-wrap{overflow:auto;max-height:340px}.tag{font-size:.72rem;color:var(--gold);border:1px solid #756344;padding:2px 6px;border-radius:3px}
+.warning{border-left:3px solid var(--gold);padding:9px 12px;background:#28241d;color:#e4d6b9;font-size:.82rem;margin-top:14px}
+footer{color:var(--muted);font-size:.76rem;padding:18px 2px}
+@media(max-width:850px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:1fr}}
+@media(max-width:420px){.metrics{grid-template-columns:1fr 1fr}.metric strong{font-size:1.2rem}}
+</style>
+</head>
+<body>
+<header>
+<div class="kicker">STEWARD TIMEPIECES · C-01 ENGINEERING</div>
+<h1>Chronograph Control Evidence Dashboard</h1>
+<p class="sub">WP-51 · Controlled review workspace for column-wheel (CW) and cam/lever (CL) prototype evidence. Import a WP-49 run-record JSON file to inspect WP-50-compatible analyses. No live instrument connection.</p>
+<span class="status">NO ARCHITECTURE SELECTED</span>
+</header>
+<main>
+<section class="toolbar" aria-label="Data controls">
+<label class="field">Import run records (.json)<input id="file" type="file" accept=".json,application/json"></label>
+<label class="field">Candidate<select id="candidate"><option value="ALL">All candidates</option><option value="CW">Column wheel (CW)</option><option value="CL">Cam / lever (CL)</option></select></label>
+<label class="field">Run<select id="run"><option value="ALL">All runs</option></select></label>
+<button id="export" class="primary" disabled>Export dashboard JSON</button>
+<button id="clear">Clear data</button>
+<div class="note" id="source-note" role="status">No dataset loaded. Import a JSON array of WP-50 run records or a WP-50 dashboard export containing run_history.</div>
+</section>
+<section class="metrics" aria-label="Dataset summary">
+<div class="metric"><small>Loaded runs</small><strong id="m-runs">0</strong></div>
+<div class="metric"><small>Candidates represented</small><strong id="m-candidates">0</strong></div>
+<div class="metric"><small>State transitions observed</small><strong id="m-transitions">—</strong></div>
+<div class="metric"><small>State matches</small><strong id="m-success">—</strong></div>
+</section>
+<div class="grid">
+<section class="panel"><h2>Force vs. travel</h2><p class="hint">Raw imported samples · N against mm · selected run</p><div id="force-chart" class="empty">Import a run containing force_travel_samples.</div></section>
+<section class="panel"><h2>Start / stop latency</h2><p class="hint">Individual observations · seconds · selected candidate/run</p><div id="latency-chart" class="empty">Import start_stop_latency_s observations.</div></section>
+<section class="panel"><h2>Reset-to-zero error</h2><p class="hint">Signed angular error relative to the supplied calibrated zero datum · degrees</p><div id="reset-chart" class="empty">Import reset_observations_deg and zero_datum_deg.</div></section>
+<section class="panel"><h2>State-transition outcomes</h2><p class="hint">Observed expected/actual state matches by run · counts, not an acceptance verdict</p><div id="state-chart" class="empty">Import state_trials for each run.</div></section>
+</div>
+<section class="panel" style="margin-top:14px"><h2>Run history and configuration traceability</h2><p class="hint">Runs remain separate. Metadata matches are necessary but not sufficient for experimental comparability.</p><div class="table-wrap"><table><thead><tr><th>Run</th><th>Candidate</th><th>Procedure</th><th>Test condition</th><th>Fixture</th><th>Evidence</th><th>Source</th></tr></thead><tbody id="history"><tr><td colspan="7">No runs loaded.</td></tr></tbody></table></div></section>
+<div class="warning">Engineering boundary: charts are descriptive, not a design decision. No data is fabricated or auto-generated. A dashboard state match does not prove the physical running-reset interlock. Do not pool unmatched conditions or infer a winner from visual presentation.</div>
+<footer>WP-51 · Interface revision A · Analysis contract: WP-50 · Acquisition contract: WP-49 · Data remains local to this browser session; no upload or network request is made by this page.</footer>
+</main>
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+let records = [], filtered = [], exported = null;
+const required = ["run_id","candidate_id","procedure_revision","test_condition_id","fixture_revision","evidence_id","source_revision"];
+const finite = x => typeof x === "number" && Number.isFinite(x);
+function validate(rows){
+ if(!Array.isArray(rows) || !rows.length) throw Error("Expected a non-empty array of run records.");
+ rows.forEach((r,i)=>{
+  if(!r || typeof r!=="object") throw Error("Run "+i+" is not an object.");
+  const missing=required.filter(k=>!r[k]);
+  if(missing.length) throw Error("Run "+i+" is missing provenance: "+missing.join(", "));
+  if(r.force_travel_samples!==undefined){
+   if(!Array.isArray(r.force_travel_samples)||r.force_travel_samples.length<2) throw Error(r.run_id+": force_travel_samples needs at least two points.");
+   let last=-Infinity;
+   r.force_travel_samples.forEach((p,j)=>{
+    if(!finite(p.time_s)||!finite(p.travel_mm)||!finite(p.force_n)||p.force_n<0||p.time_s<=last) throw Error(r.run_id+": invalid force/travel sample "+j);
+    last=p.time_s;
+   });
+  }
+  ["start_stop_latency_s","reset_observations_deg","state_trials"].forEach(k=>{
+   if(r[k]!==undefined&&!Array.isArray(r[k])) throw Error(r.run_id+": "+k+" must be an array.");
+  });
+ });
+ return rows;
+}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function selected(){
+ const c=$("candidate").value, id=$("run").value;
+ filtered=records.filter(r=>(c==="ALL"||r.candidate_id===c)&&(id==="ALL"||r.run_id===id));
+ render();
+}
+function chart(el,points,xKey,yKey,xLabel,yLabel){
+ if(!points.length){el.className="empty";el.textContent="No observations in the selected run.";return;}
+ el.className="";const w=720,h=260,p=42;
+ const xs=points.map(v=>v[xKey]),ys=points.map(v=>v[yKey]);
+ let xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);
+ if(xmin===xmax){xmin-=1;xmax+=1;}if(ymin===ymax){ymin-=1;ymax+=1;}
+ const X=x=>p+(x-xmin)/(xmax-xmin)*(w-2*p),Y=y=>h-p-(y-ymin)/(ymax-ymin)*(h-2*p);
+ const ticks=4;let svg='<svg class="chart" viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+esc(yLabel)+' versus '+esc(xLabel)+'">';
+ for(let i=0;i<=ticks;i++){let yy=p+i*(h-2*p)/ticks,val=ymax-i*(ymax-ymin)/ticks;svg+='<line x1="'+p+'" y1="'+yy+'" x2="'+(w-p)+'" y2="'+yy+'" stroke="#354047"/><text x="'+(p-8)+'" y="'+(yy+4)+'" text-anchor="end" fill="#aab5b5" font-size="11">'+val.toPrecision(3)+'</text>';}
+ svg+='<line x1="'+p+'" y1="'+p+'" x2="'+p+'" y2="'+(h-p)+'" stroke="#aab5b5"/><line x1="'+p+'" y1="'+(h-p)+'" x2="'+(w-p)+'" y2="'+(h-p)+'" stroke="#aab5b5"/>';
+ const pts=points.map(v=>X(v[xKey])+"," +Y(v[yKey])).join(" ");
+ svg+='<polyline points="'+pts+'" fill="none" stroke="#c9a86a" stroke-width="2"/>';
+ points.forEach(v=>svg+='<circle cx="'+X(v[xKey])+'" cy="'+Y(v[yKey])+'" r="3" fill="#80b7d6"/>');
+ svg+='<text x="'+(w/2)+'" y="'+(h-7)+'" text-anchor="middle" fill="#edf0e9" font-size="12">'+esc(xLabel)+'</text><text transform="translate(13 '+(h/2)+') rotate(-90)" text-anchor="middle" fill="#edf0e9" font-size="12">'+esc(yLabel)+'</text></svg>';
+ el.innerHTML=svg;
+}
+function barChart(el,values,label){
+ if(!values.length){el.className="empty";el.textContent="No observations in the selected run.";return;}
+ const pts=values.map((v,i)=>({x:i+1,y:v}));
+ chart(el,pts,"x","y","Observation",label);
+}
+function render(){
+ const candidates=[...new Set(filtered.map(r=>r.candidate_id))];
+ $("m-runs").textContent=filtered.length;$("m-candidates").textContent=candidates.length;
+ const trials=filtered.flatMap(r=>r.state_trials||[]);
+ const successes=trials.filter(t=>t.expected_state===t.observed_state).length;
+ $("m-transitions").textContent=trials.length||"—";$("m-success").textContent=trials.length?(successes+"/"+trials.length):"—";
+ const r=filtered.find(x=>$("run").value==="ALL"||x.run_id===$("run").value);
+ if(r&&r.force_travel_samples) chart($("force-chart"),r.force_travel_samples,"travel_mm","force_n","Travel (mm)","Force (N)");
+ else { $("force-chart").className="empty";$("force-chart").textContent="Import a selected run containing force_travel_samples."; }
+ const latency=filtered.flatMap(x=>x.start_stop_latency_s||[]);
+ barChart($("latency-chart"),latency,"Latency (s)");
+ if(r&&r.reset_observations_deg){const z=r.zero_datum_deg;if(!finite(z)){ $("reset-chart").className="empty";$("reset-chart").textContent="Reset zero datum is missing or invalid."; }else barChart($("reset-chart"),r.reset_observations_deg.map(v=>((v-z+180)%360+360)%360-180),"Signed error (deg)");}
+ else { $("reset-chart").className="empty";$("reset-chart").textContent="Import reset observations and zero datum."; }
+ const state=filtered.flatMap(x=>(x.state_trials||[]).map(t=>({x:esc(x.run_id),ok:t.expected_state===t.observed_state?1:0})));
+ if(state.length){const counts={};state.forEach(s=>{counts[s.x]??={ok:0,fail:0};counts[s.x][s.ok?"ok":"fail"]++;});
+  const vals=Object.entries(counts).flatMap(([run,v])=>[{x:run+" pass",y:v.ok},{x:run+" fail",y:v.fail}]);
+  const el=$("state-chart");el.className="";let max=Math.max(1,...vals.map(v=>v.y)),svg='<svg class="chart" viewBox="0 0 720 260">';
+  vals.forEach((v,i)=>{let x=40+i*660/vals.length,bh=v.y/max*175;svg+='<rect x="'+x+'" y="'+(205-bh)+'" width="'+Math.max(8,Math.min(42,600/vals.length-6))+'" height="'+bh+'" fill="'+(v.x.endsWith("pass")?"#9bc49b":"#d88b83")+'"/><text x="'+(x+12)+'" y="225" fill="#aab5b5" font-size="10" transform="rotate(-35 '+(x+12)+' 225)">'+esc(v.x)+'</text><text x="'+(x+12)+'" y="'+(198-bh)+'" fill="#edf0e9" font-size="11">'+v.y+'</text>'});svg+='</svg>';el.innerHTML=svg;
+ }else{$("state-chart").className="empty";$("state-chart").textContent="Import state_trials for each run.";}
+ $("history").innerHTML=filtered.length?filtered.map(x=>'<tr><td>'+esc(x.run_id)+'</td><td><span class="tag">'+esc(x.candidate_id)+'</span></td><td>'+esc(x.procedure_revision)+'</td><td>'+esc(x.test_condition_id)+'</td><td>'+esc(x.fixture_revision)+'</td><td>'+esc(x.evidence_id)+'</td><td>'+esc(x.source_revision)+'</td></tr>').join(""):'<tr><td colspan="7">No runs match this filter.</td></tr>';
+}
+$("file").addEventListener("change",async e=>{
+ const f=e.target.files[0];if(!f)return;
+ try{const obj=JSON.parse(await f.text());const rows=Array.isArray(obj)?obj:(Array.isArray(obj.run_history)?obj.run_history:null);records=validate(rows);
+  const cand=[...new Set(records.map(r=>r.candidate_id))];
+  $("candidate").innerHTML='<option value="ALL">All candidates</option>'+cand.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join("");
+  $("run").innerHTML='<option value="ALL">All runs</option>'+records.map(r=>'<option value="'+esc(r.run_id)+'">'+esc(r.run_id)+'</option>').join("");
+  $("source-note").textContent="Loaded "+records.length+" run(s) from "+f.name+". Original file is not modified.";
+  $("export").disabled=false;selected();
+ }catch(err){$("source-note").textContent="Import rejected: "+err.message;}
+});
+$("candidate").addEventListener("change",selected);$("run").addEventListener("change",selected);
+$("clear").addEventListener("click",()=>{records=[];filtered=[];$("file").value="";$("candidate").innerHTML='<option value="ALL">All candidates</option>';$("run").innerHTML='<option value="ALL">All runs</option>';$("source-note").textContent="No dataset loaded."; $("export").disabled=true;render();});
+$("export").addEventListener("click",()=>{
+ const payload={schema:"STEWARD-C01-WP51-EXPORT-1",decision_status:"NO_ARCHITECTURE_SELECTED",run_history:filtered,
+ note:"Filtered source run records exported unchanged. Use WP-50 analysis engine for controlled derived metrics."};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="steward-c01-wp51-dashboard-export.json";a.click();URL.revokeObjectURL(url);
+});
+render();
+})();
+</script>
+</body>
+</html>
