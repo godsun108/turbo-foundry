@@ -4,7 +4,7 @@ from c01_gear_train_optimization import OptimizationInputError, optimize_train
 class GearTrainOptimizationTests(unittest.TestCase):
     def base(self):
         return {"candidate_id":"WP39-SYN","evidence_id":"SYNTHETIC","source_revision":"fixture-only",
-          "overall_target_ratio":"2","max_overall_fractional_error":"0.05","max_candidates":10,
+          "overall_target_ratio":"2","max_overall_fractional_error":"0.05","max_candidates":10,"max_combinations":10000,
           "gears":[
             {"gear_id":"G1","arbor_id":"A1","module_mm":0.5,"pressure_angle_deg":20,"addendum_coefficient":1,"dedendum_coefficient":1.25,"profile_shift":0,"evidence_id":"SYN","source_revision":"fixture"},
             {"gear_id":"G2","arbor_id":"A2","module_mm":0.5,"pressure_angle_deg":20,"addendum_coefficient":1,"dedendum_coefficient":1.25,"profile_shift":0,"evidence_id":"SYN","source_revision":"fixture"}],
@@ -53,5 +53,15 @@ class GearTrainOptimizationTests(unittest.TestCase):
         d=self.base(); d["max_candidates"]=1
         r=optimize_train(d)
         self.assertLessEqual(len(r["returned_candidates"]),1)
+
+    def test_search_combination_cap_is_reported(self):
+        d=self.base(); d["max_combinations"]=1
+        r=optimize_train(d)
+        self.assertEqual(r["combinations_examined"],1)
+        self.assertTrue(r["search_space_truncated"])
+
+    def test_non_finite_dimensions_rejected(self):
+        d=self.base(); d["gears"][0]["module_mm"]=float("nan")
+        with self.assertRaises(OptimizationInputError): optimize_train(d)
 
 if __name__=="__main__": unittest.main()
