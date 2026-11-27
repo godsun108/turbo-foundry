@@ -16,7 +16,7 @@ This is not a complete tooth-generation system, gear standard implementation, st
 
 ## 2. Scope and assumptions
 
-Supported model: parallel-axis external involute spur gears with compatible equal module and common nominal pressure angle. Inputs include module, tooth count, pressure angle, addendum/dedendum coefficients, profile shift, evidence ID and source revision.
+Supported model: parallel-axis external involute spur gears with compatible equal module and common nominal pressure angle. The mesh evaluator rejects mismatched reference pressure angles and non-positive calculated paths of contact. Inputs include module, tooth count, pressure angle, addendum/dedendum coefficients, profile shift, evidence ID and source revision.
 
 No default module, pressure angle, coefficients, profile shift, minimum contact ratio, backlash or tooth count is selected for C-01. All test values are synthetic fixtures.
 
