@@ -50,9 +50,9 @@ def gear_center_distance(module_mm: Any, driver_teeth: int,
     if mesh == "external":
         tooth_sum = driver_teeth + driven_teeth
     elif mesh == "internal":
-        tooth_sum = abs(driver_teeth - driven_teeth)
-        if tooth_sum == 0:
-            raise ValueError("internal ring and pinion tooth counts must differ")
+        if driver_teeth <= driven_teeth:
+            raise ValueError("internal mesh requires ring teeth > pinion teeth")
+        tooth_sum = driver_teeth - driven_teeth
     else:
         raise ValueError("mesh must be 'external' or 'internal'")
     return module * tooth_sum / 2.0
