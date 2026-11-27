@@ -6,12 +6,12 @@ class PhysicalLayoutTests(unittest.TestCase):
         return {"candidate_id":"WP40-SYNTHETIC","evidence_id":"TEST_ONLY","source_revision":"fixture",
           "components":[
             {"component_id":"A","role":"arbor envelope","xy_mm":[0,0],"envelope_radius_mm":1,"z_interval_mm":[0,1],"evidence_id":"SYN","source_revision":"fixture"},
-            {"component_id":"B","role":"gear envelope","xy_mm":[3,0],"envelope_radius_mm":1,"z_interval_mm":[0,1],"evidence_id":"SYN","source_revision":"fixture"},
+            {"component_id":"B","role":"gear envelope","xy_mm":[10,0],"envelope_radius_mm":1,"z_interval_mm":[0,1],"evidence_id":"SYN","source_revision":"fixture"},
             {"component_id":"C","role":"upper bridge envelope","xy_mm":[0,0],"envelope_radius_mm":1,"z_interval_mm":[2,3],"evidence_id":"SYN","source_revision":"fixture"}],
           "gear_meshes":[{"mesh_id":"M1","component_a_id":"A","component_b_id":"B","module_mm":1,"teeth_a":10,"teeth_b":10,"center_distance_tolerance_mm":0.01,"evidence_id":"SYN","source_revision":"fixture"}],
           "supports":[{"support_id":"S1","component_id":"A","structural_member_id":"PLATE_FIXTURE","support_type":"synthetic support","evidence_id":"SYN","source_revision":"fixture"}],
           "trajectories":[{"component_id":"A","xy_samples_mm":[[0,0],[0.5,0]],"evidence_id":"SYN","source_revision":"fixture"},
-                          {"component_id":"B","xy_samples_mm":[[3,0],[1,0]],"evidence_id":"SYN","source_revision":"fixture"}]}
+                          {"component_id":"B","xy_samples_mm":[[10,0],[1,0]],"evidence_id":"SYN","source_revision":"fixture"}]}
 
     def test_layout_validates(self):
         self.assertEqual(validate_layout(self.base())["component_count"],3)
