@@ -1,0 +1,4 @@
+constraint_id,from_role,to_role,relationship,exact_value,unit,evidence_class,source_basis,assumptions,status,notes
+SQ06-C01,center arbor,fourth arbor,absolute output/input speed ratio,60,dimensionless,D,center period 3600 s/rev and fourth period 60 s/rev,H: direct minute and running-seconds display roles; WP-SQ-03 path,conditional,Two external meshes imply same rotational direction; tooth counts remain unknown
+SQ06-C02,barrel arbor,center arbor,absolute output/input speed ratio,,dimensionless,,measured barrel RPM required,H: center arbor direct minute-motion role,open,Do not infer from oscillator frequency
+SQ06-C03,fourth arbor,escape wheel,absolute output/input speed ratio,,dimensionless,,escape wheel tooth count and event convention required,H: fourth wheel drives escape pinion,open,Do not infer from 4 Hz alone
