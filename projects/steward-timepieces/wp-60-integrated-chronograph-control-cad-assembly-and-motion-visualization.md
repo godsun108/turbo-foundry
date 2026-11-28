@@ -43,7 +43,7 @@ The viewer and validator never authorize design freeze, prototype assembly, phys
 | `stopped_retained` | Chronograph stopped while elapsed indication is retained | Explicit retained positions |
 | `resetting` | Reset mechanism moving from retained indication toward zero | Explicit sampled reset poses |
 
-Required sequence: initial `stopped_zero`, running, stopped-retained, resetting, then a later `stopped_zero` frame. Additional frames within a state are allowed. Frame timestamps must strictly increase. The software does not prescribe duration, angular travel, motion law, pusher timing, reset force or return spring behavior.
+Required ordered sequence: initial `stopped_zero`, then `running`, then `stopped_retained`, then `resetting`, then a later `stopped_zero` frame. Additional frames within a state are allowed. Frame timestamps must strictly increase. The software does not prescribe duration, angular travel, motion law, pusher timing, reset force or return spring behavior.
 
 A valid state label is not evidence of physical operation. In particular, the running-reset interlock remains subject to WP-30/WP-46 physical verification and the WP-41/WP-42 control requirements.
 
