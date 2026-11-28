@@ -139,6 +139,18 @@ class IntegratedPowerCampaignTests(unittest.TestCase):
         result = evaluate_campaign(data, observations(), requirements())
         self.assertEqual(result["campaign_status"], "HOLD_FOR_REVIEW_OR_ADDITIONAL_EVIDENCE")
 
+    def test_source_revision_must_match_campaign(self):
+        rows = observations()
+        rows[0]["source_revision"] = "WRONG-REVISION"
+        with self.assertRaises(ValueError):
+            validate_observations(plan(), rows)
+
+    def test_requirement_revision_must_match_campaign(self):
+        req = requirements()
+        req[0]["requirements_revision"] = "WRONG-REVISION"
+        with self.assertRaises(ValueError):
+            evaluate_campaign(plan(), observations(), req)
+
 
 if __name__ == "__main__":
     unittest.main()
