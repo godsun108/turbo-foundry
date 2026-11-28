@@ -95,6 +95,19 @@ class IntegratedPowerCampaignTests(unittest.TestCase):
         result = validate_observations(plan(), rows)
         self.assertEqual(result["unmatched_pair_groups"], 2)
 
+    def test_missing_declared_reserve_state_cell_is_incomplete(self):
+        data = plan()
+        data["reserve_state_ids"].append("SYN-STATE-LOW")
+        result = validate_observations(data, observations())
+        self.assertFalse(result["coverage_complete"])
+        self.assertEqual(len(result["missing_state_condition_mode_cells"]), 2)
+
+    def test_incomplete_matrix_holds_campaign(self):
+        data = plan()
+        data["reserve_state_ids"].append("SYN-STATE-LOW")
+        result = evaluate_campaign(data, observations(), requirements())
+        self.assertEqual(result["campaign_status"], "HOLD_FOR_REVIEW_OR_ADDITIONAL_EVIDENCE")
+
     def test_duplicate_observation_rejected(self):
         rows = observations()
         rows[1]["observation_id"] = rows[0]["observation_id"]
