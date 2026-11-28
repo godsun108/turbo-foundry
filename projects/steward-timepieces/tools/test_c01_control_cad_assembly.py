@@ -82,7 +82,7 @@ class TestWP59(unittest.TestCase):
         from c01_control_cad_assembly import validate_components
         comps = validate_components([a,b])
         mate = {"mate_id":"axis", "type":"coaxial", "component_a":"a","component_b":"b",
-                "tolerance_mm":0.001,"definition":"test","evidence_id":"SYNTHETIC",
+                "angular_tolerance_deg":0.001,"offset_tolerance_mm":0.001,"definition":"test","evidence_id":"SYNTHETIC",
                 "source_revision":"r1"}
         self.assertTrue(validate_mates([mate], comps)[0]["within_tolerance"])
 
