@@ -134,10 +134,12 @@ def evaluate_timekeeping_delta(off: dict[str,Any], on: dict[str,Any],
                                max_abs_rate_delta_s_day: Any,
                                min_amplitude_deg: Any | None = None) -> dict[str,Any]:
     """Compare measured amplitude/rate deltas to caller-approved limits."""
-    required=("movement_revision","test_condition_id","reserve_state_id","evidence_id")
+    required=("movement_revision","test_condition_id","reserve_state_id")
     for key in required:
         if _id(off.get(key),f"off.{key}") != _id(on.get(key),f"on.{key}"):
             raise ValueError(f"off/on {key} must match")
+    _id(off.get("evidence_id"),"off.evidence_id")
+    _id(on.get("evidence_id"),"on.evidence_id")
     off_rate=_num(off.get("rate_s_day"),"off.rate_s_day")
     on_rate=_num(on.get("rate_s_day"),"on.rate_s_day")
     off_amp=_num(off.get("amplitude_deg"),"off.amplitude_deg",positive=True)
