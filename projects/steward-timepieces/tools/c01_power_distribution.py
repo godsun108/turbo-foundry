@@ -46,7 +46,7 @@ def integrate_power_samples(samples: list[dict[str, Any]]) -> dict[str, Any]:
 
 def _series(data: dict[str,Any], label: str) -> tuple[dict[str,str],list[dict[str,float]]]:
     meta={k:_id(data.get(k),f"{label}.{k}") for k in
-          ("movement_revision","boundary_id","interval_id","test_condition_id","reserve_state_id","evidence_id")}
+          ("movement_revision","boundary_id","interval_id","test_condition_id","reserve_state_id")}
     rows=data.get("samples")
     if not isinstance(rows,list) or len(rows)<2: raise ValueError(f"{label}.samples requires at least two points")
     clean=[]
@@ -55,7 +55,7 @@ def _series(data: dict[str,Any], label: str) -> tuple[dict[str,str],list[dict[st
                       "power_w":_num(row.get("power_w"),f"{label}.power_w",nonnegative=True)})
     if any(b["time_s"]<=a["time_s"] for a,b in zip(clean,clean[1:])):
         raise ValueError(f"{label} sample times must be strictly increasing")
-    return meta,clean
+    meta["evidence_id"]=_id(data.get("evidence_id"),f"{label}.evidence_id")\n    return meta,clean
 
 def compare_chronograph_conditions(stopped: dict[str,Any], running: dict[str,Any]) -> dict[str,Any]:
     """Paired off/on comparison; exact common time grid required."""
@@ -70,7 +70,7 @@ def compare_chronograph_conditions(stopped: dict[str,Any], running: dict[str,Any
     incremental_energy=sum((deltas[i+1]["time_s"]-deltas[i]["time_s"])*
         (deltas[i]["incremental_power_w"]+deltas[i+1]["incremental_power_w"])/2
         for i in range(len(deltas)-1))
-    return {"metadata":m0,"incremental_power_samples":deltas,
+    return {"metadata":{k:v for k,v in m0.items() if k != "evidence_id"},\n            "stopped_evidence_id":m0["evidence_id"],"running_evidence_id":m1["evidence_id"],\n            "incremental_power_samples":deltas,
             "incremental_energy_j":incremental_energy,
             "mean_incremental_power_w":incremental_energy/duration,
             "peak_sampled_incremental_power_w":max(x["incremental_power_w"] for x in deltas),
