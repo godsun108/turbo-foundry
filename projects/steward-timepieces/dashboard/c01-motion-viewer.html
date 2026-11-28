@@ -66,20 +66,35 @@ const requiredStates=["stopped_zero","running","stopped_retained","resetting"];
 function el(tag,attrs,parent){const n=document.createElementNS(ns,tag);Object.entries(attrs||{}).forEach(([k,v])=>n.setAttribute(k,String(v)));if(parent)parent.appendChild(n);return n;}
 function valid(pkg){
  if(!pkg||!pkg.candidates||!pkg.candidates.CW||!pkg.candidates.CL)throw Error("Package must contain separate CW and CL candidates.");
+ const b=pkg.common_baseline;
+ if(!b||!b.requirements_revision||!b.datum_revision||!b.interface_baseline_revision)throw Error("Common requirements, datum and interface baselines are required.");
  for(const id of ["CW","CL"]){
   const c=pkg.candidates[id];
-  if(c.candidate_id!==id||!Array.isArray(c.components)||!Array.isArray(c.frames)||c.frames.length<4)throw Error(id+": incomplete candidate package.");
+  if(c.candidate_id!==id||!c.configuration_revision||!c.evidence_id||!c.source_revision||!Array.isArray(c.components)||!Array.isArray(c.frames)||c.frames.length<5)throw Error(id+": incomplete candidate package.");
   if(c.time_unit!=="s"||c.length_unit!=="mm")throw Error(id+": units must be seconds and millimetres.");
+  ["requirements_revision","datum_revision","interface_baseline_revision"].forEach(k=>{if(c[k]!==b[k])throw Error(id+": common baseline mismatch: "+k);});
   const ids=c.components.map(x=>x.component_id);
   if(ids.some(x=>!x)||new Set(ids).size!==ids.length)throw Error(id+": component IDs must be unique.");
-  let last=-Infinity, states=new Set();
+  c.components.forEach(x=>{
+   if(!x.role||!x.drawing_ref||!x.evidence_id||!x.source_revision||!["tbd","candidate","reviewed","approved"].includes(x.status))throw Error(id+": component provenance/status incomplete.");
+   const g=x.geometry,p=g&&g.parameters;
+   if(!g||!p)throw Error(id+": geometry descriptor missing.");
+   if(g.type==="cylinder"){if(!(p.radius_mm>0&&p.height_mm>0))throw Error(id+": invalid cylinder geometry.");}
+   else if(g.type==="annulus"){if(!(p.outer_radius_mm>p.inner_radius_mm&&p.inner_radius_mm>0&&p.height_mm>0))throw Error(id+": invalid annulus geometry.");}
+   else if(g.type==="extruded_polygon"){if(!Array.isArray(p.outline_xy_mm)||p.outline_xy_mm.length<3||!(p.height_mm>0))throw Error(id+": invalid polygon geometry.");}
+   else throw Error(id+": unsupported geometry type.");
+  });
+  let last=-Infinity, states=[];
   for(const f of c.frames){
-   if(!requiredStates.includes(f.state)||!Number.isFinite(f.time_s)||f.time_s<=last)throw Error(id+": invalid state or non-increasing frame time.");
-   last=f.time_s;states.add(f.state);
+   if(!f.frame_id||!requiredStates.includes(f.state)||!Number.isFinite(f.time_s)||f.time_s<=last||!f.evidence_id||!f.source_revision)throw Error(id+": invalid frame metadata, state or non-increasing time.");
+   last=f.time_s;if(!states.length||states[states.length-1]!==f.state)states.push(f.state);
    if(!Array.isArray(f.poses)||f.poses.length!==ids.length||new Set(f.poses.map(p=>p.component_id)).size!==ids.length||ids.some(x=>!f.poses.some(p=>p.component_id===x)))throw Error(id+": every frame needs exactly one pose per component.");
-   f.poses.forEach(p=>["x_mm","y_mm","angle_deg","z_min_mm","z_max_mm"].forEach(k=>{if(!Number.isFinite(p[k]))throw Error(id+": non-numeric pose field "+k);}));
+   f.poses.forEach(p=>{["x_mm","y_mm","angle_deg","z_min_mm","z_max_mm"].forEach(k=>{if(!Number.isFinite(p[k]))throw Error(id+": non-numeric pose field "+k);});if(p.z_max_mm<=p.z_min_mm)throw Error(id+": invalid axial interval.");});
   }
-  requiredStates.forEach(s=>{if(!states.has(s))throw Error(id+": missing state "+s);});
+  const order=["stopped_zero","running","stopped_retained","resetting","stopped_zero"];
+  let cursor=0;
+  for(let i=0;i<c.frames.length&&cursor<order.length;i++){if(c.frames[i].state===order[cursor])cursor++;}
+  if(cursor!==order.length)throw Error(id+": required state order is stopped_zero → running → stopped_retained → resetting → stopped_zero.");
  }
 }
 function current(){return data.candidates[$("candidate").value];}
