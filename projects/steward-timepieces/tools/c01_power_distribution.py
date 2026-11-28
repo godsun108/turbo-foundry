@@ -61,7 +61,8 @@ def compare_chronograph_conditions(stopped: dict[str,Any], running: dict[str,Any
     """Paired off/on comparison; exact common time grid required."""
     m0,a=_series(stopped,"stopped")
     m1,b=_series(running,"running")
-    if m0!=m1: raise ValueError("stopped/running metadata must match exactly")
+    if {k:v for k,v in m0.items() if k != "evidence_id"} != {k:v for k,v in m1.items() if k != "evidence_id"}:
+        raise ValueError("stopped/running movement, boundary, interval, condition and reserve state must match")
     if [x["time_s"] for x in a] != [x["time_s"] for x in b]:
         raise ValueError("stopped/running samples must share identical timestamps")
     deltas=[{"time_s":x["time_s"],"incremental_power_w":y["power_w"]-x["power_w"]}
