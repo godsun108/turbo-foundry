@@ -72,7 +72,9 @@ def compare_chronograph_conditions(stopped: dict[str,Any], running: dict[str,Any
     incremental_energy=sum((deltas[i+1]["time_s"]-deltas[i]["time_s"])*
         (deltas[i]["incremental_power_w"]+deltas[i+1]["incremental_power_w"])/2
         for i in range(len(deltas)-1))
-    return {"metadata":{k:v for k,v in m0.items() if k != "evidence_id"},\n            "stopped_evidence_id":m0["evidence_id"],"running_evidence_id":m1["evidence_id"],\n            "incremental_power_samples":deltas,
+    return {"metadata":{k:v for k,v in m0.items() if k != "evidence_id"},
+            "stopped_evidence_id":m0["evidence_id"],"running_evidence_id":m1["evidence_id"],
+            "incremental_power_samples":deltas,
             "incremental_energy_j":incremental_energy,
             "mean_incremental_power_w":incremental_energy/duration,
             "peak_sampled_incremental_power_w":max(x["incremental_power_w"] for x in deltas),
