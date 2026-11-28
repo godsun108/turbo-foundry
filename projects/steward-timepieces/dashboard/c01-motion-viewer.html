@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>STEWARD C-01 — WP-60 Motion Viewer</title>
+<style>
+:root{color-scheme:dark;--bg:#101419;--panel:#1a222a;--line:#35414c;--text:#edf2f5;--muted:#aab7c2;--accent:#c6a66b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:1100px;margin:auto;padding:22px}h1{font-size:1.45rem;margin:0 0 4px}p{color:var(--muted);margin:4px 0 14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin:14px 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}button,select,input{font:inherit;color:var(--text);background:#26313b;border:1px solid #52606c;border-radius:7px;padding:8px}
+button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}input[type=range]{flex:1;min-width:180px;padding:0}
+#stage{width:100%;height:min(65vh,560px);min-height:300px;background:#111820;border:1px solid var(--line);border-radius:8px;display:block}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.meta div{background:#131a20;border-radius:8px;padding:9px}.meta small{display:block;color:var(--muted)}
+#notice{white-space:pre-wrap;color:var(--muted)}.warn{color:#e4c17e}footer{font-size:.85rem;color:var(--muted);margin:18px 0}
+</style>
+</head>
+<body>
+<main>
+<h1>STEWARD C-01 — Integrated Control Motion Viewer</h1>
+<p>WP-60 · Evidence-driven visualization · CW and CL remain separate, unselected candidates</p>
+<section class="panel">
+<div class="controls">
+<label for="file">Import WP-60 JSON package</label>
+<input id="file" type="file" accept=".json,application/json">
+<label for="candidate">Candidate</label>
+<select id="candidate" disabled><option value="CW">CW</option><option value="CL">CL</option></select>
+<button id="play" disabled>Play</button>
+<button id="stepBack" disabled>Previous</button>
+<button id="stepForward" disabled>Next</button>
+</div>
+<p id="notice">No engineering data loaded. Import a package containing explicit geometry and motion samples. No demonstration geometry is preloaded.</p>
+</section>
+<section class="panel">
+<svg id="stage" viewBox="0 0 800 520" role="img" aria-label="Top view of the selected chronograph control assembly at the selected supplied motion frame">
+<text x="400" y="250" text-anchor="middle" fill="#aab7c2" font-size="16">Import a WP-60 JSON package to view supplied geometry</text>
+</svg>
+<div class="controls" style="margin-top:12px">
+<span id="frameLabel">Frame —</span>
+<input id="scrub" type="range" min="0" max="0" value="0" disabled aria-label="Motion frame">
+<span id="timeLabel">— s</span>
+</div>
+</section>
+<section class="panel meta">
+<div><small>Operating state</small><strong id="state">—</strong></div>
+<div><small>Configuration</small><strong id="config">—</strong></div>
+<div><small>Evidence</small><strong id="evidence">—</strong></div>
+<div><small>Source revision</small><strong id="source">—</strong></div>
+<div><small>Components</small><strong id="count">—</strong></div>
+<div><small>Geometry status</small><strong id="approval">—</strong></div>
+</section>
+<section class="panel">
+<strong>Visualization boundary</strong>
+<p>This viewer displays only the supplied sampled poses. It does not interpolate between frames, solve mechanism kinematics, calculate contact forces, certify swept-volume clearance, or establish physical fit. Top-view geometry is a neutral envelope rendering of the imported component descriptors.</p>
+<p class="warn">No C-01 geometry or motion samples are included. Synthetic test fixtures are not design data.</p>
+</section>
+<footer>Local browser processing only. The selected JSON file is read in this page and is not uploaded. Exported screenshots or observations are not engineering acceptance records.</footer>
+</main>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id), ns="http://www.w3.org/2000/svg";
+let data=null, frameIndex=0, playing=false, timer=null;
+const requiredStates=["stopped_zero","running","stopped_retained","resetting"];
+function el(tag,attrs,parent){const n=document.createElementNS(ns,tag);Object.entries(attrs||{}).forEach(([k,v])=>n.setAttribute(k,String(v)));if(parent)parent.appendChild(n);return n;}
+function valid(pkg){
+ if(!pkg||!pkg.candidates||!pkg.candidates.CW||!pkg.candidates.CL)throw Error("Package must contain separate CW and CL candidates.");
+ for(const id of ["CW","CL"]){
+  const c=pkg.candidates[id];
+  if(c.candidate_id!==id||!Array.isArray(c.components)||!Array.isArray(c.frames)||c.frames.length<4)throw Error(id+": incomplete candidate package.");
+  if(c.time_unit!=="s"||c.length_unit!=="mm")throw Error(id+": units must be seconds and millimetres.");
+  const ids=c.components.map(x=>x.component_id);
+  if(ids.some(x=>!x)||new Set(ids).size!==ids.length)throw Error(id+": component IDs must be unique.");
+  let last=-Infinity, states=new Set();
+  for(const f of c.frames){
+   if(!requiredStates.includes(f.state)||!Number.isFinite(f.time_s)||f.time_s<=last)throw Error(id+": invalid state or non-increasing frame time.");
+   last=f.time_s;states.add(f.state);
+   if(!Array.isArray(f.poses)||f.poses.length!==ids.length||new Set(f.poses.map(p=>p.component_id)).size!==ids.length||ids.some(x=>!f.poses.some(p=>p.component_id===x)))throw Error(id+": every frame needs exactly one pose per component.");
+   f.poses.forEach(p=>["x_mm","y_mm","angle_deg","z_min_mm","z_max_mm"].forEach(k=>{if(!Number.isFinite(p[k]))throw Error(id+": non-numeric pose field "+k);}));
+  }
+  requiredStates.forEach(s=>{if(!states.has(s))throw Error(id+": missing state "+s);});
+ }
+}
+function current(){return data.candidates[$("candidate").value];}
+function render(){
+ if(!data)return;
+ const c=current(), f=c.frames[frameIndex], svg=$("stage");
+ while(svg.firstChild)svg.removeChild(svg.firstChild);
+ const all=c.components, poses=Object.fromEntries(f.poses.map(p=>[p.component_id,p]));
+ const coords=[];
+ all.forEach(comp=>{const p=poses[comp.component_id],g=comp.geometry,par=g.parameters;
+  if(g.type==="extruded_polygon")par.outline_xy_mm.forEach(pt=>coords.push([p.x_mm+pt[0],p.y_mm+pt[1]]));
+  else {const r=g.type==="annulus"?par.outer_radius_mm:par.radius_mm;coords.push([p.x_mm-r,p.y_mm-r],[p.x_mm+r,p.y_mm+r]);}
+ });
+ if(!coords.length)throw Error("No drawable geometry.");
+ let minX=Math.min(...coords.map(p=>p[0])),maxX=Math.max(...coords.map(p=>p[0]));
+ let minY=Math.min(...coords.map(p=>p[1])),maxY=Math.max(...coords.map(p=>p[1]));
+ let span=Math.max(maxX-minX,maxY-minY,1),scale=430/span,cx=(minX+maxX)/2,cy=(minY+maxY)/2;
+ const sx=x=>400+(x-cx)*scale, sy=y=>260-(y-cy)*scale;
+ el("line",{x1:35,y1:260,x2:765,y2:260,stroke:"#35414c","stroke-dasharray":"3 7"},svg);
+ el("line",{x1:400,y1:25,x2:400,y2:495,stroke:"#35414c","stroke-dasharray":"3 7"},svg);
+ all.forEach((comp,i)=>{
+  const p=poses[comp.component_id],g=comp.geometry,par=g.parameters;
+  const group=el("g",{transform:"translate("+sx(p.x_mm)+" "+sy(p.y_mm)+") rotate("+(-p.angle_deg)+")"},svg);
+  const attrs={fill:"rgba(198,166,107,.18)",stroke:"#c6a66b","stroke-width":2};
+  if(g.type==="cylinder")el("circle",{...attrs,r:par.radius_mm*scale},group);
+  else if(g.type==="annulus"){
+   el("circle",{...attrs,r:par.outer_radius_mm*scale},group);
+   el("circle",{cx:0,cy:0,r:par.inner_radius_mm*scale,fill:"#111820",stroke:"#c6a66b","stroke-width":1.5},group);
+  }else{
+   const pts=par.outline_xy_mm.map(pt=>(pt[0]*scale)+","+(pt[1]*-scale)).join(" ");
+   el("polygon",{...attrs,points:pts},group);
+  }
+  el("circle",{cx:0,cy:0,r:2.5,fill:"#edf2f5"},group);
+  const label=el("text",{x:10,y:-10,fill:"#edf2f5","font-size":11},group);label.textContent=comp.component_id;
+ });
+ const zmin=Math.min(...f.poses.map(p=>p.z_min_mm)),zmax=Math.max(...f.poses.map(p=>p.z_max_mm));
+ const title=el("text",{x:18,y:24,fill:"#aab7c2","font-size":12},svg);title.textContent="TOP VIEW · XY · displayed Z span "+zmin+" to "+zmax+" mm";
+ $("frameLabel").textContent=(frameIndex+1)+" / "+c.frames.length+" · "+f.frame_id;
+ $("timeLabel").textContent=f.time_s+" s";
+ $("state").textContent=f.state;
+ $("config").textContent=c.configuration_revision;
+ $("evidence").textContent=f.evidence_id;
+ $("source").textContent=f.source_revision;
+ $("count").textContent=c.components.length;
+ $("approval").textContent=c.components.filter(x=>x.status==="approved").length+" approved / "+c.components.length+" total";
+ $("scrub").max=c.frames.length-1;$("scrub").value=frameIndex;
+}
+function stop(){playing=false;if(timer)clearInterval(timer);timer=null;$("play").textContent="Play";}
+function advance(){const c=current();if(frameIndex>=c.frames.length-1){stop();return;}frameIndex++;render();}
+$("file").addEventListener("change",async e=>{
+ stop();const file=e.target.files&&e.target.files[0];if(!file)return;
+ try{const parsed=JSON.parse(await file.text());valid(parsed);data=parsed;frameIndex=0;
+  $("candidate").disabled=false;["play","stepBack","stepForward","scrub"].forEach(id=>$(id).disabled=false);
+  $("notice").textContent="Loaded "+file.name+". Candidate geometry and poses are imported source data; no motion was inferred.";
+  render();
+ }catch(err){data=null;$("notice").textContent="Import rejected: "+err.message;}
+});
+$("candidate").addEventListener("change",()=>{stop();frameIndex=0;render();});
+$("scrub").addEventListener("input",()=>{stop();frameIndex=Number($("scrub").value);render();});
+$("stepBack").addEventListener("click",()=>{stop();frameIndex=Math.max(0,frameIndex-1);render();});
+$("stepForward").addEventListener("click",()=>{stop();advance();});
+$("play").addEventListener("click",()=>{if(!data)return;if(playing){stop();return;}if(frameIndex>=current().frames.length-1)frameIndex=0;playing=true;$("play").textContent="Pause";render();timer=setInterval(advance,450);});
+})();
+</script>
+</body>
+</html>
