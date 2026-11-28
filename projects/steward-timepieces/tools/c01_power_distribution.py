@@ -55,7 +55,8 @@ def _series(data: dict[str,Any], label: str) -> tuple[dict[str,str],list[dict[st
                       "power_w":_num(row.get("power_w"),f"{label}.power_w",nonnegative=True)})
     if any(b["time_s"]<=a["time_s"] for a,b in zip(clean,clean[1:])):
         raise ValueError(f"{label} sample times must be strictly increasing")
-    meta["evidence_id"]=_id(data.get("evidence_id"),f"{label}.evidence_id")\n    return meta,clean
+    meta["evidence_id"]=_id(data.get("evidence_id"),f"{label}.evidence_id")
+    return meta,clean
 
 def compare_chronograph_conditions(stopped: dict[str,Any], running: dict[str,Any]) -> dict[str,Any]:
     """Paired off/on comparison; exact common time grid required."""
