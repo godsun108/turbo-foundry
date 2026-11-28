@@ -102,7 +102,7 @@ class PowerTrainTests(unittest.TestCase):
             "counter_branches": [
                 {"id": "minute", "mode": "continuous",
                  "period_seconds_per_revolution": 1800,
-                 "stages": [stage(10, 30)]},
+                 "stages": [stage(10, 300)]},
                 {"id": "hour", "mode": "jumping",
                  "period_seconds_per_revolution": 43200,
                  "events_per_hour": 1, "divisions_per_revolution": 12},
