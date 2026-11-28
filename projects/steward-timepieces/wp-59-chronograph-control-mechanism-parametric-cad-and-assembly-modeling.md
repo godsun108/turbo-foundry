@@ -74,13 +74,13 @@ Mate records support the following narrowly defined checks:
 
 | Mate type | Calculation | Limitation |
 |---|---|---|
-| Coaxial | Compare declared local +Z axis directions and distance between axis lines | Nominal axis alignment only |
+| Coaxial | Compare declared local +Z axis directions (parallel or antiparallel) using an angular tolerance in degrees, and distance between axis lines using a separate offset tolerance in mm | Nominal axis alignment only |
 | Planar | Compare global Z coordinates | Does not solve plane normals or contact |
 | Fixed distance | Compare explicit global component-origin distance with target and tolerance | Does not define a full linkage |
 | Angular | Compare relative global Z Euler angle with target and tolerance | Does not define a 3D joint |
 | Contact reference | Validate two named feature references | No contact detection or solver |
 
-Each mate requires unique ID, two distinct component endpoints, definition, evidence ID and source revision. Numeric mates require explicit positive tolerances. A failed mate check is a screening failure; a passed check is not proof of physical fit or mechanism operation. Contact-reference mates deliberately remain unverified.
+Each mate requires unique ID, two distinct component endpoints, definition, evidence ID and source revision. Numeric mates require explicit positive tolerances in dimensionally appropriate units; coaxial mates use separate angular (degrees) and offset (mm) tolerances. A failed mate check is a screening failure; a passed check is not proof of physical fit or mechanism operation. Contact-reference mates deliberately remain unverified.
 
 ## 6. Candidate assembly package and baseline control
 
