@@ -116,6 +116,8 @@ def validate_observations(plan: dict[str, Any],
         for field in ("boundary_id", "timebase_id", "interval_id",
                       "evidence_id", "source_revision"):
             _text(row[field], f"{oid}.{field}")
+        if row["source_revision"] != plan["movement_revision"]:
+            raise ValueError(f"{oid} movement/source revision does not match campaign plan")
         measurements = row["measurements"]
         uncertainty = row["expanded_uncertainty"]
         if not isinstance(measurements, dict) or not measurements:
@@ -233,6 +235,10 @@ def evaluate_campaign(plan: dict[str, Any], observations: list[dict[str, Any]],
     """Fail-closed integrated campaign summary; no reserve-hour extrapolation."""
     plan_result = validate_campaign_plan(plan)
     evidence_result = validate_observations(plan, observations)
+    for index, requirement in enumerate(requirements):
+        if requirement.get("requirements_revision") != plan["requirements_revision"]:
+            raise ValueError(
+                f"requirements[{index}] revision does not match campaign plan")
     acceptance = evaluate_acceptance(observations, requirements)
     gates_approved = plan_result["all_release_gates_approved"]
     paired = evidence_result["unmatched_pair_groups"] == 0
