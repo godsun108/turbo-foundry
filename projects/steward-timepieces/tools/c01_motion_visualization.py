@@ -123,12 +123,16 @@ def validate_candidate(candidate):
     if not set(STATES).issubset({f["state"] for f in frames}):
         raise MotionVisualizationError("all four operating states must be represented")
     # Require the declared reset sequence to follow retained time and return to zero.
+    running = next((i for i,f in enumerate(frames) if f["state"] == "running"), None)
     retained = next((i for i,f in enumerate(frames) if f["state"] == "stopped_retained"), None)
     resetting = next((i for i,f in enumerate(frames) if f["state"] == "resetting"), None)
     zero_after = next((i for i,f in enumerate(frames) if i > (resetting if resetting is not None else -1)
                        and f["state"] == "stopped_zero"), None)
-    if retained is None or resetting is None or zero_after is None or not retained < resetting < zero_after:
-        raise MotionVisualizationError("required sequence: stopped_retained -> resetting -> stopped_zero")
+    if (running is None or retained is None or resetting is None or zero_after is None
+            or not 0 < running < retained < resetting < zero_after):
+        raise MotionVisualizationError(
+            "required sequence: stopped_zero -> running -> stopped_retained -> resetting -> stopped_zero"
+        )
     return {
         "candidate_id": cid, "component_count": len(by_id), "frame_count": len(frames),
         "state_sequence": seen_states, "time_start_s": times[0], "time_end_s": times[-1],
