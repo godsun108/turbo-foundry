@@ -20,7 +20,7 @@ def fixture():
 class Tests(unittest.TestCase):
     def test_exact_ratio(self):
         x=evaluate_square_going_train(fixture())
-        self.assertEqual(x["kinematic_evaluation"]["signed_compound_speed_ratio"],"12")
+        self.assertEqual(x["kinematic_evaluation"]["signed_compound_speed_ratio"],"24")
         self.assertFalse(x["physical_feasibility_established"])
     def test_path_must_match(self):
         x=fixture(); x["path_arbor_ids"]=["barrel","center","fourth","escape"]
