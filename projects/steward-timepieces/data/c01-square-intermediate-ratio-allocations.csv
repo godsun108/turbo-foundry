@@ -1,0 +1,7 @@
+allocation_id,mesh_1_ratio_magnitude,mesh_2_ratio_magnitude,total_ratio,allocation_class,evidence_class,disposition,notes
+SQ07-A,1,60,60,integer-factor endpoint,D,algebraic only,No tooth counts assigned
+SQ07-B,2,30,60,integer-factor split,D,algebraic only,No tooth counts assigned
+SQ07-C,3,20,60,integer-factor split,D,algebraic only,No tooth counts assigned
+SQ07-D,4,15,60,integer-factor split,D,algebraic only,No tooth counts assigned
+SQ07-E,5,12,60,integer-factor split,D,algebraic only,No tooth counts assigned
+SQ07-F,6,10,60,most balanced positive-integer factor split,D,algebraic only,Not selected; no physical ranking
