@@ -148,13 +148,31 @@ def validate_observations(plan: dict[str, Any],
                row["source_revision"])
         pair_groups.setdefault(key, set()).add(row["chrono_mode"])
     incomplete = [key for key, modes in pair_groups.items()
-                  if not MODES.issubset(modes)]
+                  if not set(plan["required_modes"]).issubset(modes)]
+    observed_matrix = {
+        (row["reserve_state_id"], row["test_condition_id"], row["chrono_mode"])
+        for row in normalized
+    }
+    expected_matrix = {
+        (state_id, condition_id, mode)
+        for state_id in plan["reserve_state_ids"]
+        for condition_id in plan["test_condition_ids"]
+        for mode in plan["required_modes"]
+    }
+    missing_matrix = sorted(expected_matrix - observed_matrix)
     return {
         "observations_valid": True,
         "observation_count": len(normalized),
         "matched_pair_group_count": sum(
-            1 for modes in pair_groups.values() if MODES.issubset(modes)),
+            1 for modes in pair_groups.values()
+            if set(plan["required_modes"]).issubset(modes)),
         "unmatched_pair_groups": len(incomplete),
+        "expected_state_condition_mode_cells": len(expected_matrix),
+        "missing_state_condition_mode_cells": [
+            {"reserve_state_id": item[0], "test_condition_id": item[1],
+             "chrono_mode": item[2]} for item in missing_matrix
+        ],
+        "coverage_complete": not missing_matrix,
         "pairing_key": [
             "reserve_state_id", "test_condition_id", "boundary_id",
             "timebase_id", "interval_id", "source_revision"
@@ -241,7 +259,8 @@ def evaluate_campaign(plan: dict[str, Any], observations: list[dict[str, Any]],
                 f"requirements[{index}] revision does not match campaign plan")
     acceptance = evaluate_acceptance(observations, requirements)
     gates_approved = plan_result["all_release_gates_approved"]
-    paired = evidence_result["unmatched_pair_groups"] == 0
+    paired = (evidence_result["unmatched_pair_groups"] == 0
+              and evidence_result["coverage_complete"])
     requirements_pass = acceptance["overall_guard_banded_verdict"] == "PASS"
     campaign_status = (
         "EVIDENCE_REVIEW_READY" if gates_approved and paired and requirements_pass
