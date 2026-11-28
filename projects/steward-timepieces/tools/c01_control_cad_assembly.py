@@ -160,16 +160,20 @@ def validate_mates(mates, components):
         result = {"mate_id": mid, "type": kind, "component_a": a, "component_b": b,
                   "evidence_id": m["evidence_id"], "source_revision": m["source_revision"]}
         if kind == "coaxial":
-            tol = _positive(m.get("tolerance_mm"), mid+".tolerance_mm")
+            angular_tol = _positive(m.get("angular_tolerance_deg"), mid+".angular_tolerance_deg")
+            offset_tol = _positive(m.get("offset_tolerance_mm"), mid+".offset_tolerance_mm")
             da, db = _axis_direction(pa["rotation"]), _axis_direction(pb["rotation"])
-            parallel_error = math.sqrt(sum((da[i]-db[i])**2 for i in range(3)))
+            dot = max(-1.0, min(1.0, sum(da[i]*db[i] for i in range(3))))
+            # Coaxial axes are geometrically equivalent when parallel or antiparallel.
+            angular_error = math.degrees(math.acos(abs(dot)))
             # Axis line separation, invariant to translation along axis A.
             cross = (da[1]*(pb["translation"][2]-pa["translation"][2])-da[2]*(pb["translation"][1]-pa["translation"][1]),
                      da[2]*(pb["translation"][0]-pa["translation"][0])-da[0]*(pb["translation"][2]-pa["translation"][2]),
                      da[0]*(pb["translation"][1]-pa["translation"][1])-da[1]*(pb["translation"][0]-pa["translation"][0]))
             offset = math.sqrt(sum(x*x for x in cross))
-            result.update(axis_direction_error=parallel_error, axis_offset_mm=offset,
-                          within_tolerance=parallel_error <= tol and offset <= tol)
+            result.update(axis_angular_error_deg=angular_error, axis_offset_mm=offset,
+                          angular_tolerance_deg=angular_tol, offset_tolerance_mm=offset_tol,
+                          within_tolerance=angular_error <= angular_tol and offset <= offset_tol)
         elif kind == "planar":
             tol = _positive(m.get("tolerance_mm"), mid+".tolerance_mm")
             result.update(axial_separation_mm=abs(pa["translation"][2]-pb["translation"][2]),
